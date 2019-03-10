@@ -143,9 +143,10 @@ class ChartView @JvmOverloads constructor(
         super.onDraw(canvas)
         linesForDrawing.forEach { line, paint ->
             if (paint.alpha > 0) {
+                val points = chart[line]
                 for (i in Math.max(start.roundToInt() - 1, 0)..end.roundToInt()) {
-                    chart[line].getOrNull(index = i + 1)?.let { next ->
-                        val point = chart[line][i]
+                    points.getOrNull(index = i + 1)?.let { next ->
+                        val point = points[i]
                         canvas.drawLine(mapX(i), mapY(point), mapX(idx = i + 1), mapY(next), paint)
                     }
                 }

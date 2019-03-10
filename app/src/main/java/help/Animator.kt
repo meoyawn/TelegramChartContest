@@ -43,4 +43,4 @@ inline fun <reified T> animationUpdate(crossinline f: (T) -> Unit): ValueAnimato
     }
 
 inline fun <reified T> ValueAnimator.onUpdate(crossinline f: (T) -> Unit): ValueAnimator =
-    chainUpdateListener(animationUpdate<T>(f))
+    chainUpdateListener(animationUpdate(f))
