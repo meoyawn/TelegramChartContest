@@ -17,14 +17,16 @@ data class Chart(
     val colors: SimpleArrayMap<ColumnName, ColorString>
 )
 
+val EMPTY_CHART = Chart(simpleArrayMapOf(), simpleArrayMapOf(), simpleArrayMapOf(), simpleArrayMapOf())
+
 fun Chart.color(name: ColumnName): ColorInt =
-    parseColor(colors[name]!!)
+    parseColor(colors[name] ?: error("color not found for $name"))
 
 fun Chart.size(): Int =
     columns.first().size
 
 operator fun Chart.get(name: ColumnName): LongArray =
-    columns[name]!!
+    columns[name] ?: error("data not found for $name")
 
 fun Chart.lines(): Set<ColumnName> =
     types.filterKeys { _, type -> type == ColumnType.line }

@@ -21,6 +21,9 @@ inline fun <K, V> SimpleArrayMap<K, V>.forEach(f: (K, V) -> Unit) {
     }
 }
 
+inline fun <K, V> SimpleArrayMap<K, V>.forEachKey(f: (K) -> Unit): Unit =
+    forEach { k, _ -> f(k) }
+
 inline fun <K, V> SimpleArrayMap<K, V>.filterValues(f: (K, V) -> Boolean): List<V> =
     mutableListOf<V>().also { list ->
         forEach { k, v ->

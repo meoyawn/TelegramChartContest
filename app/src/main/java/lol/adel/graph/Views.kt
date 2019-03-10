@@ -13,7 +13,6 @@ import lol.adel.graph.data.*
 
 private fun makeCheckbox(chart: Chart, name: ColumnName, view: ChartView): AppCompatCheckBox =
     AppCompatCheckBox(view.context).apply {
-        id = name.hashCode()
         text = chart.names[name]
         buttonTintList = ColorStateList.valueOf(chart.color(name))
 
@@ -24,9 +23,9 @@ private fun makeCheckbox(chart: Chart, name: ColumnName, view: ChartView): AppCo
 
         setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                view.enabled += name
+                view.enable(name)
             } else {
-                view.enabled -= name
+                view.disable(name)
             }
         }
 
@@ -36,6 +35,7 @@ private fun makeCheckbox(chart: Chart, name: ColumnName, view: ChartView): AppCo
     }
 
 fun ViewHolder.setup(data: Chart) {
+    chartView.chart = data
 
     for (name in data.lines()) {
         root.addView(makeCheckbox(data, name, chartView))
@@ -43,7 +43,6 @@ fun ViewHolder.setup(data: Chart) {
     }
     root.removeViewAt(root.childCount - 1)
 
-    chartView.chart = data
     scroll.listener = { left, right ->
         chartView.start = left * data.size().dec()
         chartView.end = right * data.size().dec()

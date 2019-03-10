@@ -1,15 +1,14 @@
 package lol.adel.graph
 
+import android.animation.Animator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
+import androidx.collection.SimpleArrayMap
 import help.*
-import lol.adel.graph.data.Chart
-import lol.adel.graph.data.ColumnType
-import lol.adel.graph.data.get
-import lol.adel.graph.data.size
+import lol.adel.graph.data.*
 import kotlin.math.roundToInt
 
 class ChartView @JvmOverloads constructor(
@@ -17,10 +16,6 @@ class ChartView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
-
-    val linePaint = Paint().apply {
-        strokeWidth = 1.dpF
-    }
 
     var start: IdxF = 0f
         set(value) {
@@ -36,48 +31,97 @@ class ChartView @JvmOverloads constructor(
             invalidate()
         }
 
-    var chart: Chart = CHARTS[0]
+    var chart: Chart = EMPTY_CHART
         set(value) {
             field = value
 
             end = value.size().toFloat() - 1
-            enabled = value.types.filterKeys { _, type -> type == ColumnType.line }
+
+            linesForMinMax.clear()
+            linesForDrawing.clear()
+            value.lines().forEach {
+                linesForMinMax += it
+                linesForDrawing[it] = Paint().apply {
+                    strokeWidth = 2.dpF
+                    color = value.color(it)
+                }
+            }
 
             recalculateMinMax()
             invalidate()
         }
 
-    var enabled: Set<String> = emptySet()
-        set(value) {
-            field = value
-            recalculateMinMax()
+    private val linesForMinMax: MutableSet<ColumnName> = mutableSetOf()
+    private val linesForDrawing: SimpleArrayMap<ColumnName, Paint> = simpleArrayMapOf()
+
+    fun enable(name: ColumnName) {
+        linesForMinMax += name
+
+        val paint = linesForDrawing[name]!!
+        animateInt(from = paint.alpha, to = 255) {
+            paint.alpha = it
             invalidate()
-        }
+        }.start()
+
+        recalculateMinMax()
+        invalidate()
+    }
+
+    fun disable(name: ColumnName) {
+        linesForMinMax -= name
+
+        val paint = linesForDrawing[name]!!
+        animateInt(from = paint.alpha, to = 0) {
+            paint.alpha = it
+            invalidate()
+        }.start()
+
+        recalculateMinMax()
+        invalidate()
+    }
 
     private var min: Long = 0
     private var max: Long = 0
 
+    var minMaxAnim: Animator? = null
+
     /**
-     * depends on [enabled], [chart], [start], [end]
+     * depends on [linesForMinMax], [chart], [start], [end]
      */
     private fun recalculateMinMax() {
-        min = Long.MAX_VALUE
-        max = Long.MIN_VALUE
+        if (linesForMinMax.isEmpty()) return
+
+        var tmpMin = Long.MAX_VALUE
+        var tmpMax = Long.MIN_VALUE
 
         val theStart = start.roundToInt()
         val theEnd = end.roundToInt()
 
-        for (column in enabled) {
+        linesForMinMax.forEach { column ->
             for (i in theStart..theEnd) {
                 val point = chart[column][i]
-
-                if (point > max) {
-                    max = point
+                if (point > tmpMax) {
+                    tmpMax = point
                 }
-                if (point < min) {
-                    min = point
+                if (point < tmpMin) {
+                    tmpMin = point
                 }
             }
+        }
+
+        if (tmpMax != max || tmpMin != min) {
+            minMaxAnim?.cancel()
+            minMaxAnim = playTogether(
+                animateLong(min, tmpMin) {
+                    min = it
+                    invalidate()
+                },
+                animateLong(max, tmpMax) {
+                    max = it
+                    invalidate()
+                }
+            )
+            minMaxAnim?.start()
         }
     }
 
@@ -97,13 +141,13 @@ class ChartView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        for (column in enabled) {
-            linePaint.color = parseColor(chart.colors[column]!!)
-
-            for (i in Math.max(start.roundToInt() - 1, 0)..end.roundToInt()) {
-                chart[column].getOrNull(index = i + 1)?.let { next ->
-                    val point = chart[column][i]
-                    canvas.drawLine(mapX(i), mapY(point), mapX(idx = i + 1), mapY(next), linePaint)
+        linesForDrawing.forEach { line, paint ->
+            if (paint.alpha > 0) {
+                for (i in Math.max(start.roundToInt() - 1, 0)..end.roundToInt()) {
+                    chart[line].getOrNull(index = i + 1)?.let { next ->
+                        val point = chart[line][i]
+                        canvas.drawLine(mapX(i), mapY(point), mapX(idx = i + 1), mapY(next), paint)
+                    }
                 }
             }
         }
