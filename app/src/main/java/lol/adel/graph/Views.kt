@@ -5,10 +5,10 @@ import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatCheckBox
-import androidx.core.view.updatePadding
 import help.MATCH_PARENT
 import help.WRAP_CONTENT
 import help.dp
+import help.updatePadding
 import lol.adel.graph.data.*
 
 private fun makeCheckbox(chart: Chart, name: ColumnName, view: ChartView): AppCompatCheckBox =
