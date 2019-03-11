@@ -28,10 +28,10 @@ class ChartView @JvmOverloads constructor(
 
             end = value.size().toFloat() - 1
 
-            linesForMinMax.clear()
+            enabledLines.clear()
             linesForDrawing.clear()
             value.lines().forEach {
-                linesForMinMax += it
+                enabledLines += it
                 linesForDrawing[it] = Paint().apply {
                     strokeWidth = 2.dpF
                     color = value.color(it)
@@ -42,11 +42,11 @@ class ChartView @JvmOverloads constructor(
             invalidate()
         }
 
-    private val linesForMinMax: MutableSet<ColumnName> = mutableSetOf()
+    private val enabledLines: MutableSet<ColumnName> = mutableSetOf()
     private val linesForDrawing: SimpleArrayMap<ColumnName, Paint> = simpleArrayMapOf()
 
     fun enable(name: ColumnName) {
-        linesForMinMax += name
+        enabledLines += name
 
         val paint = linesForDrawing[name]!!
         animateInt(from = paint.alpha, to = 255) {
@@ -59,7 +59,7 @@ class ChartView @JvmOverloads constructor(
     }
 
     fun disable(name: ColumnName) {
-        linesForMinMax -= name
+        enabledLines -= name
 
         val paint = linesForDrawing[name]!!
         animateInt(from = paint.alpha, to = 0) {
@@ -78,16 +78,20 @@ class ChartView @JvmOverloads constructor(
     private var max: Double = 0.0
 
     /**
-     * depends on [linesForMinMax], [chart], [start], [end]
+     * depends on [enabledLines], [chart], [start], [end]
      */
     private fun recalculateMinMax(animate: Boolean = false) {
-        if (linesForMinMax.isEmpty()) return
+        if (enabledLines.isEmpty()) return
 
         var visibleMin = Long.MAX_VALUE
         var visibleMax = Long.MIN_VALUE
+
+        val anticipatedStart = start.floor()
         val visibleStart = start.ceil()
         val visibleEnd = end.floor()
-        for (line in linesForMinMax) {
+        val anticipatedEnd = end.ceil()
+
+        for (line in enabledLines) {
             val points = chart[line]
             for (i in visibleStart..visibleEnd) {
                 val point = points[i]
@@ -102,38 +106,36 @@ class ChartView @JvmOverloads constructor(
         var anticipatedMaxIdx = -1
         var anticipatedMinIdx = -1
 
-        val left = start.floor()
-        val right = end.ceil()
-        for (line in linesForMinMax) {
+        for (line in enabledLines) {
             val points = chart[line]
-            val anticipatedLeft = points[left]
-            val anticipatedRight = points[right]
+            val anticipatedLeft = points[anticipatedStart]
+            val anticipatedRight = points[anticipatedEnd]
 
             if (anticipatedLeft > anticipatedMax) {
                 anticipatedMax = anticipatedLeft
-                anticipatedMaxIdx = left
+                anticipatedMaxIdx = anticipatedStart
             }
             if (anticipatedRight > anticipatedMax) {
                 anticipatedMax = anticipatedRight
-                anticipatedMaxIdx = right
+                anticipatedMaxIdx = anticipatedEnd
             }
 
             if (anticipatedLeft < anticipatedMin) {
                 anticipatedMin = anticipatedLeft
-                anticipatedMinIdx = left
+                anticipatedMinIdx = anticipatedStart
             }
             if (anticipatedRight < anticipatedMin) {
                 anticipatedMin = anticipatedRight
-                anticipatedMinIdx = right
+                anticipatedMinIdx = anticipatedEnd
             }
         }
 
         val maxFraction = when (anticipatedMaxIdx) {
-            left ->
-                start - left
+            anticipatedStart ->
+                start - anticipatedStart
 
-            right ->
-                right - end
+            anticipatedEnd ->
+                anticipatedEnd - end
 
             else ->
                 0f
@@ -141,11 +143,11 @@ class ChartView @JvmOverloads constructor(
         val finalMax = visibleMax + Math.abs(anticipatedMax - visibleMax) * (1 - maxFraction)
 
         val minFraction = when (anticipatedMinIdx) {
-            left ->
-                start - left
+            anticipatedStart ->
+                start - anticipatedStart
 
-            right ->
-                right - end
+            anticipatedEnd ->
+                anticipatedEnd - end
 
             else ->
                 0f
