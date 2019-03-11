@@ -18,11 +18,11 @@ val Context.ctx: Context
 private fun dpToPx(dp: DpF): PxF =
     dp * Resources.getSystem().displayMetrics.density
 
-val Dp.dp: Px
-    get() = dpToPx(toFloat()).roundToInt()
-
 val Dp.dpF: PxF
     get() = dpToPx(toFloat())
+
+val Dp.dp: Px
+    get() = dpF.roundToInt()
 
 val View.widthF: PxF
     get() = width.toFloat()

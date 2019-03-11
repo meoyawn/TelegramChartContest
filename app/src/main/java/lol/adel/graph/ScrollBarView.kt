@@ -1,79 +1,68 @@
 package lol.adel.graph
 
 import android.animation.Animator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import help.*
 
-sealed class Dragging {
-
-    object LEFT : Dragging()
-
-    object RIGHT : Dragging()
-
-    data class BETWEEN(
-        val left: X,
-        val right: X,
-        val x: X
-    ) : Dragging()
-}
-
 class ScrollBarView @JvmOverloads constructor(
-    context: Context,
+    ctx: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : View(context, attrs, defStyleAttr) {
+) : View(ctx, attrs, defStyleAttr) {
 
-    val blue = Paint().apply { color = Color.BLUE }
-    val touch = Paint().apply { color = Color.GREEN }
+    private val pale = Paint().apply { color = ctx.color(R.color.scroll_overlay_pale) }
+    private val bright = Paint().apply { color = ctx.color(R.color.scroll_overlay_bright) }
+    private val touch = Paint().apply { color = ctx.color(R.color.scroll_overlay_touch) }
 
     var listener: (X, X) -> Unit = { _, _ -> }
 
-    var left: Float = 0f
+    private var left: Float = 0f
         set(value) {
             field = value
             listener(left / widthF, right / widthF)
             invalidate()
         }
 
-    var right: Float = 0f
+    private var right: Float = 0f
         set(value) {
             field = value
             listener(left / widthF, right / widthF)
             invalidate()
         }
 
-    var dragging: Dragging? = null
-    var wasDragging: Dragging? = null
+    private var dragging: Dragging? = null
+    private var wasDragging: Dragging? = null
 
-    var radius: PxF = 0f
+    private var radius: PxF = 0f
         set(value) {
             field = value
             invalidate()
         }
 
-    var anim: Animator? = null
+    private var anim: Animator? = null
 
-    fun around(x: X, view: X): Boolean =
+    private fun around(x: X, view: X): Boolean =
         Math.abs(x - view) <= 24.dp
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 when {
                     around(event.x, left) ->
-                        dragging = Dragging.LEFT
+                        dragging = Dragging.Left
 
                     around(event.x, right) ->
-                        dragging = Dragging.RIGHT
+                        dragging = Dragging.Right
 
                     event.x in left..right ->
-                        dragging = Dragging.BETWEEN(left = left, right = right, x = event.x)
+                        dragging = Dragging.Between(left = left, right = right, x = event.x)
                 }
 
                 anim?.cancel()
@@ -85,13 +74,13 @@ class ScrollBarView @JvmOverloads constructor(
 
             MotionEvent.ACTION_MOVE ->
                 when (val d = dragging) {
-                    Dragging.LEFT ->
+                    Dragging.Left ->
                         left = Math.min(Math.max(event.x, 0f), right)
 
-                    Dragging.RIGHT ->
+                    Dragging.Right ->
                         right = Math.max(left, Math.min(event.x, widthF - 1))
 
-                    is Dragging.BETWEEN -> {
+                    is Dragging.Between -> {
                         val diff = event.x - d.x
                         val newLeft = d.left + diff
                         val newRight = d.right + diff
@@ -121,7 +110,9 @@ class ScrollBarView @JvmOverloads constructor(
                 dragging = null
 
                 anim?.cancel()
-                anim = animateFloat(radius, 0f) { radius = it }
+                anim = animateFloat(radius, 0f) {
+                    radius = it
+                }
                 anim?.start()
             }
         }
@@ -135,17 +126,32 @@ class ScrollBarView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        canvas.drawRect(left - 4.dp, 0f, left + 4.dp, heightF, blue)
-        canvas.drawRect(right - 4.dp, 0f, right + 4.dp, heightF, blue)
+
+        val width = widthF
+        val height = heightF
+        val halfHeight = height / 2
+
+        val lineWidth = 8.dpF
+        val lineHeight = 2.dpF
+        val halfLineWidth = lineWidth / 2
+
+        canvas.drawRect(0f, 0f, left - halfLineWidth, height, pale)
+        canvas.drawRect(right + halfLineWidth, 0f, width, height, pale)
+
+        canvas.drawRect(left - halfLineWidth, 0f, left + halfLineWidth, height, bright)
+        canvas.drawRect(left + halfLineWidth, 0f, right - halfLineWidth, lineHeight, bright)
+        canvas.drawRect(left + halfLineWidth, height - lineHeight, right - halfLineWidth, height, bright)
+        canvas.drawRect(right - halfLineWidth, 0f, right + halfLineWidth, height, bright)
+
         when (dragging ?: wasDragging) {
-            Dragging.LEFT ->
-                canvas.drawCircle(left, heightF / 2, radius, touch)
+            Dragging.Left ->
+                canvas.drawCircle(left, halfHeight, radius, touch)
 
-            Dragging.RIGHT ->
-                canvas.drawCircle(right, heightF / 2, radius, touch)
+            Dragging.Right ->
+                canvas.drawCircle(right, halfHeight, radius, touch)
 
-            is Dragging.BETWEEN ->
-                canvas.drawCircle((right - left) / 2 + left, heightF / 2, radius, touch)
+            is Dragging.Between ->
+                canvas.drawCircle((right - left) / 2 + left, halfHeight, radius, touch)
         }
     }
 }
