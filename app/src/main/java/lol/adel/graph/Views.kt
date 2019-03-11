@@ -35,9 +35,10 @@ private fun makeCheckbox(chart: Chart, name: ColumnName, view: ChartView): AppCo
     }
 
 fun ViewHolder.setup(data: Chart) {
-    chartView.chart = data
+    val lines = data.lines()
+    chartView.setup(data, lines)
 
-    for (name in data.lines()) {
+    for (name in lines) {
         root.addView(makeCheckbox(data, name, chartView))
         root.addView(ImageView(ctx).apply { setImageResource(R.drawable.h_divider) })
     }

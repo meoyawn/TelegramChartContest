@@ -7,7 +7,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.chart)
 
         val vh = ViewHolder(
             root = findViewById(R.id.parent),
@@ -15,6 +15,6 @@ class MainActivity : AppCompatActivity() {
             scroll = findViewById(R.id.scroll)
         )
 
-        vh.setup(CHARTS.first())
+        vh.setup(CHARTS.last())
     }
 }

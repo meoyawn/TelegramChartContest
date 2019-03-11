@@ -15,35 +15,37 @@ class ChartView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
+    private var start: IdxF = 0f
+    private var end: IdxF = 0f
+
+    private var min: Double = 0.0
+    private var max: Double = 0.0
+
+    private var data: Chart = EMPTY_CHART
+
+    private val enabledLines: MutableSet<ColumnName> = mutableSetOf()
+    private val linesForDrawing: SimpleArrayMap<ColumnName, Paint> = simpleArrayMapOf()
+
+    fun setup(chart: Chart, enabled: Set<ColumnName>) {
+        data = chart
+
+        enabledLines.clear()
+        linesForDrawing.clear()
+        enabled.forEach { line ->
+            enabledLines += line
+            linesForDrawing[line] = Paint().apply {
+                strokeWidth = 2.dpF
+                color = chart.color(line)
+            }
+        }
+    }
+
     fun setHorizontalBounds(from: IdxF, to: IdxF) {
         start = from
         end = to
         recalculateMinMax()
         invalidate()
     }
-
-    var chart: Chart = EMPTY_CHART
-        set(value) {
-            field = value
-
-            end = value.size().toFloat() - 1
-
-            enabledLines.clear()
-            linesForDrawing.clear()
-            value.lines().forEach {
-                enabledLines += it
-                linesForDrawing[it] = Paint().apply {
-                    strokeWidth = 2.dpF
-                    color = value.color(it)
-                }
-            }
-
-            recalculateMinMax()
-            invalidate()
-        }
-
-    private val enabledLines: MutableSet<ColumnName> = mutableSetOf()
-    private val linesForDrawing: SimpleArrayMap<ColumnName, Paint> = simpleArrayMapOf()
 
     fun enable(name: ColumnName) {
         enabledLines += name
@@ -71,14 +73,8 @@ class ChartView @JvmOverloads constructor(
         invalidate()
     }
 
-    private var start: IdxF = 0f
-    private var end: IdxF = 0f
-
-    private var min: Double = 0.0
-    private var max: Double = 0.0
-
     /**
-     * depends on [enabledLines], [chart], [start], [end]
+     * depends on [enabledLines], [data], [start], [end]
      */
     private fun recalculateMinMax(animate: Boolean = false) {
         if (enabledLines.isEmpty()) return
@@ -92,7 +88,7 @@ class ChartView @JvmOverloads constructor(
         val anticipatedEnd = end.ceil()
 
         for (line in enabledLines) {
-            val points = chart[line]
+            val points = data[line]
             for (i in visibleStart..visibleEnd) {
                 val point = points[i]
                 visibleMax = Math.max(visibleMax, point)
@@ -107,7 +103,7 @@ class ChartView @JvmOverloads constructor(
         var anticipatedMinIdx = -1
 
         for (line in enabledLines) {
-            val points = chart[line]
+            val points = data[line]
             val anticipatedLeft = points[anticipatedStart]
             val anticipatedRight = points[anticipatedEnd]
 
@@ -187,7 +183,7 @@ class ChartView @JvmOverloads constructor(
         super.onDraw(canvas)
         linesForDrawing.forEach { line, paint ->
             if (paint.alpha > 0) {
-                val points = chart[line]
+                val points = data[line]
                 for (i in start.floor()..end.ceil()) {
                     points.getOrNull(index = i + 1)?.let { next ->
                         val point = points[i]

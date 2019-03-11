@@ -4,13 +4,15 @@
     android:id="@+id/parent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipChildren="false"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Followers" />
+        android:text="Followers"
+        android:textColor="@color/header_text_day" />
 
     <lol.adel.graph.ChartView
         android:id="@+id/chart"
@@ -18,9 +20,20 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <lol.adel.graph.ScrollBarView
-        android:id="@+id/scroll"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp" />
+        android:layout_height="48dp"
+        android:clipChildren="false">
+
+        <lol.adel.graph.BackgroundChartView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <lol.adel.graph.ScrollBarView
+            android:id="@+id/scroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
 
 </LinearLayout>

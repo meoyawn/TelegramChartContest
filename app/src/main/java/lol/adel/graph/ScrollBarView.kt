@@ -66,7 +66,7 @@ class ScrollBarView @JvmOverloads constructor(
                 }
 
                 anim?.cancel()
-                anim = animateFloat(radius, heightF / 2) {
+                anim = animateFloat(radius, (heightF + 32.dp) / 2) {
                     radius = it
                 }
                 anim?.start()
