@@ -28,6 +28,14 @@ inline fun <T> T.animateLong(from: Long, to: Long, crossinline f: T.(Long) -> Un
             }
         }
 
+inline fun <T> T.animateDouble(from: Double, to: Double, crossinline f: T.(Double) -> Unit): ValueAnimator =
+    ValueAnimator.ofFloat(from.toFloat(), to.toFloat())
+        .apply {
+            addUpdateListener {
+                f((it.animatedValue as Float).toDouble())
+            }
+        }
+
 fun playSequentially(vararg a: Animator): AnimatorSet =
     AnimatorSet().apply { playSequentially(*a) }
 

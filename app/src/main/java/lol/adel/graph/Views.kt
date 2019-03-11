@@ -44,7 +44,9 @@ fun ViewHolder.setup(data: Chart) {
     root.removeViewAt(root.childCount - 1)
 
     scroll.listener = { left, right ->
-        chartView.start = left * data.size().dec()
-        chartView.end = right * data.size().dec()
+        chartView.setHorizontalBounds(
+            from = left * data.size().dec(),
+            to = right * data.size().dec()
+        )
     }
 }
