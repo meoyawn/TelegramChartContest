@@ -6,7 +6,8 @@ import android.view.ViewGroup
 class ViewHolder(
     val root: ViewGroup,
     val chartView: ChartView,
-    val scroll: ScrollBarView
+    val scroll: ScrollBarView,
+    val background: BackgroundChartView
 )
 
 val ViewHolder.ctx: Context

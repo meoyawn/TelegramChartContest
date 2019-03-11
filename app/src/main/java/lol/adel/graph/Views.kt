@@ -11,10 +11,10 @@ import help.dp
 import help.updatePadding
 import lol.adel.graph.data.*
 
-private fun makeCheckbox(chart: Chart, name: ColumnName, view: ChartView): AppCompatCheckBox =
-    AppCompatCheckBox(view.context).apply {
-        text = chart.names[name]
-        buttonTintList = ColorStateList.valueOf(chart.color(name))
+private fun makeCheckbox(chart: Chart, id: LineId, viewHolder: ViewHolder): AppCompatCheckBox =
+    AppCompatCheckBox(viewHolder.ctx).apply {
+        text = chart.names[id]
+        buttonTintList = ColorStateList.valueOf(chart.color(id))
 
         minHeight = 48.dp
         gravity = Gravity.CENTER_VERTICAL
@@ -22,11 +22,8 @@ private fun makeCheckbox(chart: Chart, name: ColumnName, view: ChartView): AppCo
         isChecked = true
 
         setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                view.enable(name)
-            } else {
-                view.disable(name)
-            }
+            viewHolder.chartView.selectLine(id, isChecked)
+            viewHolder.background.selectLine(id, isChecked)
         }
 
         val padding = 10.dp
@@ -37,17 +34,20 @@ private fun makeCheckbox(chart: Chart, name: ColumnName, view: ChartView): AppCo
 fun ViewHolder.setup(data: Chart) {
     val lines = data.lines()
     chartView.setup(data, lines)
+    background.setup(data, lines)
 
     for (name in lines) {
-        root.addView(makeCheckbox(data, name, chartView))
+        root.addView(makeCheckbox(data, name, this))
         root.addView(ImageView(ctx).apply { setImageResource(R.drawable.h_divider) })
     }
     root.removeViewAt(root.childCount - 1)
 
+    val size = data.size()
+    background.setHorizontalBounds(from = 0f, to = size - 1f)
     scroll.listener = { left, right ->
         chartView.setHorizontalBounds(
-            from = left * data.size().dec(),
-            to = right * data.size().dec()
+            from = left * size.dec(),
+            to = right * size.dec()
         )
     }
 }

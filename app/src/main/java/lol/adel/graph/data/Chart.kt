@@ -8,25 +8,25 @@ enum class ColumnType {
     x,
 }
 
-typealias ColumnName = String
+typealias LineId = String
 
 data class Chart(
-    val columns: SimpleArrayMap<ColumnName, LongArray>,
-    val types: SimpleArrayMap<ColumnName, ColumnType>,
-    val names: SimpleArrayMap<ColumnName, String>,
-    val colors: SimpleArrayMap<ColumnName, ColorString>
+    val columns: SimpleArrayMap<LineId, LongArray>,
+    val types: SimpleArrayMap<LineId, ColumnType>,
+    val names: SimpleArrayMap<LineId, String>,
+    val colors: SimpleArrayMap<LineId, ColorString>
 )
 
 val EMPTY_CHART = Chart(simpleArrayMapOf(), simpleArrayMapOf(), simpleArrayMapOf(), simpleArrayMapOf())
 
-fun Chart.color(name: ColumnName): ColorInt =
-    parseColor(colors[name] ?: error("color not found for $name"))
+fun Chart.color(id: LineId): ColorInt =
+    parseColor(colors[id] ?: error("color not found for $id"))
 
 fun Chart.size(): Int =
     columns.first().size
 
-operator fun Chart.get(name: ColumnName): LongArray =
-    columns[name] ?: error("data not found for $name")
+operator fun Chart.get(id: LineId): LongArray =
+    columns[id] ?: error("data not found for $id")
 
-fun Chart.lines(): Set<ColumnName> =
+fun Chart.lines(): Set<LineId> =
     types.filterKeys { _, type -> type == ColumnType.line }

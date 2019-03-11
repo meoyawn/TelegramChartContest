@@ -12,7 +12,8 @@ class MainActivity : AppCompatActivity() {
         val vh = ViewHolder(
             root = findViewById(R.id.parent),
             chartView = findViewById(R.id.chart),
-            scroll = findViewById(R.id.scroll)
+            scroll = findViewById(R.id.scroll),
+            background = findViewById(R.id.background)
         )
 
         vh.setup(CHARTS.last())
