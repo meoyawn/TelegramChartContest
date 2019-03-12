@@ -9,12 +9,8 @@ import help.*
 import lol.adel.graph.data.Chart
 import lol.adel.graph.data.EMPTY_CHART
 import lol.adel.graph.data.xs
-import org.threeten.bp.Instant
-import org.threeten.bp.LocalDateTime
-import org.threeten.bp.ZoneOffset
-import org.threeten.bp.format.DateTimeFormatter
-import kotlin.math.roundToInt
-
+import java.text.SimpleDateFormat
+import java.util.*
 
 class HorizontalLabelsView @JvmOverloads constructor(
     ctx: Context,
@@ -22,10 +18,8 @@ class HorizontalLabelsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(ctx, attrs, defStyleAttr) {
 
-    private companion object {
-        val GAP: PxF = 80.dpF
-        val FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d")
-    }
+    private val format = SimpleDateFormat("MMM d", Locale.getDefault())
+    private val GAP = 80.dpF
 
     private val opaque = Paint().apply {
         color = ctx.color(R.color.label_text_day)
@@ -50,37 +44,32 @@ class HorizontalLabelsView @JvmOverloads constructor(
         invalidate()
     }
 
-    private fun closestPow2(x: Float): Int =
-        x.log2().roundToInt().pow2()
-
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val width = widthF
+        val halfHeight = heightF / 2
 
         val visibleIdxRange = end - start
         val daysToShow = width / GAP
         val pxPerIdx = width / visibleIdxRange
 
-        val rawEvery = visibleIdxRange / daysToShow
-        val everyLog2 = rawEvery.log2()
-        val everyFloor = everyLog2.floor().pow2()
+        val rawStep = visibleIdxRange / daysToShow
+        val everyLog2 = rawStep.log2()
+        val stepFloor = everyLog2.floor().pow2()
+        val stepCeil = everyLog2.ceil().pow2()
 
-        val everyCeil = everyLog2.ceil().pow2()
-        val frac = (rawEvery - everyFloor) / (everyCeil - everyFloor)
+        val fraction = if (stepCeil == stepFloor) 1f
+        else (rawStep - stepFloor) / (stepCeil - stepFloor)
 
-        val startFromIdx = (start - start % everyCeil).toInt()
-
-        val x = chart.xs()
-
-        iterate(from = startFromIdx, to = end.ceil(), step = everyCeil) { idx ->
-            val date = FMT.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(x[idx]), ZoneOffset.UTC))
-            canvas.drawText(date, pxPerIdx * (idx - start), heightF / 2, opaque)
+        val startFromIdx = (start - start % stepCeil).toInt()
+        val xs = chart.xs()
+        val hiddenEnd = end.ceil()
+        iterate(from = startFromIdx, to = hiddenEnd, step = stepCeil) { idx ->
+            canvas.drawText(format.format(xs[idx]), pxPerIdx * (idx - start), halfHeight, opaque)
         }
-
-        iterate(from = startFromIdx + everyFloor, to = end.ceil(), step = everyCeil) { idx ->
-            val date = FMT.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(x[idx]), ZoneOffset.UTC))
-            transparent.alpha = ((1 - frac) * 255).toInt()
-            canvas.drawText(date, pxPerIdx * (idx - start), heightF / 2, transparent)
+        transparent.alphaF = 1 - fraction
+        iterate(from = startFromIdx + stepFloor, to = hiddenEnd, step = stepCeil) { idx ->
+            canvas.drawText(format.format(xs[idx]), pxPerIdx * (idx - start), halfHeight, transparent)
         }
     }
 }
