@@ -7,7 +7,8 @@ class ViewHolder(
     val root: ViewGroup,
     val chartView: ChartView,
     val scroll: ScrollBarView,
-    val background: BackgroundChartView
+    val background: BackgroundChartView,
+    val horizontalLabels: HorizontalLabelsView
 )
 
 val ViewHolder.ctx: Context

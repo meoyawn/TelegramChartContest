@@ -13,7 +13,8 @@ class MainActivity : AppCompatActivity() {
             root = findViewById(R.id.parent),
             chartView = findViewById(R.id.chart),
             scroll = findViewById(R.id.scroll),
-            background = findViewById(R.id.background)
+            background = findViewById(R.id.background),
+            horizontalLabels = findViewById(R.id.horizontal_labels)
         )
 
         vh.setup(CHARTS.last())

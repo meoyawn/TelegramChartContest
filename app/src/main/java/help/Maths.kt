@@ -11,3 +11,18 @@ fun Float.floor(): Int =
 
 fun Float.ceil(): Int =
     Math.ceil(toDouble()).toInt()
+
+fun Long.log2(): Double =
+    Math.log(toDouble()) / Math.log(2.0)
+
+fun Float.log2(): Double =
+    Math.log(toDouble()) / Math.log(2.0)
+
+fun Int.pow2(): Int =
+    Math.pow(2.0, toDouble()).toInt()
+
+fun Double.floor(): Long =
+    Math.floor(this).toLong()
+
+fun Double.ceil(): Long =
+    Math.ceil(this).toLong()

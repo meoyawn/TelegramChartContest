@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#008577</color>
-    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorPrimary">@color/toolbar_day</color>
+    <color name="colorPrimaryDark">@color/toolbar_dark_day</color>
     <color name="colorAccent">#D81B60</color>
 
     <color name="toolbar_day">#537EA0</color>
+    <color name="toolbar_dark_day">#436481</color>
     <color name="toolbar_text_day">#FFFFFF</color>
     <color name="header_text_day">#3E97D2</color>
-    <color name="marker_text_day">#96A2AA</color>
+    <color name="label_text_day">#96A2AA</color>
     <color name="divider_day">#F1F1F2</color>
     <color name="vertical_line_day">#E5EBEF</color>
     <color name="text_day">#222222</color>

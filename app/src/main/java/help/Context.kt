@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.res.Resources
 import android.view.View
 import android.view.ViewGroup
-import kotlin.math.roundToInt
 
 typealias Dp = Int
 typealias DpF = Float
@@ -22,7 +21,7 @@ val Dp.dpF: PxF
     get() = dpToPx(toFloat())
 
 val Dp.dp: Px
-    get() = dpF.roundToInt()
+    get() = dpF.toInt()
 
 val View.widthF: PxF
     get() = width.toFloat()

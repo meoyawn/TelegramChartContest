@@ -14,19 +14,19 @@ class BackgroundChartView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    private val drawer = ChartDrawer { invalidate() }
+    private val charter = ChartDrawer { invalidate() }
 
     fun setup(chart: Chart, enabled: Set<LineId>): Unit =
-        drawer.setup(chart, enabled)
+        charter.setup(chart, enabled)
 
     fun selectLine(id: LineId, enabled: Boolean): Unit =
-        drawer.selectLine(id, enabled)
+        charter.selectLine(id, enabled)
 
     fun setHorizontalBounds(from: IdxF, to: IdxF): Unit =
-        drawer.setHorizontalBounds(from, to)
+        charter.setHorizontalBounds(from, to)
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        drawer.onDraw(canvas)
+        charter.onDraw(canvas)
     }
 }

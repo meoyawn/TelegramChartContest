@@ -17,7 +17,12 @@ data class Chart(
     val colors: SimpleArrayMap<LineId, ColorString>
 )
 
-val EMPTY_CHART = Chart(simpleArrayMapOf(), simpleArrayMapOf(), simpleArrayMapOf(), simpleArrayMapOf())
+val EMPTY_CHART = Chart(
+    columns = simpleArrayMapOf(),
+    types = simpleArrayMapOf(),
+    names = simpleArrayMapOf(),
+    colors = simpleArrayMapOf()
+)
 
 fun Chart.color(id: LineId): ColorInt =
     parseColor(colors[id] ?: error("color not found for $id"))
@@ -30,3 +35,8 @@ operator fun Chart.get(id: LineId): LongArray =
 
 fun Chart.lines(): Set<LineId> =
     types.filterKeys { _, type -> type == ColumnType.line }
+
+fun Chart.x(): LongArray {
+    val key = types.findKey { _, type -> type == ColumnType.x }
+    return columns[key] ?: error("x not found $types")
+}

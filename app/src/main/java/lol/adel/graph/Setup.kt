@@ -2,6 +2,7 @@ package lol.adel.graph
 
 import android.content.res.ColorStateList
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatCheckBox
@@ -28,24 +29,30 @@ private fun makeCheckbox(chart: Chart, id: LineId, viewHolder: ViewHolder): AppC
 
         val padding = 10.dp
         updatePadding(left = padding)
-        layoutParams = ViewGroup.MarginLayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { leftMargin = padding }
+        layoutParams = ViewGroup.MarginLayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { leftMargin = 16.dp }
     }
 
 fun ViewHolder.setup(data: Chart) {
     val lines = data.lines()
     chartView.setup(data, lines)
     background.setup(data, lines)
+    horizontalLabels.setup(data)
 
     for (name in lines) {
         root.addView(makeCheckbox(data, name, this))
         root.addView(ImageView(ctx).apply { setImageResource(R.drawable.h_divider) })
     }
     root.removeViewAt(root.childCount - 1)
+    root.addView(View(ctx).apply { setBackgroundResource(R.color.bottom_day) })
 
     val size = data.size()
     background.setHorizontalBounds(from = 0f, to = size - 1f)
     scroll.listener = { left, right ->
         chartView.setHorizontalBounds(
+            from = left * size.dec(),
+            to = right * size.dec()
+        )
+        horizontalLabels.setHorizontalRange(
             from = left * size.dec(),
             to = right * size.dec()
         )
