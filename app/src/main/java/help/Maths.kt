@@ -15,8 +15,8 @@ fun Float.ceil(): Int =
 fun Long.log2(): Double =
     Math.log(toDouble()) / Math.log(2.0)
 
-fun Float.log2(): Double =
-    Math.log(toDouble()) / Math.log(2.0)
+fun Float.log2(): Float =
+    (Math.log(toDouble()) / Math.log(2.0)).toFloat()
 
 fun Int.pow2(): Int =
     Math.pow(2.0, toDouble()).toInt()
@@ -26,3 +26,11 @@ fun Double.floor(): Long =
 
 fun Double.ceil(): Long =
     Math.ceil(this).toLong()
+
+inline fun iterate(from: Int, to: Int, step: Int, f: (Int) -> Unit) {
+    var idx = from
+    while (idx <= to) {
+        f(idx)
+        idx += step
+    }
+}
