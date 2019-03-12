@@ -36,7 +36,5 @@ operator fun Chart.get(id: LineId): LongArray =
 fun Chart.lines(): Set<LineId> =
     types.filterKeys { _, type -> type == ColumnType.line }
 
-fun Chart.x(): LongArray {
-    val key = types.findKey { _, type -> type == ColumnType.x }
-    return columns[key] ?: error("x not found $types")
-}
+fun Chart.xs(): LongArray =
+    columns[types.findKey { _, type -> type == ColumnType.x }] ?: error("x not found $types")

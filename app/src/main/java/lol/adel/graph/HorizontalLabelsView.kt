@@ -8,12 +8,7 @@ import android.view.View
 import help.*
 import lol.adel.graph.data.Chart
 import lol.adel.graph.data.EMPTY_CHART
-import lol.adel.graph.data.x
-import org.threeten.bp.Instant
-import org.threeten.bp.LocalDateTime
-import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 
@@ -63,17 +58,15 @@ class HorizontalLabelsView @JvmOverloads constructor(
         val pxPerIdx = width / visibleIdxRange
 
         val offset = start % showEveryIdx
-        val startFromIdx = start + offset
+        val startFromIdx = (start - offset).toInt()
 
-        val x = chart.x()
+//        val x = chart.xs()
 
-        var idx = startFromIdx.toInt()
+        var idx = startFromIdx
+
         while (idx <= end) {
-            Timber.d("drawing idx $idx")
-            val dt = LocalDateTime.ofInstant(Instant.ofEpochMilli(x[idx]), ZoneOffset.UTC)
-
-            val date = FMT.format(dt)
-            canvas.drawText(idx.toString(), pxPerIdx * (idx - startFromIdx), heightF / 2, text)
+//            val date = FMT.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(x[dataIdx]), ZoneOffset.UTC))
+            canvas.drawText(idx.toString(), pxPerIdx * (idx - start), heightF / 2, text)
 
             idx += showEveryIdx
         }
