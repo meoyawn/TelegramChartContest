@@ -125,7 +125,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         var hiddenMaxIdx = -1
         var hiddenMinIdx = -1
 
-        val anticipate = 20
+        val anticipate = 10
         for (line in enabledLines) {
             val points = data[line]
             for (i in Math.max(0, visibleStart - anticipate) until visibleStart) {
@@ -154,35 +154,35 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             }
         }
 
-        val maxFraction = when {
+        val maxDist = when {
             hiddenMaxIdx == -1 ->
-                0.0
+                anticipate
 
             hiddenMaxIdx > visibleEnd ->
-                (hiddenMaxIdx - visibleEnd) / anticipate.toDouble()
+                hiddenMaxIdx - visibleEnd
 
             hiddenMaxIdx < visibleStart ->
-                (visibleStart - hiddenMaxIdx) / anticipate.toDouble()
+                visibleStart - hiddenMaxIdx
 
             else ->
-                0.0
-        }
-        val finalMax = visibleMax + Math.abs(hiddenMax - visibleMax) * (1 - maxFraction)
+                anticipate
+        }.toDouble()
+        val finalMax = visibleMax + Math.abs(hiddenMax - visibleMax) * (1 - maxDist / anticipate)
 
-        val minFraction = when {
+        val minDist = when {
             hiddenMinIdx == -1 ->
-                0.0
+                anticipate
 
             hiddenMinIdx > visibleEnd ->
-                (hiddenMinIdx - visibleEnd) / anticipate.toDouble()
+                hiddenMinIdx - visibleEnd
 
             hiddenMinIdx < visibleStart ->
-                (visibleStart - hiddenMinIdx) / anticipate.toDouble()
+                visibleStart - hiddenMinIdx
 
             else ->
-                0.0
-        }
-        val finalMin = visibleMin - Math.abs(visibleMin - hiddenMin) * (1 - minFraction)
+                anticipate
+        }.toDouble()
+        val finalMin = visibleMin - Math.abs(visibleMin - hiddenMin) * (1 - minDist / anticipate)
 
         if (animate) {
             oldMin = min
