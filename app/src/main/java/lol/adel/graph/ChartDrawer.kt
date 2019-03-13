@@ -1,5 +1,7 @@
 package lol.adel.graph
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -17,8 +19,10 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
 
     private var min: Double = 0.0
     private var max: Double = 0.0
-    private var oldMax: Double = 0.0
-    private var oldMin: Double = 0.0
+
+    private var oldMax: Double = Double.NaN
+    private var oldMin: Double = Double.NaN
+
     private var anticipatedMax: Double = 0.0
     private var anticipatedMin: Double = 0.0
 
@@ -66,6 +70,17 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         invalidate()
     }
 
+    fun onTouch(start: Boolean) {
+        if (start) {
+            oldMin = min
+            oldMax = max
+        } else {
+            oldMin = Double.NaN
+            oldMax = Double.NaN
+        }
+        invalidate()
+    }
+
     fun selectLine(id: LineId, enabled: Boolean) {
         if (enabled) {
             enabledLines += id
@@ -92,10 +107,8 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         var visibleMin = Long.MAX_VALUE
         var visibleMax = Long.MIN_VALUE
 
-        val hiddenStart = start.floor()
         val visibleStart = start.ceil()
         val visibleEnd = end.floor()
-        val hiddenEnd = end.ceil()
 
         for (line in enabledLines) {
             val points = data[line]
@@ -112,56 +125,69 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         var hiddenMaxIdx = -1
         var hiddenMinIdx = -1
 
+        val anticipate = 20
         for (line in enabledLines) {
             val points = data[line]
-            val anticipatedLeft = points[hiddenStart]
-            val anticipatedRight = points[hiddenEnd]
+            for (i in Math.max(0, visibleStart - anticipate) until visibleStart) {
+                val point = points[i]
 
-            if (anticipatedLeft > hiddenMax) {
-                hiddenMax = anticipatedLeft
-                hiddenMaxIdx = hiddenStart
+                if (point > hiddenMax) {
+                    hiddenMax = point
+                    hiddenMaxIdx = i
+                }
+                if (point < hiddenMin) {
+                    hiddenMin = point
+                    hiddenMinIdx = i
+                }
             }
-            if (anticipatedRight > hiddenMax) {
-                hiddenMax = anticipatedRight
-                hiddenMaxIdx = hiddenEnd
-            }
+            for (i in visibleEnd + 1..Math.min(visibleEnd + anticipate, points.lastIndex)) {
+                val point = points[i]
 
-            if (anticipatedLeft < hiddenMin) {
-                hiddenMin = anticipatedLeft
-                hiddenMinIdx = hiddenStart
-            }
-            if (anticipatedRight < hiddenMin) {
-                hiddenMin = anticipatedRight
-                hiddenMinIdx = hiddenEnd
+                if (point > hiddenMax) {
+                    hiddenMax = point
+                    hiddenMaxIdx = i
+                }
+                if (point < hiddenMin) {
+                    hiddenMin = point
+                    hiddenMinIdx = i
+                }
             }
         }
 
-        val maxFraction = when (hiddenMaxIdx) {
-            hiddenStart ->
-                start - hiddenStart
+        val maxFraction = when {
+            hiddenMaxIdx == -1 ->
+                0.0
 
-            hiddenEnd ->
-                hiddenEnd - end
+            hiddenMaxIdx > visibleEnd ->
+                (hiddenMaxIdx - visibleEnd) / anticipate.toDouble()
+
+            hiddenMaxIdx < visibleStart ->
+                (visibleStart - hiddenMaxIdx) / anticipate.toDouble()
 
             else ->
-                0f
-        }.toDouble()
+                0.0
+        }
         val finalMax = visibleMax + Math.abs(hiddenMax - visibleMax) * (1 - maxFraction)
 
-        val minFraction = when (hiddenMinIdx) {
-            hiddenStart ->
-                start - hiddenStart
+        val minFraction = when {
+            hiddenMinIdx == -1 ->
+                0.0
 
-            hiddenEnd ->
-                hiddenEnd - end
+            hiddenMinIdx > visibleEnd ->
+                (hiddenMinIdx - visibleEnd) / anticipate.toDouble()
+
+            hiddenMinIdx < visibleStart ->
+                (visibleStart - hiddenMinIdx) / anticipate.toDouble()
 
             else ->
-                0f
-        }.toDouble()
+                0.0
+        }
         val finalMin = visibleMin - Math.abs(visibleMin - hiddenMin) * (1 - minFraction)
 
-        oldMin = if (animate) min else visibleMin.toDouble()
-        oldMax = if (animate) max else visibleMax.toDouble()
+        if (animate) {
+            oldMin = min
+            oldMax = max
+        }
 
         anticipatedMin = hiddenMin.toDouble()
         anticipatedMax = hiddenMax.toDouble()
@@ -170,6 +196,13 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             animateDouble(min, finalMin) {
                 min = it
                 invalidate()
+            }.apply {
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator?) {
+                        oldMin = Double.NaN
+                        oldMax = Double.NaN
+                    }
+                })
             }.start()
             animateDouble(max, finalMax) {
                 max = it
@@ -200,12 +233,12 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
 
         if (drawLabels) {
 
-            val frac = Math.abs(anticipatedMax - max) / Math.abs(oldMax - max)
-
-            iterate(oldMin, oldMax, (oldMax - oldMin) / 6) {
-                val value = it.roundToLong()
-                val y = mapY(value, height)
-                canvas.drawLine(0f, y, width, y, opaqueLine)
+            if (oldMin != Double.NaN) {
+                iterate(oldMin, oldMax, (oldMax - oldMin) / 6) {
+                    val value = it.roundToLong()
+                    val y = mapY(value, height)
+                    canvas.drawLine(0f, y, width, y, opaqueLine)
+                }
             }
 
             iterate(anticipatedMin, anticipatedMax, (anticipatedMax - anticipatedMin) / 6) {
@@ -234,10 +267,12 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         }
 
         if (drawLabels) {
-            iterate(oldMin, oldMax, (oldMax - oldMin) / 6) {
-                val value = it.roundToLong()
-                val y = mapY(value, height)
-                canvas.drawText(value.toString(), 0f, y, opaque)
+            if (oldMin != Double.NaN) {
+                iterate(oldMin, oldMax, (oldMax - oldMin) / 6) {
+                    val value = it.roundToLong()
+                    val y = mapY(value, height)
+                    canvas.drawText(value.toString(), 0f, y, opaque)
+                }
             }
 
             iterate(anticipatedMin, anticipatedMax, (anticipatedMax - anticipatedMin) / 6) {

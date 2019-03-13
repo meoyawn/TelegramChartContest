@@ -40,14 +40,20 @@ fun ViewHolder.setup(data: Chart) {
 
     val size = data.size()
     background.setHorizontalBounds(from = 0f, to = size - 1f)
-    scroll.listener = { left, right ->
-        chartView.setHorizontalBounds(
-            from = left * size.dec(),
-            to = right * size.dec()
-        )
-        horizontalLabels.setHorizontalRange(
-            from = left * size.dec(),
-            to = right * size.dec()
-        )
+    scroll.listener = object : ScrollBarView.Listener {
+        override fun onBoundsChange(left: Float, right: Float) {
+            chartView.setHorizontalBounds(
+                from = left * size.dec(),
+                to = right * size.dec()
+            )
+            horizontalLabels.setHorizontalRange(
+                from = left * size.dec(),
+                to = right * size.dec()
+            )
+        }
+
+        override fun onTouch(start: Boolean) {
+            chartView.onTouch(start)
+        }
     }
 }

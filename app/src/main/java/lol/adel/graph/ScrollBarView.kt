@@ -16,23 +16,28 @@ class ScrollBarView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(ctx, attrs, defStyleAttr) {
 
+    interface Listener {
+        fun onBoundsChange(left: Float, right: Float)
+        fun onTouch(start: Boolean)
+    }
+
     private val pale = Paint().apply { color = ctx.color(R.color.scroll_overlay_pale) }
     private val bright = Paint().apply { color = ctx.color(R.color.scroll_overlay_bright) }
     private val touch = Paint().apply { color = ctx.color(R.color.scroll_overlay_touch) }
 
-    var listener: (X, X) -> Unit = { _, _ -> }
+    var listener: Listener? = null
 
     private var left: Float = 0f
         set(value) {
             field = value
-            listener(left / widthF, right / widthF)
+            listener?.onBoundsChange(left = left / widthF, right = right / widthF)
             invalidate()
         }
 
     private var right: Float = 0f
         set(value) {
             field = value
-            listener(left / widthF, right / widthF)
+            listener?.onBoundsChange(left = left / widthF, right = right / widthF)
             invalidate()
         }
 
@@ -70,15 +75,19 @@ class ScrollBarView @JvmOverloads constructor(
                     radius = it
                 }
                 anim?.start()
+
+                if (dragging != null) {
+                    listener?.onTouch(start = true)
+                }
             }
 
             MotionEvent.ACTION_MOVE ->
                 when (val d = dragging) {
                     Dragging.Left ->
-                        left = Math.min(Math.max(event.x, 0f), right)
+                        left = Math.min(Math.max(event.x, 0f), right - 48.dp)
 
                     Dragging.Right ->
-                        right = Math.max(left, Math.min(event.x, widthF - 1))
+                        right = Math.max(left + 48.dp, Math.min(event.x, widthF - 1))
 
                     is Dragging.Between -> {
                         val diff = event.x - d.x
@@ -114,6 +123,10 @@ class ScrollBarView @JvmOverloads constructor(
                     radius = it
                 }
                 anim?.start()
+
+                if (wasDragging != null) {
+                    listener?.onTouch(start = false)
+                }
             }
         }
         return true

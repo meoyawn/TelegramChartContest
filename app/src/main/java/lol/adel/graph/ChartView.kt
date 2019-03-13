@@ -25,6 +25,9 @@ class ChartView @JvmOverloads constructor(
     fun setHorizontalBounds(from: IdxF, to: IdxF): Unit =
         charter.setHorizontalBounds(from, to)
 
+    fun onTouch(start: Boolean): Unit =
+        charter.onTouch(start)
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         charter.onDraw(canvas)

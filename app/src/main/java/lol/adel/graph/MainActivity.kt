@@ -17,6 +17,6 @@ class MainActivity : AppCompatActivity() {
             horizontalLabels = findViewById(R.id.horizontal_labels)
         )
 
-        vh.setup(CHARTS.last())
+        vh.setup(CHARTS.first())
     }
 }
