@@ -1,52 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/parent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipChildren="false"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <TextView
+    <LinearLayout
+        android:id="@+id/parent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
-        android:text="Followers"
-        android:textColor="@color/header_text_day" />
+        android:orientation="vertical">
 
-    <lol.adel.graph.ChartView
-        android:id="@+id/chart"
-        android:layout_width="match_parent"
-        android:layout_height="320dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp" />
-
-    <lol.adel.graph.HorizontalLabelsView
-        android:id="@+id/horizontal_labels"
-        android:layout_width="match_parent"
-        android:layout_height="36dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp" />
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:clipChildren="false">
-
-        <lol.adel.graph.BackgroundChartView
-            android:id="@+id/background"
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="wrap_content"
+            android:text="Followers"
+            android:textColor="@color/header_text_day" />
 
-        <lol.adel.graph.ScrollBarView
-            android:id="@+id/scroll"
+        <lol.adel.graph.ChartView
+            android:id="@+id/chart"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="320dp" />
 
-    </FrameLayout>
+        <lol.adel.graph.HorizontalLabelsView
+            android:id="@+id/horizontal_labels"
+            android:layout_width="match_parent"
+            android:layout_height="36dp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:clipChildren="false">
+
+            <lol.adel.graph.BackgroundChartView
+                android:id="@+id/background"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <lol.adel.graph.ScrollBarView
+                android:id="@+id/scroll"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bottom_day" />
 
 </LinearLayout>

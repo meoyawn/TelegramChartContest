@@ -1,12 +1,14 @@
 package lol.adel.graph
 
+import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
+import kotlin.math.roundToLong
 
-class ChartDrawer(val invalidate: () -> Unit) {
+class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> Unit) {
 
     private var data: Chart = EMPTY_CHART
 
@@ -15,9 +17,31 @@ class ChartDrawer(val invalidate: () -> Unit) {
 
     private var min: Double = 0.0
     private var max: Double = 0.0
+    private var oldMax: Double = 0.0
+    private var oldMin: Double = 0.0
+    private var anticipatedMax: Double = 0.0
+    private var anticipatedMin: Double = 0.0
+
+    private val opaque = Paint().apply {
+        color = ctx.color(R.color.label_text_day)
+        textSize = 16.dpF
+    }
+    private val transparent = Paint().apply {
+        color = ctx.color(R.color.label_text_day)
+        textSize = 16.dpF
+    }
 
     private val enabledLines: MutableSet<LineId> = mutableSetOf()
     private val linesForDrawing: SimpleArrayMap<LineId, Paint> = simpleArrayMapOf()
+
+    private val opaqueLine = Paint().apply {
+        color = ctx.color(R.color.divider_day)
+        strokeWidth = 2.dpF
+    }
+    private val transparentLine = Paint().apply {
+        color = ctx.color(R.color.divider_day)
+        strokeWidth = 2.dpF
+    }
 
     fun setup(chart: Chart, enabled: Set<LineId>) {
         data = chart
@@ -136,6 +160,12 @@ class ChartDrawer(val invalidate: () -> Unit) {
         }.toDouble()
         val finalMin = visibleMin - Math.abs(visibleMin - hiddenMin) * (1 - minFraction)
 
+        oldMin = if (animate) min else visibleMin.toDouble()
+        oldMax = if (animate) max else visibleMax.toDouble()
+
+        anticipatedMin = hiddenMin.toDouble()
+        anticipatedMax = hiddenMax.toDouble()
+
         if (animate) {
             animateDouble(min, finalMin) {
                 min = it
@@ -168,6 +198,23 @@ class ChartDrawer(val invalidate: () -> Unit) {
         val width = canvas.width.toFloat()
         val height = canvas.height.toFloat()
 
+        if (drawLabels) {
+
+            val frac = Math.abs(anticipatedMax - max) / Math.abs(oldMax - max)
+
+            iterate(oldMin, oldMax, (oldMax - oldMin) / 6) {
+                val value = it.roundToLong()
+                val y = mapY(value, height)
+                canvas.drawLine(0f, y, width, y, opaqueLine)
+            }
+
+            iterate(anticipatedMin, anticipatedMax, (anticipatedMax - anticipatedMin) / 6) {
+                val value = it.roundToLong()
+                val y = mapY(value, height)
+                canvas.drawLine(0f, y, width, y, transparentLine)
+            }
+        }
+
         val hiddenStart = start.floor()
         val visibleEnd = end.floor()
 
@@ -183,6 +230,20 @@ class ChartDrawer(val invalidate: () -> Unit) {
                         paint
                     )
                 }
+            }
+        }
+
+        if (drawLabels) {
+            iterate(oldMin, oldMax, (oldMax - oldMin) / 6) {
+                val value = it.roundToLong()
+                val y = mapY(value, height)
+                canvas.drawText(value.toString(), 0f, y, opaque)
+            }
+
+            iterate(anticipatedMin, anticipatedMax, (anticipatedMax - anticipatedMin) / 6) {
+                val value = it.roundToLong()
+                val y = mapY(value, height)
+                canvas.drawText(value.toString(), 0f, y, transparent)
             }
         }
     }

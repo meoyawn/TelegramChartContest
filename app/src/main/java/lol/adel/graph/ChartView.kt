@@ -9,12 +9,12 @@ import lol.adel.graph.data.Chart
 import lol.adel.graph.data.LineId
 
 class ChartView @JvmOverloads constructor(
-    context: Context,
+    ctx: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : View(context, attrs, defStyleAttr) {
+) : View(ctx, attrs, defStyleAttr) {
 
-    private val charter = ChartDrawer { invalidate() }
+    private val charter = ChartDrawer(ctx = ctx, drawLabels = true) { invalidate() }
 
     fun setup(chart: Chart, enabled: Set<LineId>): Unit =
         charter.setup(chart, enabled)

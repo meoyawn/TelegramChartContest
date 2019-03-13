@@ -2,12 +2,8 @@ package lol.adel.graph
 
 import android.content.res.ColorStateList
 import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatCheckBox
-import help.MATCH_PARENT
-import help.WRAP_CONTENT
 import help.dp
 import help.updatePadding
 import lol.adel.graph.data.*
@@ -27,9 +23,7 @@ private fun makeCheckbox(chart: Chart, id: LineId, viewHolder: ViewHolder): AppC
             viewHolder.background.selectLine(id, isChecked)
         }
 
-        val padding = 10.dp
-        updatePadding(left = padding)
-        layoutParams = ViewGroup.MarginLayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { leftMargin = 16.dp }
+        updatePadding(left = 10.dp)
     }
 
 fun ViewHolder.setup(data: Chart) {
@@ -43,7 +37,6 @@ fun ViewHolder.setup(data: Chart) {
         root.addView(ImageView(ctx).apply { setImageResource(R.drawable.h_divider) })
     }
     root.removeViewAt(root.childCount - 1)
-    root.addView(View(ctx).apply { setBackgroundResource(R.color.bottom_day) })
 
     val size = data.size()
     background.setHorizontalBounds(from = 0f, to = size - 1f)

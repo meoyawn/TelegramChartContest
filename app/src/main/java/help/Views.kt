@@ -1,13 +1,11 @@
 package help
 
 import android.view.View
-import androidx.annotation.Px
 
 fun View.updatePadding(
-    @Px left: Int = paddingLeft,
-    @Px top: Int = paddingTop,
-    @Px right: Int = paddingRight,
-    @Px bottom: Int = paddingBottom
-) {
+    left: Px = paddingLeft,
+    top: Px = paddingTop,
+    right: Px = paddingRight,
+    bottom: Px = paddingBottom
+): Unit =
     setPadding(left, top, right, bottom)
-}
