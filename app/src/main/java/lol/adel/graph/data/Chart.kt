@@ -38,3 +38,41 @@ fun Chart.lines(): Set<LineId> =
 
 fun Chart.xs(): LongArray =
     columns[types.findKey { _, type -> type == ColumnType.x }] ?: error("x not found $types")
+
+inline fun Chart.max(from: Idx, to: Idx, enabled: Set<LineId>, f: (Idx, Long) -> Unit) {
+    var max = Long.MIN_VALUE
+    var iMax = -1
+    val size = size()
+
+    for (id in enabled) {
+        val points = get(id)
+        for (i in Math.max(0, from)..Math.min(to, size - 1)) {
+            val value = points[i]
+            if (value > max) {
+                max = value
+                iMax = i
+            }
+        }
+    }
+
+    f(iMax, max)
+}
+
+fun Chart.min(from: Idx, to: Idx, enabled: Set<LineId>): Idx {
+    var min = Long.MAX_VALUE
+    var iMin = -1
+    val size = size()
+
+    for (id in enabled) {
+        val points = get(id)
+        for (i in Math.max(0, from)..Math.min(to, size - 1)) {
+            val value = points[i]
+            if (value < min) {
+                min = value
+                iMin = i
+            }
+        }
+    }
+
+    return iMin
+}

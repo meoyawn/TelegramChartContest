@@ -42,3 +42,6 @@ inline fun iterate(from: Double, to: Double, step: Double, f: (Double) -> Unit) 
         idx += step
     }
 }
+
+fun sqr(i: Int): Int =
+    i * i
