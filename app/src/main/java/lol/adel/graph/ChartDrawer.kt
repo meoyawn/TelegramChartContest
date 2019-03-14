@@ -211,6 +211,17 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         } else {
             min = finalMin
             max = finalMax
+
+            val r0 = (end - start) / 2
+            val x = (start + r0).toInt()
+            val r = (r0 + 20).toInt()
+
+            data.max(from = x - r, to = x + r, enabled = enabledLines) { xMax, yMax ->
+                max = yMax + Math.sqrt(sqr(r) + sqr(x - xMax).toDouble())
+            }
+            data.min(from = x - r, to = x + r, enabled = enabledLines) { xMin, yMin ->
+                min = yMin - Math.sqrt(sqr(r) + sqr(x - xMin).toDouble())
+            }
         }
     }
 

@@ -58,7 +58,7 @@ inline fun Chart.max(from: Idx, to: Idx, enabled: Set<LineId>, f: (Idx, Long) ->
     f(iMax, max)
 }
 
-fun Chart.min(from: Idx, to: Idx, enabled: Set<LineId>): Idx {
+inline fun Chart.min(from: Idx, to: Idx, enabled: Set<LineId>, f: (Idx, Long) -> Unit) {
     var min = Long.MAX_VALUE
     var iMin = -1
     val size = size()
@@ -74,5 +74,5 @@ fun Chart.min(from: Idx, to: Idx, enabled: Set<LineId>): Idx {
         }
     }
 
-    return iMin
+    f(iMin, min)
 }
