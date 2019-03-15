@@ -2,7 +2,6 @@ package lol.adel.graph.data
 
 import androidx.collection.SimpleArrayMap
 import help.*
-import timber.log.Timber
 
 enum class ColumnType {
     line,
@@ -111,21 +110,20 @@ inline fun findY(start: Idx, end: Idx, enabled: Set<LineId>, chart: Chart, resul
 
     for (id in enabled) {
         val points = chart[id]
-        for (i in start until end) {
+        for (i in start..end) {
             yCoordinate(
                 radius = normalize(r, minX, maxX),
                 x = normalize(x, minX, maxX),
                 x1 = normalize(i, minX, maxX),
-                y1 = normalize(points[i], minY, maxY),
-                x2 = normalize(i + 1, minX, maxX),
-                y2 = normalize(points[i + 1], minY, maxY)
+                y1 = normalize(points[i], minY, maxY)
             ) { below, above ->
-                Timber.d("radius $r current ${points[i]} below ${below} above ${above}")
                 min = Math.min(min, denormalize(below, minY, maxY))
                 max = Math.max(max, denormalize(above, minY, maxY))
             }
         }
     }
+
+    println("$min $max")
 
     result(min, max)
 }
