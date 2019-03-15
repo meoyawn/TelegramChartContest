@@ -6,7 +6,6 @@ import android.graphics.Paint
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
-import timber.log.Timber
 import kotlin.math.roundToLong
 
 class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> Unit) {
@@ -21,9 +20,6 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
 
     private var oldMax: Double = Double.NaN
     private var oldMin: Double = Double.NaN
-
-    private var anticipatedMax: Double = 0.0
-    private var anticipatedMin: Double = 0.0
 
     private val opaque = Paint().apply {
         color = ctx.color(R.color.label_text_day)
@@ -107,11 +103,6 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             min = a.toDouble()
             max = b.toDouble()
         }
-
-        Timber.d("terminated")
-
-        min = 100.0
-        max = 200.0
     }
 
     private fun mapX(idx: Idx, width: PxF): X {
@@ -132,7 +123,6 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         val height = canvas.height.toFloat()
 
         if (drawLabels) {
-
             if (oldMin != Double.NaN) {
                 iterate(oldMin, oldMax, (oldMax - oldMin) / 6) {
                     val value = it.roundToLong()
@@ -141,7 +131,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
                 }
             }
 
-            iterate(anticipatedMin, anticipatedMax, (anticipatedMax - anticipatedMin) / 6) {
+            iterate(min, max, (max - min) / 6) {
                 val value = it.roundToLong()
                 val y = mapY(value, height)
                 canvas.drawLine(0f, y, width, y, transparentLine)
@@ -175,7 +165,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
                 }
             }
 
-            iterate(anticipatedMin, anticipatedMax, (anticipatedMax - anticipatedMin) / 6) {
+            iterate(min, max, (max - min) / 6) {
                 val value = it.roundToLong()
                 val y = mapY(value, height)
                 canvas.drawText(value.toString(), 0f, y, transparent)
