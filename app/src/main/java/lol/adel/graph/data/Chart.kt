@@ -2,6 +2,8 @@ package lol.adel.graph.data
 
 import androidx.collection.SimpleArrayMap
 import help.*
+import kotlin.math.max
+import kotlin.math.min
 
 enum class ColumnType {
     line,
@@ -67,6 +69,12 @@ fun normalize(value: Float, min: Float, max: Float): Float =
 fun denormalize(value: Float, min: Long, max: Long): Float =
     min + (max - min) * value
 
+fun avg(a: Float, b: Float): Float =
+    (a + b) / 2
+
+fun constrain(from: Float, to: Float, what: Float): Float =
+    max(from, min(to, what))
+
 inline fun currentVertical(
     start: IdxF,
     end: IdxF,
@@ -81,7 +89,7 @@ inline fun currentVertical(
 
     val r0 = (end - start) / 2
     val x = start + r0
-    val r = r0 + (maxX - minX) / 10f
+    val r = r0 + (maxX - minX) / 15f
 
     var max = Float.MIN_VALUE
     var min = Float.MAX_VALUE

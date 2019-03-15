@@ -76,21 +76,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     }
 
     fun onTouch(start: Boolean) {
-        if (start) {
-            oldMin = currentMin
-            oldMax = currentMax
-        } else {
-            animateInt(oldText.alpha, 0) {
-                oldText.alpha = it
-                oldLine.alpha = it
-                invalidate()
-            }.start()
-            animateInt(newText.alpha, 255) {
-                newText.alpha = it
-                newLine.alpha = it
-                invalidate()
-            }.start()
-        }
+
     }
 
     fun selectLine(id: LineId, enabled: Boolean) {
@@ -133,23 +119,25 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             currentMax = max
         }
 
-        val prevDiff = newMax - newMin
-        val currentDiff = currentMax - currentMin
-        val frac = currentDiff / prevDiff
-        if (frac < 0.9 || frac > 1.1) {
+        val diff = avg(abs(currentMin - newMin), abs(currentMax - newMax))
+        println(diff)
+        val step = (currentMax - currentMin) / 20
+        println(step)
+        if (diff > step) {
             oldMin = newMin
             oldMax = newMax
 
             newMin = currentMin
             newMax = currentMax
-        } else {
-            val old = abs((frac - 1) * 10)
-            oldLine.alphaF = old
-            newLine.alphaF = 1 - old
-
-            oldText.alphaF = old
-            newText.alphaF = 1 - old
         }
+
+        val newFrac = avg(normalize(currentMin, oldMin, newMin), normalize(currentMax, oldMax, newMax))
+        newLine.alphaF = newFrac
+        newText.alphaF = newFrac
+
+        val oldFrac = avg(normalize(currentMin, newMin, oldMin), normalize(currentMax, newMax, oldMax))
+        oldLine.alphaF = oldFrac
+        oldText.alphaF = oldFrac
     }
 
     private fun mapX(idx: Idx, width: PxF): X {
@@ -168,8 +156,9 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         val width = canvas.width.toFloat()
         val height = canvas.height.toFloat()
 
-        val oldStep = (oldMax - oldMin).toInt() / 6
-        val newStep = (newMax - newMin).toInt() / 6
+        val howMuch = 5
+        val oldStep = (oldMax - oldMin).toInt() / howMuch
+        val newStep = (newMax - newMin).toInt() / howMuch
 
         if (drawLabels && oldStep > 0 && newStep > 0) {
             iterate(oldMin.toInt(), oldMax.toInt(), oldStep) {
