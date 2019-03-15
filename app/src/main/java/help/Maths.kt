@@ -45,6 +45,3 @@ inline fun iterate(from: Double, to: Double, step: Double, f: (Double) -> Unit) 
 
 fun sqr(i: Int): Int =
     i * i
-
-fun sqr(i: Float): Float =
-    i * i

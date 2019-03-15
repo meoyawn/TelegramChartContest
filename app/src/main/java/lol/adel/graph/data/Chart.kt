@@ -2,6 +2,7 @@ package lol.adel.graph.data
 
 import androidx.collection.SimpleArrayMap
 import help.*
+import timber.log.Timber
 
 enum class ColumnType {
     line,
@@ -75,4 +76,56 @@ inline fun Chart.min(from: Idx, to: Idx, enabled: Set<LineId>, f: (Idx, Long) ->
     }
 
     f(iMin, min)
+}
+
+fun normalize(value: Long, min: Long, max: Long): Float =
+    Math.abs((value - min) / (max - min).toFloat())
+
+fun normalize(value: Int, min: Int, max: Int): Float =
+    Math.abs((value - min) / (max - min).toFloat())
+
+fun denormalize(value: Float, min: Long, max: Long): Float =
+    min + (max - min) * value
+
+inline fun findY(start: Idx, end: Idx, enabled: Set<LineId>, chart: Chart, result: (Float, Float) -> Unit) {
+    val r0 = (end - start) / 2
+    val x = start + r0
+    val r = r0
+
+    var max = Float.MIN_VALUE
+    var min = Float.MAX_VALUE
+
+    var minY = Long.MAX_VALUE
+    var maxY = Long.MIN_VALUE
+
+    for (id in enabled) {
+        val points = chart[id]
+        for (i in start..end) {
+            minY = Math.min(minY, points[i])
+            maxY = Math.max(maxY, points[i])
+        }
+    }
+
+    val minX = 0
+    val maxX = chart.size() - 1
+
+    for (id in enabled) {
+        val points = chart[id]
+        for (i in start until end) {
+            yCoordinate(
+                radius = normalize(r, minX, maxX),
+                x = normalize(x, minX, maxX),
+                x1 = normalize(i, minX, maxX),
+                y1 = normalize(points[i], minY, maxY),
+                x2 = normalize(i + 1, minX, maxX),
+                y2 = normalize(points[i + 1], minY, maxY)
+            ) { below, above ->
+                Timber.d("radius $r current ${points[i]} below ${below} above ${above}")
+                min = Math.min(min, denormalize(below, minY, maxY))
+                max = Math.max(max, denormalize(above, minY, maxY))
+            }
+        }
+    }
+
+    result(min, max)
 }
