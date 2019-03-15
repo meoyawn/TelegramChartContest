@@ -10,12 +10,11 @@ inline fun yCoordinate(
     x: Float,
     x1: Float,
     y1: Float,
-    result: (below: Float, above: Float) -> Unit
+    result: (bottom: Float, top: Float) -> Unit
 ) {
-    val cathSq = (x - x1).sq()
-    val hypoSq = radius.sq()
-    if (hypoSq > cathSq) {
-        val sqrt = sqrt(hypoSq - cathSq)
+    val cathSq = radius.sq() - (x - x1).sq()
+    if (cathSq >= 0) {
+        val sqrt = sqrt(cathSq)
         result(y1 - sqrt + radius, y1 + sqrt - radius)
     }
 }

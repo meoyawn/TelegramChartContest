@@ -34,14 +34,3 @@ inline fun iterate(from: Int, to: Int, step: Int, f: (Int) -> Unit) {
         idx += step
     }
 }
-
-inline fun iterate(from: Double, to: Double, step: Double, f: (Double) -> Unit) {
-    var idx = from
-    while (idx <= to) {
-        f(idx)
-        idx += step
-    }
-}
-
-fun sqr(i: Int): Int =
-    i * i

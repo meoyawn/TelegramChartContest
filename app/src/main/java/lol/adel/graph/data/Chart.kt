@@ -39,7 +39,7 @@ fun Chart.lines(): Set<LineId> =
 fun Chart.xs(): LongArray =
     columns[types.findKey { _, type -> type == ColumnType.x }] ?: error("x not found $types")
 
-inline fun minMax(chart: Chart, enabled: Set<LineId>, result: (Long, Long) -> Unit) {
+inline fun absolutes(chart: Chart, enabled: Set<LineId>, result: (Long, Long) -> Unit) {
     var min = Long.MAX_VALUE
     var max = Long.MIN_VALUE
 
@@ -56,42 +56,50 @@ inline fun minMax(chart: Chart, enabled: Set<LineId>, result: (Long, Long) -> Un
 }
 
 fun normalize(value: Long, min: Long, max: Long): Float =
-    Math.abs((value - min) / (max - min).toFloat())
+    (value - min) / (max - min).toFloat()
 
 fun normalize(value: Int, min: Int, max: Int): Float =
-    Math.abs((value - min) / (max - min).toFloat())
+    (value - min) / (max - min).toFloat()
+
+fun normalize(value: Float, min: Float, max: Float): Float =
+    (value - min) / (max - min)
 
 fun denormalize(value: Float, min: Long, max: Long): Float =
     min + (max - min) * value
 
-inline fun findY(start: Idx, end: Idx, enabled: Set<LineId>, chart: Chart, result: (Float, Float) -> Unit) {
-    val minX = 0
-    val maxX = chart.size() - 1
+inline fun currentVertical(
+    start: IdxF,
+    end: IdxF,
+    minY: Long,
+    maxY: Long,
+    enabled: Set<LineId>,
+    chart: Chart,
+    result: (min: Float, max: Float) -> Unit
+) {
+    val minX = 0f
+    val maxX = chart.size() - 1f
 
     val r0 = (end - start) / 2
     val x = start + r0
-    val r = r0 + (maxX - minX) / 10
+    val r = r0 + (maxX - minX) / 10f
 
     var max = Float.MIN_VALUE
     var min = Float.MAX_VALUE
 
-    minMax(chart, enabled) { minY, maxY ->
-        for (id in enabled) {
-            val points = chart[id]
-            for (i in Math.max(minX, x - r)..Math.min(maxX, x + r)) {
-                val current = points[i]
-                yCoordinate(
-                    radius = normalize(r, minX, maxX),
-                    x = normalize(x, minX, maxX),
-                    x1 = normalize(i, minX, maxX),
-                    y1 = normalize(current, minY, maxY)
-                ) { below, above ->
-                    min = Math.min(min, denormalize(below, minY, maxY))
-                    max = Math.max(max, denormalize(above, minY, maxY))
-                }
+    for (id in enabled) {
+        val points = chart[id]
+        for (i in Math.max(minX, x - r).floor()..Math.min(maxX, x + r).ceil()) {
+            yCoordinate(
+                radius = normalize(r, minX, maxX),
+                x = normalize(x, minX, maxX),
+                x1 = normalize(i.toFloat(), minX, maxX),
+                y1 = normalize(points[i], minY, maxY)
+            ) { bottom, top ->
+                min = Math.min(min, bottom)
+                max = Math.max(max, top)
             }
         }
     }
 
-    result(min, max)
+    result(denormalize(min, minY, maxY), denormalize(max, minY, maxY))
 }
