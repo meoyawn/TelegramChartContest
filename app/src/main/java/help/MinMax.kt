@@ -1,25 +1,22 @@
 package help
 
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 data class MinMax(
     var min: Float,
     var max: Float
 )
 
-fun MinMax.size(): Float =
+fun MinMax.length(): Float =
     max - min
 
 fun MinMax.distance(that: MinMax): Float =
-    max(
-        abs(that.min - this.min),
-        abs(that.max - this.max)
-    )
+    sqrt((that.min - min).sq() + (that.max - max).sq())
 
 fun MinMax.farEnough(that: MinMax): Boolean =
-    distance(that) / size() > 0.1
+    distance(that) / length() > 0.1
 
 fun MinMax.set(that: MinMax) {
     this.min = that.min

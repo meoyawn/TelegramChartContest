@@ -114,32 +114,40 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             result = cameraY
         )
 
-        val threshold = 0.15f
+        val threshold = 0.15
 
-        val fl = constrain(0f, 1f, currentLine.distance(cameraY) / currentLine.size() * 1 / threshold)
-        currentLinePaint.alphaF = fl
-        currentLabelPain.alphaF = fl
-
-        oldLinePaint.alphaF = 1 - fl
-        oldLabelPaint.alphaF = 1 - fl
-
-        if (currentLine.distance(cameraY) / currentLine.size() > threshold) {
+        if (currentLine.distance(cameraY) / currentLine.length() > threshold) {
             oldLine.set(currentLine)
             currentLine.set(cameraY)
         }
+
         if (animate) {
             animateFloat(oldMin, cameraY.min) {
                 cameraY.min = it
+                updateAlphas()
                 invalidate()
             }.start()
 
             animateFloat(oldMax, cameraY.max) {
                 cameraY.max = it
+                updateAlphas()
                 invalidate()
             }.start()
 
             cameraY.set(oldMin, oldMax)
+        } else {
+            updateAlphas()
         }
+    }
+
+    private fun updateAlphas() {
+        val frac1 = constrain(0f, 1f, currentLine.distance(cameraY) / currentLine.length())
+        currentLinePaint.alphaF = frac1
+        currentLabelPain.alphaF = frac1
+
+        val frac2 = constrain(0f, 1f, oldLine.distance(cameraY) / oldLine.length())
+        oldLinePaint.alphaF = frac2
+        oldLabelPaint.alphaF = frac2
     }
 
     private fun mapX(idx: Idx, width: PxF): X =
