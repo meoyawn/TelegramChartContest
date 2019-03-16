@@ -75,14 +75,14 @@ fun avg(a: Float, b: Float): Float =
 fun constrain(from: Float, to: Float, what: Float): Float =
     max(from, min(to, what))
 
-inline fun currentVertical(
+fun calculateCamera(
     start: IdxF,
     end: IdxF,
     minY: Long,
     maxY: Long,
     enabled: Set<LineId>,
     chart: Chart,
-    result: (min: Float, max: Float) -> Unit
+    result: MinMax
 ) {
     val minX = 0f
     val maxX = chart.size() - 1f
@@ -109,5 +109,6 @@ inline fun currentVertical(
         }
     }
 
-    result(denormalize(min, minY, maxY), denormalize(max, minY, maxY))
+    result.min = denormalize(min, minY, maxY)
+    result.max = denormalize(max, minY, maxY)
 }

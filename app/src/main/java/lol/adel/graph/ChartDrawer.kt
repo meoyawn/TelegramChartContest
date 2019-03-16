@@ -6,7 +6,6 @@ import android.graphics.Paint
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
-import kotlin.math.abs
 
 class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> Unit) {
 
@@ -15,22 +14,18 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private var start: IdxF = 0f
     private var end: IdxF = 0f
 
-    private var currentMin: Float = 0f
-    private var currentMax: Float = 0f
-
-    private var oldMax: Float = 0f
-    private var oldMin: Float = 0f
-    private var newMin: Float = 0f
-    private var newMax: Float = 0f
+    private val camera = MinMax(0f, 0f)
+    private val currentLine = MinMax(0f, 0f)
+    private val oldLine = MinMax(0f, 0f)
 
     private var absoluteMin: Long = 0
     private var absoluteMax: Long = 0
 
-    private val oldText = Paint().apply {
+    private val oldLabelPaint = Paint().apply {
         color = ctx.color(R.color.label_text_day)
         textSize = 16.dpF
     }
-    private val newText = Paint().apply {
+    private val currentLabelPain = Paint().apply {
         color = ctx.color(R.color.label_text_day)
         textSize = 16.dpF
     }
@@ -38,11 +33,11 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private val enabledLines: MutableSet<LineId> = mutableSetOf()
     private val linesForDrawing: SimpleArrayMap<LineId, Paint> = simpleArrayMapOf()
 
-    private val oldLine = Paint().apply {
+    private val oldLinePaint = Paint().apply {
         color = ctx.color(R.color.divider_day)
         strokeWidth = 2.dpF
     }
-    private val newLine = Paint().apply {
+    private val currentLinePaint = Paint().apply {
         color = ctx.color(R.color.divider_day)
         strokeWidth = 2.dpF
     }
@@ -107,37 +102,28 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private fun calculateMinMax(animate: Boolean) {
         if (enabledLines.isEmpty()) return
 
-        currentVertical(
+        calculateCamera(
             start = start,
             end = end,
             minY = absoluteMin,
             maxY = absoluteMax,
             enabled = enabledLines,
-            chart = data
-        ) { min, max ->
-            currentMin = min
-            currentMax = max
+            chart = data,
+            result = camera
+        )
+
+        if (threshold(currentLine, camera)) {
+            oldLine.set(currentLine)
+            currentLine.set(camera)
         }
 
-        val diff = avg(abs(currentMin - newMin), abs(currentMax - newMax))
-        println(diff)
-        val step = (currentMax - currentMin) / 20
-        println(step)
-        if (diff > step) {
-            oldMin = newMin
-            oldMax = newMax
+        val newFrac = oldLine.distance(camera) / currentLine.distance(camera)
+        currentLinePaint.alphaF = newFrac
+        currentLabelPain.alphaF = newFrac
 
-            newMin = currentMin
-            newMax = currentMax
-        }
-
-        val newFrac = avg(normalize(currentMin, oldMin, newMin), normalize(currentMax, oldMax, newMax))
-        newLine.alphaF = newFrac
-        newText.alphaF = newFrac
-
-        val oldFrac = avg(normalize(currentMin, newMin, oldMin), normalize(currentMax, newMax, oldMax))
-        oldLine.alphaF = oldFrac
-        oldText.alphaF = oldFrac
+        val oldFrac = currentLine.distance(camera) / oldLine.distance(camera)
+        oldLinePaint.alphaF = oldFrac
+        oldLabelPaint.alphaF = oldFrac
     }
 
     private fun mapX(idx: Idx, width: PxF): X {
@@ -147,8 +133,8 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     }
 
     private fun mapY(value: Long, height: PxF): Y {
-        val range = currentMax - currentMin
-        val pos = value - currentMin
+        val range = camera.max - camera.min
+        val pos = value - camera.min
         return height - (height / range * pos)
     }
 
@@ -156,21 +142,16 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         val width = canvas.width.toFloat()
         val height = canvas.height.toFloat()
 
-        val howMuch = 5
-        val oldStep = (oldMax - oldMin).toInt() / howMuch
-        val newStep = (newMax - newMin).toInt() / howMuch
-
-        if (drawLabels && oldStep > 0 && newStep > 0) {
-            iterate(oldMin.toInt(), oldMax.toInt(), oldStep) {
+        if (drawLabels) {
+            oldLine.iterate(5) {
                 val value = it.toLong()
                 val y = mapY(value, height)
-                canvas.drawLine(0f, y, width, y, oldLine)
+                canvas.drawLine(0f, y, width, y, oldLinePaint)
             }
-
-            iterate(newMin.toInt(), newMax.toInt(), newStep) {
+            currentLine.iterate(5) {
                 val value = it.toLong()
                 val y = mapY(value, height)
-                canvas.drawLine(0f, y, width, y, newLine)
+                canvas.drawLine(0f, y, width, y, currentLinePaint)
             }
         }
 
@@ -192,17 +173,16 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             }
         }
 
-        if (drawLabels && oldStep > 0 && newStep > 0) {
-            iterate(oldMin.toInt(), oldMax.toInt(), oldStep) {
+        if (drawLabels) {
+            oldLine.iterate(5) {
                 val value = it.toLong()
                 val y = mapY(value, height)
-                canvas.drawText(value.toString(), 0f, y, oldText)
+                canvas.drawText(value.toString(), 0f, y, oldLabelPaint)
             }
-
-            iterate(newMin.toInt(), newMax.toInt(), newStep) {
+            currentLine.iterate(5) {
                 val value = it.toLong()
                 val y = mapY(value, height)
-                canvas.drawText(value.toString(), 0f, y, newText)
+                canvas.drawText(value.toString(), 0f, y, currentLabelPain)
             }
         }
     }
