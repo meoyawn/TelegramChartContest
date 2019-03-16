@@ -2,8 +2,6 @@ package lol.adel.graph.data
 
 import androidx.collection.SimpleArrayMap
 import help.*
-import kotlin.math.max
-import kotlin.math.min
 
 enum class ColumnType {
     line,
@@ -56,24 +54,6 @@ inline fun absolutes(chart: Chart, enabled: Set<LineId>, result: (Long, Long) ->
 
     result(min, max)
 }
-
-fun normalize(value: Long, min: Long, max: Long): Float =
-    (value - min) / (max - min).toFloat()
-
-fun normalize(value: Int, min: Int, max: Int): Float =
-    (value - min) / (max - min).toFloat()
-
-fun normalize(value: Float, min: Float, max: Float): Float =
-    (value - min) / (max - min)
-
-fun denormalize(value: Float, min: Long, max: Long): Float =
-    min + (max - min) * value
-
-fun avg(a: Float, b: Float): Float =
-    (a + b) / 2
-
-fun constrain(from: Float, to: Float, what: Float): Float =
-    max(from, min(to, what))
 
 fun calculateCamera(
     start: IdxF,

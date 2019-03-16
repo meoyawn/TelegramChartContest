@@ -1,5 +1,8 @@
 package help
 
+import kotlin.math.max
+import kotlin.math.min
+
 typealias X = PxF
 typealias Y = PxF
 
@@ -42,3 +45,21 @@ inline fun iterate(from: Float, to: Float, step: Float, f: (Float) -> Unit) {
         idx += step
     }
 }
+
+fun normalize(value: Long, min: Long, max: Long): Float =
+    (value - min) / (max - min).toFloat()
+
+fun normalize(value: Int, min: Int, max: Int): Float =
+    (value - min) / (max - min).toFloat()
+
+fun normalize(value: Float, min: Float, max: Float): Float =
+    (value - min) / (max - min)
+
+fun denormalize(value: Float, min: Long, max: Long): Float =
+    min + (max - min) * value
+
+fun avg(a: Float, b: Float): Float =
+    (a + b) / 2
+
+fun constrain(from: Float, to: Float, what: Float): Float =
+    max(from, min(to, what))

@@ -14,7 +14,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private var start: IdxF = 0f
     private var end: IdxF = 0f
 
-    private val camera = MinMax(0f, 0f)
+    private val cameraY = MinMax(0f, 0f)
     private val currentLine = MinMax(0f, 0f)
     private val oldLine = MinMax(0f, 0f)
 
@@ -102,6 +102,8 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private fun calculateMinMax(animate: Boolean) {
         if (enabledLines.isEmpty()) return
 
+        val oldMax = cameraY.max
+        val oldMin = cameraY.min
         calculateCamera(
             start = start,
             end = end,
@@ -109,34 +111,42 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             maxY = absoluteMax,
             enabled = enabledLines,
             chart = data,
-            result = camera
+            result = cameraY
         )
 
-        if (threshold(currentLine, camera)) {
+        val threshold = 0.15f
+
+        val fl = constrain(0f, 1f, currentLine.distance(cameraY) / currentLine.size() * 1 / threshold)
+        currentLinePaint.alphaF = fl
+        currentLabelPain.alphaF = fl
+
+        oldLinePaint.alphaF = 1 - fl
+        oldLabelPaint.alphaF = 1 - fl
+
+        if (currentLine.distance(cameraY) / currentLine.size() > threshold) {
             oldLine.set(currentLine)
-            currentLine.set(camera)
+            currentLine.set(cameraY)
         }
+        if (animate) {
+            animateFloat(oldMin, cameraY.min) {
+                cameraY.min = it
+                invalidate()
+            }.start()
 
-        val newFrac = oldLine.distance(camera) / currentLine.distance(camera)
-        currentLinePaint.alphaF = newFrac
-        currentLabelPain.alphaF = newFrac
+            animateFloat(oldMax, cameraY.max) {
+                cameraY.max = it
+                invalidate()
+            }.start()
 
-        val oldFrac = currentLine.distance(camera) / oldLine.distance(camera)
-        oldLinePaint.alphaF = oldFrac
-        oldLabelPaint.alphaF = oldFrac
+            cameraY.set(oldMin, oldMax)
+        }
     }
 
-    private fun mapX(idx: Idx, width: PxF): X {
-        val range = end - start
-        val pos = idx - start
-        return width / range * pos
-    }
+    private fun mapX(idx: Idx, width: PxF): X =
+        normalize(value = idx.toFloat(), min = start, max = end) * width
 
-    private fun mapY(value: Long, height: PxF): Y {
-        val range = camera.max - camera.min
-        val pos = value - camera.min
-        return height - (height / range * pos)
-    }
+    private fun mapY(value: Long, height: PxF): Y =
+        (1 - cameraY.normalize(value)) * height
 
     fun onDraw(canvas: Canvas) {
         val width = canvas.width.toFloat()
@@ -176,12 +186,12 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         if (drawLabels) {
             oldLine.iterate(5) {
                 val value = it.toLong()
-                val y = mapY(value, height)
+                val y = mapY(value, height) - 5.dpF
                 canvas.drawText(value.toString(), 0f, y, oldLabelPaint)
             }
             currentLine.iterate(5) {
                 val value = it.toLong()
-                val y = mapY(value, height)
+                val y = mapY(value, height) - 5.dpF
                 canvas.drawText(value.toString(), 0f, y, currentLabelPain)
             }
         }
