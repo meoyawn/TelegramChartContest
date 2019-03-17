@@ -3,11 +3,10 @@ package lol.adel.graph
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.os.SystemClock
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
-import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 
 class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> Unit) {
 
@@ -16,11 +15,12 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private var start: IdxF = 0f
     private var end: IdxF = 0f
 
+    var currentSpeed: Float = -1f
+
     private val cameraY = MinMax(0f, 0f)
     private val cameraTarget = MinMax(0f, 0f)
     private val currentLine = MinMax(0f, 0f)
     private val oldLine = MinMax(0f, 0f)
-    private var oldInstant = SystemClock.elapsedRealtime()
 
     private var absoluteMin: Long = 0
     private var absoluteMax: Long = 0
@@ -68,8 +68,16 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     }
 
     fun setHorizontalBounds(from: IdxF, to: IdxF) {
+        val lastX = start + (end - start) / 2
+
         start = from
         end = to
+
+        val newX = start + (end - start) / 2
+
+        currentSpeed = abs(newX - lastX)
+        println(currentSpeed)
+
         calculateMinMax(animate = false)
         invalidate()
     }
@@ -124,12 +132,9 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
                 absolutes = cameraTarget
             )
 
-            val now = SystemClock.elapsedRealtime()
-            val timePassed = now > oldInstant + TimeUnit.SECONDS.toMillis(1)
-            if (currentLine.empty() || (currentLine.distanceSq(cameraTarget) > currentLine.lenSq() * 0.2f.sq() && timePassed)) {
+            if (currentLine.empty() || currentLine.distanceSq(cameraTarget) > currentLine.lenSq() * 0.2f.sq()) {
                 oldLine.set(from = currentLine)
                 currentLine.set(from = cameraTarget)
-                oldInstant = now
             }
         }
 
