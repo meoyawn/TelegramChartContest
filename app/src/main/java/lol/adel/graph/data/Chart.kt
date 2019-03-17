@@ -55,24 +55,6 @@ inline fun absolutes(chart: Chart, enabled: Set<LineId>, result: (Long, Long) ->
     result(min, max)
 }
 
-fun locals(start: IdxF, end: IdxF, enabled: Set<LineId>, chart: Chart, result: MinMax) {
-    result.reset()
-
-    val minX = 0f
-    val maxX = chart.size() - 1f
-
-    val r0 = (end - start) / 2
-    val x = start + r0
-    val r = r0 + (maxX - minX) / 10f
-
-    for (id in enabled) {
-        val points = chart[id]
-        for (i in Math.max(minX, x - r).floor()..Math.min(maxX, x + r).ceil()) {
-            result.update(points[i].toFloat())
-        }
-    }
-}
-
 fun camera(
     start: IdxF,
     end: IdxF,
@@ -80,7 +62,8 @@ fun camera(
     maxY: Long,
     enabled: Set<LineId>,
     chart: Chart,
-    result: MinMax
+    camera: MinMax,
+    absolutes: MinMax
 ) {
     val minX = 0f
     val maxX = chart.size() - 1f
@@ -91,6 +74,8 @@ fun camera(
 
     var max = Float.MIN_VALUE
     var min = Float.MAX_VALUE
+
+    absolutes.reset()
 
     for (id in enabled) {
         val points = chart[id]
@@ -104,9 +89,11 @@ fun camera(
                 min = Math.min(min, bottom)
                 max = Math.max(max, top)
             }
+
+            absolutes.update(points[i].toFloat())
         }
     }
 
-    result.min = denormalize(min, minY, maxY)
-    result.max = denormalize(max, minY, maxY)
+    camera.min = denormalize(min, minY, maxY)
+    camera.max = denormalize(max, minY, maxY)
 }

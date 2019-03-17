@@ -19,9 +19,6 @@ fun MinMax.set(from: MinMax) {
     max = from.max
 }
 
-fun normalize(value: MinMax, min: MinMax, max: MinMax): Float =
-    value.distanceSq(min) / max.distanceSq(min)
-
 fun MinMax.set(min: Float, max: Float) {
     this.min = min
     this.max = max

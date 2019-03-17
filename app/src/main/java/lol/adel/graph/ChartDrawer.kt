@@ -17,6 +17,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private var end: IdxF = 0f
 
     private val cameraY = MinMax(0f, 0f)
+    private val cameraTarget = MinMax(0f, 0f)
     private val currentLine = MinMax(0f, 0f)
     private val oldLine = MinMax(0f, 0f)
     private var oldInstant = SystemClock.elapsedRealtime()
@@ -107,29 +108,27 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
 
         val oldMax = cameraY.max
         val oldMin = cameraY.min
-        camera(
-            start = start,
-            end = end,
-            minY = absoluteMin,
-            maxY = absoluteMax,
-            enabled = enabledLines,
-            chart = data,
-            result = cameraY
-        )
 
-        val locals = MinMax(0f, 0f)
-        locals(start, end, enabledLines, data, locals)
+        if (!drawLabels) {
+            cameraY.min = absoluteMin.toFloat()
+            cameraY.max = absoluteMax.toFloat()
+        } else {
+            camera(
+                start = start,
+                end = end,
+                minY = absoluteMin,
+                maxY = absoluteMax,
+                enabled = enabledLines,
+                chart = data,
+                camera = cameraY,
+                absolutes = cameraTarget
+            )
 
-        val now = SystemClock.elapsedRealtime()
-        val timePassed = now > oldInstant + TimeUnit.SECONDS.toMillis(1)
-
-        when {
-            currentLine.empty() ->
-                currentLine.set(from = locals)
-
-            currentLine.distanceSq(locals) > currentLine.lenSq() * 0.2f.sq() && timePassed -> {
+            val now = SystemClock.elapsedRealtime()
+            val timePassed = now > oldInstant + TimeUnit.SECONDS.toMillis(1)
+            if (currentLine.empty() || (currentLine.distanceSq(cameraTarget) > currentLine.lenSq() * 0.2f.sq() && timePassed)) {
                 oldLine.set(from = currentLine)
-                currentLine.set(from = locals)
+                currentLine.set(from = cameraTarget)
                 oldInstant = now
             }
         }
