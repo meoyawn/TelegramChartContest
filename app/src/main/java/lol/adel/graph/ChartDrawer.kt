@@ -3,9 +3,11 @@ package lol.adel.graph
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.os.SystemClock
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
+import java.util.concurrent.TimeUnit
 
 class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> Unit) {
 
@@ -17,6 +19,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private val cameraY = MinMax(0f, 0f)
     private val currentLine = MinMax(0f, 0f)
     private val oldLine = MinMax(0f, 0f)
+    private var oldInstant = SystemClock.elapsedRealtime()
 
     private var absoluteMin: Long = 0
     private var absoluteMax: Long = 0
@@ -104,7 +107,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
 
         val oldMax = cameraY.max
         val oldMin = cameraY.min
-        calculateCamera(
+        camera(
             start = start,
             end = end,
             minY = absoluteMin,
@@ -114,11 +117,21 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             result = cameraY
         )
 
-        val threshold = 0.15
+        val locals = MinMax(0f, 0f)
+        locals(start, end, enabledLines, data, locals)
 
-        if (currentLine.distance(cameraY) / currentLine.length() > threshold) {
-            oldLine.set(currentLine)
-            currentLine.set(cameraY)
+        val now = SystemClock.elapsedRealtime()
+        val timePassed = now > oldInstant + TimeUnit.SECONDS.toMillis(1)
+
+        when {
+            currentLine.empty() ->
+                currentLine.set(from = locals)
+
+            currentLine.distanceSq(locals) > currentLine.lenSq() * 0.2f.sq() && timePassed -> {
+                oldLine.set(from = currentLine)
+                currentLine.set(from = locals)
+                oldInstant = now
+            }
         }
 
         if (animate) {
@@ -141,13 +154,15 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     }
 
     private fun updateAlphas() {
-        val frac1 = constrain(0f, 1f, currentLine.distance(cameraY) / currentLine.length())
-        currentLinePaint.alphaF = frac1
-        currentLabelPain.alphaF = frac1
+        val dist1 = currentLine.distanceSq(cameraY)
+        val dist2 = oldLine.distanceSq(cameraY)
+        val frac1 = dist1 / (dist1 + dist2)
 
-        val frac2 = constrain(0f, 1f, oldLine.distance(cameraY) / oldLine.length())
-        oldLinePaint.alphaF = frac2
-        oldLabelPaint.alphaF = frac2
+        currentLinePaint.alphaF = 1 - frac1
+        currentLabelPain.alphaF = 1 - frac1
+
+        oldLinePaint.alphaF = frac1
+        oldLabelPaint.alphaF = frac1
     }
 
     private fun mapX(idx: Idx, width: PxF): X =

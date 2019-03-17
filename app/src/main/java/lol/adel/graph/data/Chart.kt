@@ -55,7 +55,25 @@ inline fun absolutes(chart: Chart, enabled: Set<LineId>, result: (Long, Long) ->
     result(min, max)
 }
 
-fun calculateCamera(
+fun locals(start: IdxF, end: IdxF, enabled: Set<LineId>, chart: Chart, result: MinMax) {
+    result.reset()
+
+    val minX = 0f
+    val maxX = chart.size() - 1f
+
+    val r0 = (end - start) / 2
+    val x = start + r0
+    val r = r0 + (maxX - minX) / 10f
+
+    for (id in enabled) {
+        val points = chart[id]
+        for (i in Math.max(minX, x - r).floor()..Math.min(maxX, x + r).ceil()) {
+            result.update(points[i].toFloat())
+        }
+    }
+}
+
+fun camera(
     start: IdxF,
     end: IdxF,
     minY: Long,
@@ -69,7 +87,7 @@ fun calculateCamera(
 
     val r0 = (end - start) / 2
     val x = start + r0
-    val r = r0 + (maxX - minX) / 15f
+    val r = r0 + (maxX - minX) / 10f
 
     var max = Float.MIN_VALUE
     var min = Float.MAX_VALUE

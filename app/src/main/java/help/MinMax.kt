@@ -2,26 +2,25 @@ package help
 
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sqrt
 
 data class MinMax(
     var min: Float,
     var max: Float
 )
 
-fun MinMax.length(): Float =
-    max - min
+fun MinMax.lenSq(): Float =
+    (max - min).sq()
 
-fun MinMax.distance(that: MinMax): Float =
-    sqrt((that.min - min).sq() + (that.max - max).sq())
+fun MinMax.distanceSq(that: MinMax): Float =
+    (that.min - this.min).sq() + (that.max - this.max).sq()
 
-fun MinMax.farEnough(that: MinMax): Boolean =
-    distance(that) / length() > 0.1
-
-fun MinMax.set(that: MinMax) {
-    this.min = that.min
-    this.max = that.max
+fun MinMax.set(from: MinMax) {
+    min = from.min
+    max = from.max
 }
+
+fun normalize(value: MinMax, min: MinMax, max: MinMax): Float =
+    value.distanceSq(min) / max.distanceSq(min)
 
 fun MinMax.set(min: Float, max: Float) {
     this.min = min
@@ -29,7 +28,7 @@ fun MinMax.set(min: Float, max: Float) {
 }
 
 fun MinMax.empty(): Boolean =
-    min == 0f && max == 0f
+    (min == 0f && max == 0f) || (min == Float.MAX_VALUE && max == Float.MIN_VALUE)
 
 inline fun MinMax.iterate(steps: Int, f: (Float) -> Unit): Unit =
     if (empty()) Unit
