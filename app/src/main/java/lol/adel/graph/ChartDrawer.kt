@@ -12,8 +12,8 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
 
     private var data: Chart = EMPTY_CHART
 
-    private var start: IdxF = 0f
-    private var end: IdxF = 0f
+    var start: IdxF = 0f
+    var end: IdxF = 0f
 
     private val cameraY = MinMax(0f, 0f)
     private var absoluteMin: Long = 0
@@ -26,10 +26,12 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private val oldLabelPaint = Paint().apply {
         color = ctx.color(R.color.label_text)
         textSize = 16.dpF
+        isAntiAlias = true
     }
     private val currentLabelPain = Paint().apply {
         color = ctx.color(R.color.label_text)
         textSize = 16.dpF
+        isAntiAlias = true
     }
     private val oldLinePaint = Paint().apply {
         color = ctx.color(R.color.divider)
@@ -55,7 +57,6 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private val innerCirclePaint = Paint().apply {
         style = Paint.Style.FILL
         color = ctx.color(R.color.background)
-        isDither = true
         isAntiAlias = true
     }
     private val verticalLinePaint = Paint().apply {
@@ -73,7 +74,6 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             enabledLines += line
             linePaints[line] = Paint().apply {
                 isAntiAlias = true
-                isDither = true
                 strokeWidth = 2.dpF
                 color = chart.color(line)
             }
@@ -139,7 +139,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
                 absolutes = cameraTarget
             )
 
-            if (currentLine.empty() || currentLine.distanceSq(cameraTarget) > currentLine.lenSq() * 0.2f.sq()) {
+            if (currentLine.empty() || currentLine.distanceSq(cameraTarget) > currentLine.lenSq() * 0.15f.sq()) {
                 oldLine.set(from = currentLine)
                 currentLine.set(from = cameraTarget)
             }
@@ -176,7 +176,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         oldLabelPaint.alphaF = frac1
     }
 
-    private fun mapX(idx: Idx, width: PxF): X =
+    fun mapX(idx: Idx, width: PxF): X =
         normalize(value = idx.toFloat(), min = start, max = end) * width
 
     private fun mapY(value: Long, height: PxF): Y =
@@ -186,8 +186,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         val width = canvas.width.toFloat()
         val height = canvas.height.toFloat()
 
-        val touchingIdx = if (touching != -1f) {
-
+        val touchingIdx = if (touching > 0 && touching <= width) {
             val idx = denormalize(touching / width, start, end).roundToInt()
 
             val mappedX = mapX(idx, width)
@@ -219,17 +218,20 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
                 for (i in hiddenStart..Math.min(visibleEnd, points.lastIndex - 1)) {
                     val startX = mapX(idx = i, width = width)
                     val endX = mapX(idx = i + 1, width = width)
-
                     val startY = mapY(value = points[i], height = height)
                     val endY = mapY(value = points[i + 1], height = height)
-
                     canvas.drawLine(startX, startY, endX, endY, paint)
-
-                    if (i == touchingIdx) {
-                        canvas.drawCircle(startX, startY, outerCircleRadius, paint)
-                        canvas.drawCircle(startX, startY, innerCircleRadius, innerCirclePaint)
-                    }
                 }
+            }
+        }
+
+        if (touchingIdx != -1) {
+            linePaints.forEach { line, paint ->
+                val points = data[line]
+                val startX = mapX(idx = touchingIdx, width = width)
+                val startY = mapY(value = points[touchingIdx], height = height)
+                canvas.drawCircle(startX, startY, outerCircleRadius, paint)
+                canvas.drawCircle(startX, startY, innerCircleRadius, innerCirclePaint)
             }
         }
 

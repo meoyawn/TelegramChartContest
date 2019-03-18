@@ -19,10 +19,13 @@ class MainActivity : AppCompatActivity() {
             scroll = findViewById(R.id.scroll),
             background = findViewById(R.id.background),
             horizontalLabels = findViewById(R.id.horizontal_labels),
-            name = findViewById(R.id.chart_name)
+            name = findViewById(R.id.chart_name),
+            floating = findViewById(R.id.floating_panel),
+            floatingText = findViewById(R.id.floating_text),
+            floatingContainer = findViewById(R.id.floating_container)
         )
 
-        vh.setup(idx = 1)
+        vh.setup(idx = 4)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

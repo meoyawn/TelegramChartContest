@@ -24,10 +24,12 @@ class HorizontalLabelsView @JvmOverloads constructor(
     private val opaque = Paint().apply {
         color = ctx.color(R.color.label_text)
         textSize = 16.dpF
+        isAntiAlias = true
     }
     private val transparent = Paint().apply {
         color = ctx.color(R.color.label_text)
         textSize = 16.dpF
+        isAntiAlias = true
     }
 
     private var chart: Chart = EMPTY_CHART

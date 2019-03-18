@@ -10,6 +10,9 @@
     <color name="vertical_line">#131C26</color>
     <color name="bottom">#151E27</color>
 
+    <color name="floating_edge">#1A232D</color>
+    <color name="floating_text">#E5EFF5</color>
+
     <color name="scroll_overlay_pale">#BFb3e5fc</color>
     <color name="scroll_overlay_bright">#80039be5</color>
     <color name="scroll_overlay_touch">#404fc3f7</color>

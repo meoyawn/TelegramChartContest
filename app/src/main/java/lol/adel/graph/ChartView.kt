@@ -6,9 +6,10 @@ import android.graphics.Canvas
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import help.IdxF
+import help.*
 import lol.adel.graph.data.Chart
 import lol.adel.graph.data.LineId
+import kotlin.math.roundToInt
 
 class ChartView @JvmOverloads constructor(
     ctx: Context,
@@ -16,7 +17,13 @@ class ChartView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(ctx, attrs, defStyleAttr) {
 
+    interface Listener {
+        fun onTouch(idx: Idx, x: PxF)
+    }
+
     private val charter = ChartDrawer(ctx = ctx, drawLabels = true) { invalidate() }
+
+    var listener: Listener? = null
 
     fun setup(chart: Chart, enabled: Set<LineId>): Unit =
         charter.setup(chart, enabled)
@@ -32,10 +39,16 @@ class ChartView @JvmOverloads constructor(
         when (event.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                 charter.touching = event.x
+
+                val idx = denormalize(value = event.x / width, min = charter.start, max = charter.end).roundToInt()
+                val mappedX = charter.mapX(idx, widthF)
+
+                listener?.onTouch(idx = idx, x = mappedX)
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 charter.touching = -1f
+                listener?.onTouch(idx = -1, x = -1f)
             }
         }
         return true

@@ -2,6 +2,8 @@ package lol.adel.graph.data
 
 import androidx.collection.SimpleArrayMap
 import help.*
+import kotlin.math.max
+import kotlin.math.min
 
 enum class ColumnType {
     line,
@@ -72,28 +74,31 @@ fun camera(
     val x = start + r0
     val r = r0 + (maxX - minX) / 10f
 
-    var max = Float.MIN_VALUE
-    var min = Float.MAX_VALUE
+    var maxNorm = Float.MIN_VALUE
+    var minNorm = Float.MAX_VALUE
 
     absolutes.reset()
 
+    val rNorm = normalize(r, minX, maxX)
+    val xNorm = normalize(x, minX, maxX)
+
     for (id in enabled) {
         val points = chart[id]
-        for (i in Math.max(minX, x - r).floor()..Math.min(maxX, x + r).ceil()) {
+        for (i in Math.max(minX, x - r).ceil()..Math.min(maxX, x + r).floor()) {
             yCoordinate(
-                radius = normalize(r, minX, maxX),
-                x = normalize(x, minX, maxX),
+                radius = rNorm,
+                x = xNorm,
                 x1 = normalize(i.toFloat(), minX, maxX),
                 y1 = normalize(points[i], minY, maxY)
             ) { bottom, top ->
-                min = Math.min(min, bottom)
-                max = Math.max(max, top)
+                minNorm = min(minNorm, bottom)
+                maxNorm = max(maxNorm, top)
             }
 
             absolutes.update(points[i].toFloat())
         }
     }
 
-    camera.min = denormalize(min, minY, maxY)
-    camera.max = denormalize(max, minY, maxY)
+    camera.min = denormalize(minNorm, minY, maxY)
+    camera.max = denormalize(maxNorm, minY, maxY)
 }
