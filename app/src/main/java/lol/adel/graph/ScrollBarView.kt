@@ -18,7 +18,6 @@ class ScrollBarView @JvmOverloads constructor(
 
     interface Listener {
         fun onBoundsChange(left: Float, right: Float)
-        fun onTouch(start: Boolean)
     }
 
     private val pale = Paint().apply { color = ctx.color(R.color.scroll_overlay_pale) }
@@ -75,10 +74,6 @@ class ScrollBarView @JvmOverloads constructor(
                     radius = it
                 }
                 anim?.start()
-
-                if (dragging != null) {
-                    listener?.onTouch(start = true)
-                }
             }
 
             MotionEvent.ACTION_MOVE ->
@@ -123,10 +118,6 @@ class ScrollBarView @JvmOverloads constructor(
                     radius = it
                 }
                 anim?.start()
-
-                if (wasDragging != null) {
-                    listener?.onTouch(start = false)
-                }
             }
         }
         return true

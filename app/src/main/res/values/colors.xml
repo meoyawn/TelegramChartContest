@@ -2,15 +2,14 @@
 <resources>
     <color name="colorPrimary">#537EA0</color>
     <color name="colorPrimaryDark">#436481</color>
-    <color name="colorAccent">#D81B60</color>
+    <color name="colorAccent">#3E97D2</color>
     <color name="background">#fff</color>
 
-    <color name="header_text_day">#3E97D2</color>
-    <color name="label_text_day">#96A2AA</color>
-    <color name="divider_day">#F1F1F2</color>
-    <color name="vertical_line_day">#E5EBEF</color>
-    <color name="text_day">#222222</color>
-    <color name="bottom_day">#F0F0F0</color>
+    <color name="label_text">#96A2AA</color>
+    <color name="divider">#F1F1F2</color>
+    <color name="vertical_line">#E5EBEF</color>
+    <color name="bottom">#F0F0F0</color>
+
     <color name="scroll_overlay_pale">#BFb3e5fc</color>
     <color name="scroll_overlay_bright">#80039be5</color>
     <color name="scroll_overlay_touch">#404fc3f7</color>

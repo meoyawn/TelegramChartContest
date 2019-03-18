@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.view.Gravity
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatCheckBox
+import help.Idx
 import help.dp
 import help.updatePadding
 import lol.adel.graph.data.*
@@ -26,7 +27,10 @@ private fun makeCheckbox(chart: Chart, id: LineId, viewHolder: ViewHolder): AppC
         updatePadding(left = 10.dp)
     }
 
-fun ViewHolder.setup(data: Chart) {
+fun ViewHolder.setup(idx: Idx) {
+    name.text = ctx.getString(R.string.chart_d, idx)
+    val data = CHARTS[idx]
+
     val lines = data.lines()
     chartView.setup(data, lines)
     background.setup(data, lines)
@@ -51,10 +55,6 @@ fun ViewHolder.setup(data: Chart) {
                 from = left * size.dec(),
                 to = right * size.dec()
             )
-        }
-
-        override fun onTouch(start: Boolean) {
-            chartView.onTouch(start)
         }
     }
 }

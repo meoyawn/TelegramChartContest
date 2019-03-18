@@ -23,11 +23,11 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private var absoluteMax: Long = 0
 
     private val oldLabelPaint = Paint().apply {
-        color = ctx.color(R.color.label_text_day)
+        color = ctx.color(R.color.label_text)
         textSize = 16.dpF
     }
     private val currentLabelPain = Paint().apply {
-        color = ctx.color(R.color.label_text_day)
+        color = ctx.color(R.color.label_text)
         textSize = 16.dpF
     }
 
@@ -35,11 +35,11 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private val linesForDrawing: SimpleArrayMap<LineId, Paint> = simpleArrayMapOf()
 
     private val oldLinePaint = Paint().apply {
-        color = ctx.color(R.color.divider_day)
+        color = ctx.color(R.color.divider)
         strokeWidth = 2.dpF
     }
     private val currentLinePaint = Paint().apply {
-        color = ctx.color(R.color.divider_day)
+        color = ctx.color(R.color.divider)
         strokeWidth = 2.dpF
     }
 
@@ -70,10 +70,6 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
 
         calculateMinMax(animate = false)
         invalidate()
-    }
-
-    fun onTouch(start: Boolean) {
-
     }
 
     fun selectLine(id: LineId, enabled: Boolean) {

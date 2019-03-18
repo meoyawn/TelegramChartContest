@@ -18,10 +18,11 @@ class MainActivity : AppCompatActivity() {
             chartView = findViewById(R.id.chart),
             scroll = findViewById(R.id.scroll),
             background = findViewById(R.id.background),
-            horizontalLabels = findViewById(R.id.horizontal_labels)
+            horizontalLabels = findViewById(R.id.horizontal_labels),
+            name = findViewById(R.id.chart_name)
         )
 
-        vh.setup(CHARTS[1])
+        vh.setup(idx = 1)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

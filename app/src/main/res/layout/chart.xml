@@ -15,10 +15,10 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/chart_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Followers"
-            android:textColor="@color/header_text_day" />
+            android:textColor="@color/colorAccent" />
 
         <lol.adel.graph.ChartView
             android:id="@+id/chart"
@@ -51,6 +51,6 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bottom_day" />
+        android:background="@color/bottom" />
 
 </LinearLayout>

@@ -22,11 +22,11 @@ class HorizontalLabelsView @JvmOverloads constructor(
     private val GAP = 80.dpF
 
     private val opaque = Paint().apply {
-        color = ctx.color(R.color.label_text_day)
+        color = ctx.color(R.color.label_text)
         textSize = 16.dpF
     }
     private val transparent = Paint().apply {
-        color = ctx.color(R.color.label_text_day)
+        color = ctx.color(R.color.label_text)
         textSize = 16.dpF
     }
 
