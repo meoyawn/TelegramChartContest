@@ -16,13 +16,13 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private var end: IdxF = 0f
 
     private val cameraY = MinMax(0f, 0f)
-    private val cameraTarget = MinMax(0f, 0f)
-    private val currentLine = MinMax(0f, 0f)
-    private val oldLine = MinMax(0f, 0f)
-
     private var absoluteMin: Long = 0
     private var absoluteMax: Long = 0
 
+    private val enabledLines: MutableSet<LineId> = mutableSetOf()
+    private val linePaints: SimpleArrayMap<LineId, Paint> = simpleArrayMapOf()
+
+    //region Vertical Labels
     private val oldLabelPaint = Paint().apply {
         color = ctx.color(R.color.label_text)
         textSize = 16.dpF
@@ -31,10 +31,6 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         color = ctx.color(R.color.label_text)
         textSize = 16.dpF
     }
-
-    private val enabledLines: MutableSet<LineId> = mutableSetOf()
-    private val linesForDrawing: SimpleArrayMap<LineId, Paint> = simpleArrayMapOf()
-
     private val oldLinePaint = Paint().apply {
         color = ctx.color(R.color.divider)
         strokeWidth = 2.dpF
@@ -43,26 +39,39 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         color = ctx.color(R.color.divider)
         strokeWidth = 2.dpF
     }
+    private val currentLine = MinMax(0f, 0f)
+    private val oldLine = MinMax(0f, 0f)
+    private val cameraTarget = MinMax(0f, 0f)
+    //endregion
 
+    //region Touch Feedback
     var touching: PxF = -1f
         set(value) {
             field = value
             invalidate()
         }
-
-    private val linePaint = Paint().apply {
+    private val outerCircleRadius = 5.dpF
+    private val innerCircleRadius = 3.dpF
+    private val innerCirclePaint = Paint().apply {
+        style = Paint.Style.FILL
+        color = ctx.color(R.color.background)
+        isDither = true
+        isAntiAlias = true
+    }
+    private val verticalLinePaint = Paint().apply {
         strokeWidth = 1.dpF
         color = ctx.color(R.color.vertical_line)
     }
+    //endregion
 
     fun setup(chart: Chart, enabled: Set<LineId>) {
         data = chart
 
         enabledLines.clear()
-        linesForDrawing.clear()
+        linePaints.clear()
         enabled.forEach { line ->
             enabledLines += line
-            linesForDrawing[line] = Paint().apply {
+            linePaints[line] = Paint().apply {
                 isAntiAlias = true
                 isDither = true
                 strokeWidth = 2.dpF
@@ -91,7 +100,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             enabledLines -= id
         }
 
-        val paint = linesForDrawing[id]!!
+        val paint = linePaints[id]!!
         animateInt(from = paint.alpha, to = if (enabled) 255 else 0) {
             paint.alpha = it
             invalidate()
@@ -177,6 +186,17 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         val width = canvas.width.toFloat()
         val height = canvas.height.toFloat()
 
+        val touchingIdx = if (touching != -1f) {
+
+            val idx = denormalize(touching / width, start, end).roundToInt()
+
+            val mappedX = mapX(idx, width)
+
+            canvas.drawLine(mappedX, 0f, mappedX, height, verticalLinePaint)
+
+            idx
+        } else -1
+
         if (drawLabels) {
             oldLine.iterate(5) {
                 val value = it.toLong()
@@ -190,39 +210,24 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             }
         }
 
-        val touchingIdx = if (touching != -1f) {
-            val idx = denormalize(touching / width, start, end).roundToInt()
-            val mappedX = mapX(idx, width)
-            canvas.drawLine(mappedX, 0f, mappedX, height, linePaint)
-            idx
-        } else -1
-
         val hiddenStart = start.floor()
         val visibleEnd = end.floor()
 
-        linesForDrawing.forEach { line, paint ->
+        linePaints.forEach { line, paint ->
             if (paint.alpha > 0) {
                 val points = data[line]
                 for (i in hiddenStart..Math.min(visibleEnd, points.lastIndex - 1)) {
-                    when (touchingIdx) {
-                        // circle at start
-                        i -> {
+                    val startX = mapX(idx = i, width = width)
+                    val endX = mapX(idx = i + 1, width = width)
 
-                        }
+                    val startY = mapY(value = points[i], height = height)
+                    val endY = mapY(value = points[i + 1], height = height)
 
-                        // circle at the end
-                        i + 1 -> {
+                    canvas.drawLine(startX, startY, endX, endY, paint)
 
-                        }
-
-                        else ->
-                            canvas.drawLine(
-                                mapX(idx = i, width = width),
-                                mapY(value = points[i], height = height),
-                                mapX(idx = i + 1, width = width),
-                                mapY(value = points[i + 1], height = height),
-                                paint
-                            )
+                    if (i == touchingIdx) {
+                        canvas.drawCircle(startX, startY, outerCircleRadius, paint)
+                        canvas.drawCircle(startX, startY, innerCircleRadius, innerCirclePaint)
                     }
                 }
             }
