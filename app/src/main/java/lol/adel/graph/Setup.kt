@@ -102,36 +102,35 @@ fun ViewHolder.setup(idx: Idx) {
 
     floating.visibility = View.INVISIBLE
     chartView.listener = object : ChartView.Listener {
-        override fun onTouch(idx: Idx, x: PxF): Unit =
-            floating.run {
-                visibility = visibleOrInvisible(idx != -1)
+        override fun onTouch(idx: Idx, x: PxF) {
+            floating.visibility = visibleOrInvisible(idx != -1)
 
-                if (idx in 0..(size - 1)) {
-                    val floatingWidth = width
+            if (idx in 0..(size - 1)) {
+                val floatingWidth = floating.width
 
-                    val target = x - 20.dp
-                    val altTarget = x - floatingWidth + 20.dp
+                val target = x - 20.dp
+                val altTarget = x - floatingWidth + 20.dp
 
-                    val rightOk = target + floatingWidth <= chartView.width
+                val rightOk = target + floatingWidth <= chartView.width
 
-                    translationX = when {
-                        target > 0 && rightOk ->
-                            target
+                floating.translationX = when {
+                    target > 0 && rightOk ->
+                        target
 
-                        !rightOk && altTarget > 0 ->
-                            altTarget
+                    !rightOk && altTarget > 0 ->
+                        altTarget
 
-                        else ->
-                            0f
-                    }
+                    else ->
+                        0f
+                }
 
-                    floatingText.text = fmt.format(xs[idx])
+                floatingText.text = fmt.format(xs[idx])
 
-                    lineTexts.forEach { id, view ->
-                        val points = data.columns[id]!!
-                        view.component1().toTextView().text = points[idx].toString()
-                    }
+                lineTexts.forEach { id, view ->
+                    val points = data.columns[id]!!
+                    view.component1().toTextView().text = points[idx].toString()
                 }
             }
+        }
     }
 }
