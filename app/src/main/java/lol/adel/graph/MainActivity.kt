@@ -1,7 +1,11 @@
 package lol.adel.graph
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import help.isNight
+import help.setNightMode
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,6 +21,23 @@ class MainActivity : AppCompatActivity() {
             horizontalLabels = findViewById(R.id.horizontal_labels)
         )
 
-        vh.setup(CHARTS[0])
+        vh.setup(CHARTS[1])
     }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.night, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean =
+        when (item.itemId) {
+            R.id.night -> {
+                setNightMode(night = !resources.configuration.isNight())
+                recreate()
+                true
+            }
+
+            else ->
+                super.onOptionsItemSelected(item)
+        }
 }

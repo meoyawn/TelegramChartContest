@@ -1,11 +1,11 @@
 package lol.adel.graph
 
 import android.app.Application
-import androidx.appcompat.app.AppCompatDelegate
+import help.setNightMode
 
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        setNightMode(night = false)
     }
 }

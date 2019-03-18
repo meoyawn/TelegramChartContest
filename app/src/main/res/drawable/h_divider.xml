@@ -2,8 +2,8 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:left="48dp">
         <shape xmlns:android="http://schemas.android.com/apk/res/android">
-            <solid android:color="#eeeeee" />
-            <size android:height="1dp" />
+            <solid android:color="@color/divider_day" />
+            <size android:height="1px" />
         </shape>
     </item>
 </layer-list>

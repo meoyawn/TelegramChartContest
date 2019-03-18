@@ -3,6 +3,7 @@
     <color name="colorPrimary">#537EA0</color>
     <color name="colorPrimaryDark">#436481</color>
     <color name="colorAccent">#D81B60</color>
+    <color name="background">#fff</color>
 
     <color name="header_text_day">#3E97D2</color>
     <color name="label_text_day">#96A2AA</color>
