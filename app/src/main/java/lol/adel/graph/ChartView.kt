@@ -1,8 +1,10 @@
 package lol.adel.graph
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 import help.IdxF
 import lol.adel.graph.data.Chart
@@ -24,6 +26,24 @@ class ChartView @JvmOverloads constructor(
 
     fun setHorizontalBounds(from: IdxF, to: IdxF): Unit =
         charter.setHorizontalBounds(from, to)
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                charter.touching = event.x
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                charter.touching = event.x
+            }
+
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                charter.touching = -1f
+            }
+        }
+        return true
+    }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)

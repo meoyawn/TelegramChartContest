@@ -6,6 +6,7 @@ import android.graphics.Paint
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
+import kotlin.math.roundToInt
 
 class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> Unit) {
 
@@ -41,6 +42,17 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     private val currentLinePaint = Paint().apply {
         color = ctx.color(R.color.divider)
         strokeWidth = 2.dpF
+    }
+
+    var touching: PxF = -1f
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    private val linePaint = Paint().apply {
+        strokeWidth = 1.dpF
+        color = ctx.color(R.color.vertical_line)
     }
 
     fun setup(chart: Chart, enabled: Set<LineId>) {
@@ -178,6 +190,13 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             }
         }
 
+        val touchingIdx = if (touching != -1f) {
+            val idx = denormalize(touching / width, start, end).roundToInt()
+            val mappedX = mapX(idx, width)
+            canvas.drawLine(mappedX, 0f, mappedX, height, linePaint)
+            idx
+        } else -1
+
         val hiddenStart = start.floor()
         val visibleEnd = end.floor()
 
@@ -185,13 +204,26 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             if (paint.alpha > 0) {
                 val points = data[line]
                 for (i in hiddenStart..Math.min(visibleEnd, points.lastIndex - 1)) {
-                    canvas.drawLine(
-                        mapX(idx = i, width = width),
-                        mapY(value = points[i], height = height),
-                        mapX(idx = i + 1, width = width),
-                        mapY(value = points[i + 1], height = height),
-                        paint
-                    )
+                    when (touchingIdx) {
+                        // circle at start
+                        i -> {
+
+                        }
+
+                        // circle at the end
+                        i + 1 -> {
+
+                        }
+
+                        else ->
+                            canvas.drawLine(
+                                mapX(idx = i, width = width),
+                                mapY(value = points[i], height = height),
+                                mapX(idx = i + 1, width = width),
+                                mapY(value = points[i + 1], height = height),
+                                paint
+                            )
+                    }
                 }
             }
         }
