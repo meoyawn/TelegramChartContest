@@ -6,7 +6,6 @@ import android.graphics.Paint
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
-import kotlin.math.abs
 
 class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> Unit) {
 
@@ -14,8 +13,6 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
 
     private var start: IdxF = 0f
     private var end: IdxF = 0f
-
-    var currentSpeed: Float = -1f
 
     private val cameraY = MinMax(0f, 0f)
     private val cameraTarget = MinMax(0f, 0f)
@@ -68,15 +65,8 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     }
 
     fun setHorizontalBounds(from: IdxF, to: IdxF) {
-        val lastX = start + (end - start) / 2
-
         start = from
         end = to
-
-        val newX = start + (end - start) / 2
-
-        currentSpeed = abs(newX - lastX)
-        println(currentSpeed)
 
         calculateMinMax(animate = false)
         invalidate()
