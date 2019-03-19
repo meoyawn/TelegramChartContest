@@ -1,17 +1,18 @@
 package lol.adel.graph
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import androidx.appcompat.app.AppCompatActivity
 import help.isNight
 import help.setNightMode
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.chart)
+        setTitle(R.string.title)
 
         val vh = ViewHolder(
             root = findViewById(R.id.parent),

@@ -2,6 +2,8 @@ package lol.adel.graph.data
 
 import androidx.collection.SimpleArrayMap
 import help.*
+import java.text.DecimalFormat
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -88,7 +90,7 @@ fun camera(
             yCoordinate(
                 radius = rNorm,
                 x = xNorm,
-                x1 = normalize(i.toFloat(), minX, maxX),
+                x1 = normalize(i, minX, maxX),
                 y1 = normalize(points[i], minY, maxY)
             ) { bottom, top ->
                 minNorm = min(minNorm, bottom)
@@ -101,4 +103,22 @@ fun camera(
 
     camera.min = denormalize(minNorm, minY, maxY)
     camera.max = denormalize(maxNorm, minY, maxY)
+}
+
+private val FMT = DecimalFormat("0.00")
+
+fun chartValue(l: Long, max: Float): String {
+    val abs = abs(l)
+
+    return when {
+        abs < 1_000 ->
+            l.toString()
+
+        abs < 1_000_000 ->
+            if (max < 1_000_000) l.toString()
+            else "${l / 1_000}K"
+
+        else ->
+            "${FMT.format(l / 1_000_000.0)}M"
+    }
 }

@@ -32,7 +32,7 @@ inline fun MinMax.iterate(steps: Int, f: (Float) -> Unit): Unit =
     else iterate(from = min, to = max, step = (max - min) / steps, f = f)
 
 fun MinMax.normalize(value: Long): Float =
-    normalize(value = value.toFloat(), min = min, max = max)
+    normalize(value = value, min = min, max = max)
 
 fun MinMax.reset() {
     min = Float.MAX_VALUE

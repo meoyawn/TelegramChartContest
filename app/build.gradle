@@ -34,11 +34,17 @@ android {
             proguardFile "proguard.pro"
         }
     }
+
+    packagingOptions {
+        exclude 'kotlin/**'
+        exclude 'kotlinx/**'
+        exclude 'META-INF/**'
+    }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation "androidx.collection:collection:1.1.0-alpha03" // simplearraymap
 
     testImplementation 'junit:junit:4.12'
 }

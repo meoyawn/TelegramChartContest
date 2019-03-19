@@ -1,5 +1,6 @@
 package help
 
+import android.util.SparseArray
 import androidx.collection.SimpleArrayMap
 
 fun <K, V> simpleArrayMapOf(vararg items: Pair<K, V>): SimpleArrayMap<K, V> =
@@ -16,6 +17,12 @@ fun <K, V> SimpleArrayMap<K, V>.last(): V =
     valueAt(size() - 1)
 
 inline fun <K, V> SimpleArrayMap<K, V>.forEach(f: (K, V) -> Unit) {
+    for (i in 0 until size()) {
+        f(keyAt(i), valueAt(i))
+    }
+}
+
+inline fun <V> SparseArray<V>.forEach(f: (Int, V) -> Unit) {
     for (i in 0 until size()) {
         f(keyAt(i), valueAt(i))
     }

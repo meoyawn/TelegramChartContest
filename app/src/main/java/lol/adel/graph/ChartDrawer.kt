@@ -3,6 +3,7 @@ package lol.adel.graph
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Path
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
@@ -10,12 +11,27 @@ import kotlin.math.roundToInt
 
 class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> Unit) {
 
+    private companion object {
+
+        // lines
+        const val H_LINES = 5
+        val H_LINE_THICKNESS = 2.dpF
+
+        // labels
+        val LINE_LABEL_DIST = 5.dp
+        val LABEL_TEXT_SIZE = 16.dpF
+
+        // circles
+        val outerCircleRadius = 5.dpF
+        val innerCircleRadius = 3.dpF
+    }
+
     private var data: Chart = EMPTY_CHART
 
     var start: IdxF = 0f
     var end: IdxF = 0f
 
-    private val cameraY = MinMax(0f, 0f)
+    val cameraY = MinMax(0f, 0f)
     private var absoluteMin: Long = 0
     private var absoluteMax: Long = 0
 
@@ -25,21 +41,21 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     //region Vertical Labels
     private val oldLabelPaint = Paint().apply {
         color = ctx.color(R.color.label_text)
-        textSize = 16.dpF
+        textSize = LABEL_TEXT_SIZE
         isAntiAlias = true
     }
-    private val currentLabelPain = Paint().apply {
+    private val currentLabelPaint = Paint().apply {
         color = ctx.color(R.color.label_text)
-        textSize = 16.dpF
+        textSize = LABEL_TEXT_SIZE
         isAntiAlias = true
     }
     private val oldLinePaint = Paint().apply {
         color = ctx.color(R.color.divider)
-        strokeWidth = 2.dpF
+        strokeWidth = H_LINE_THICKNESS
     }
     private val currentLinePaint = Paint().apply {
         color = ctx.color(R.color.divider)
-        strokeWidth = 2.dpF
+        strokeWidth = H_LINE_THICKNESS
     }
     private val currentLine = MinMax(0f, 0f)
     private val oldLine = MinMax(0f, 0f)
@@ -52,8 +68,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             field = value
             invalidate()
         }
-    private val outerCircleRadius = 5.dpF
-    private val innerCircleRadius = 3.dpF
+
     private val innerCirclePaint = Paint().apply {
         style = Paint.Style.FILL
         color = ctx.color(R.color.background)
@@ -73,6 +88,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         enabled.forEach { line ->
             enabledLines += line
             linePaints[line] = Paint().apply {
+                style = Paint.Style.STROKE
                 isAntiAlias = true
                 strokeWidth = 2.dpF
                 color = chart.color(line)
@@ -170,23 +186,31 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         val frac1 = dist1 / (dist1 + dist2)
 
         currentLinePaint.alphaF = 1 - frac1
-        currentLabelPain.alphaF = 1 - frac1
+        currentLabelPaint.alphaF = 1 - frac1
 
         oldLinePaint.alphaF = frac1
         oldLabelPaint.alphaF = frac1
     }
 
     fun mapX(idx: Idx, width: PxF): X =
-        normalize(value = idx.toFloat(), min = start, max = end) * width
+        normalize(value = idx, min = start, max = end) * width
 
     private fun mapY(value: Long, height: PxF): Y =
         (1 - cameraY.normalize(value)) * height
+
+    private val path = Path()
+
+    private inline fun mapped(width: PxF, height: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
+        f(
+            mapX(idx = idx, width = width),
+            mapY(value = points[idx], height = height)
+        )
 
     fun onDraw(canvas: Canvas) {
         val width = canvas.width.toFloat()
         val height = canvas.height.toFloat()
 
-        val touchingIdx = if (touching > 0 && touching <= width) {
+        val touchingIdx = if (touching in 0f..width) {
             val idx = denormalize(touching / width, start, end).roundToInt()
 
             val mappedX = mapX(idx, width)
@@ -197,54 +221,57 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         } else -1
 
         if (drawLabels) {
-            oldLine.iterate(5) {
-                val value = it.toLong()
-                val y = mapY(value, height)
+            oldLine.iterate(H_LINES) {
+                val y = mapY(it.toLong(), height)
                 canvas.drawLine(0f, y, width, y, oldLinePaint)
             }
-            currentLine.iterate(5) {
-                val value = it.toLong()
-                val y = mapY(value, height)
+            currentLine.iterate(H_LINES) {
+                val y = mapY(it.toLong(), height)
                 canvas.drawLine(0f, y, width, y, currentLinePaint)
             }
         }
 
-        val hiddenStart = start.floor()
-        val visibleEnd = end.floor()
-
         linePaints.forEach { line, paint ->
             if (paint.alpha > 0) {
+                path.reset()
+
                 val points = data[line]
-                for (i in hiddenStart..Math.min(visibleEnd, points.lastIndex - 1)) {
-                    val startX = mapX(idx = i, width = width)
-                    val endX = mapX(idx = i + 1, width = width)
-                    val startY = mapY(value = points[i], height = height)
-                    val endY = mapY(value = points[i + 1], height = height)
-                    canvas.drawLine(startX, startY, endX, endY, paint)
+                mapped(width, height, points, start.floor(), path::moveTo)
+                for (i in start.ceil()..end.ceil()) {
+                    mapped(width, height, points, i, path::lineTo)
                 }
+
+                canvas.drawPath(path, paint)
             }
         }
 
         if (touchingIdx != -1) {
             linePaints.forEach { line, paint ->
-                val points = data[line]
-                val startX = mapX(idx = touchingIdx, width = width)
-                val startY = mapY(value = points[touchingIdx], height = height)
-                canvas.drawCircle(startX, startY, outerCircleRadius, paint)
-                canvas.drawCircle(startX, startY, innerCircleRadius, innerCirclePaint)
+                mapped(width, height, data[line], touchingIdx) { x, y ->
+                    canvas.drawCircle(x, y, outerCircleRadius, paint)
+                    canvas.drawCircle(x, y, innerCircleRadius, innerCirclePaint)
+                }
             }
         }
 
         if (drawLabels) {
-            oldLine.iterate(5) {
+            oldLine.iterate(H_LINES) {
                 val value = it.toLong()
-                val y = mapY(value, height) - 5.dpF
-                canvas.drawText(value.toString(), 0f, y, oldLabelPaint)
+                canvas.drawText(
+                    chartValue(value, cameraY.max),
+                    0f,
+                    mapY(value, height) - LINE_LABEL_DIST,
+                    oldLabelPaint
+                )
             }
-            currentLine.iterate(5) {
+            currentLine.iterate(H_LINES) {
                 val value = it.toLong()
-                val y = mapY(value, height) - 5.dpF
-                canvas.drawText(value.toString(), 0f, y, currentLabelPain)
+                canvas.drawText(
+                    chartValue(value, cameraY.max),
+                    0f,
+                    mapY(value, height) - LINE_LABEL_DIST,
+                    currentLabelPaint
+                )
             }
         }
     }

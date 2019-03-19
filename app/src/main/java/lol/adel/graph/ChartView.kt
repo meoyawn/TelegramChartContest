@@ -18,7 +18,7 @@ class ChartView @JvmOverloads constructor(
 ) : View(ctx, attrs, defStyleAttr) {
 
     interface Listener {
-        fun onTouch(idx: Idx, x: PxF)
+        fun onTouch(idx: Idx, x: PxF, max: Float)
     }
 
     private val charter = ChartDrawer(ctx = ctx, drawLabels = true) { invalidate() }
@@ -43,12 +43,12 @@ class ChartView @JvmOverloads constructor(
                 val idx = denormalize(value = event.x / width, min = charter.start, max = charter.end).roundToInt()
                 val mappedX = charter.mapX(idx, widthF)
 
-                listener?.onTouch(idx = idx, x = mappedX)
+                listener?.onTouch(idx = idx, x = mappedX, max = charter.cameraY.max)
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 charter.touching = -1f
-                listener?.onTouch(idx = -1, x = -1f)
+                listener?.onTouch(idx = -1, x = -1f, max = charter.cameraY.max)
             }
         }
         return true

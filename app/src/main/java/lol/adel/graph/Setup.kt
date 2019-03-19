@@ -6,10 +6,10 @@ import android.graphics.Typeface
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.LinearLayout
-import androidx.appcompat.widget.AppCompatCheckBox
-import androidx.appcompat.widget.AppCompatTextView
+import android.widget.TextView
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
@@ -21,8 +21,8 @@ private fun makeCheckbox(
     id: LineId,
     viewHolder: ViewHolder,
     texts: SimpleArrayMap<LineId, ViewGroup>
-): AppCompatCheckBox =
-    AppCompatCheckBox(viewHolder.ctx).apply {
+): CheckBox =
+    CheckBox(viewHolder.ctx).apply {
         text = chart.names[id]
         buttonTintList = ColorStateList.valueOf(chart.color(id))
 
@@ -46,13 +46,13 @@ private fun makeLineText(ctx: Context, chart: Chart, id: LineId, medium: Typefac
 
         val color = chart.color(id)
 
-        addView(AppCompatTextView(ctx).apply {
+        addView(TextView(ctx).apply {
             textSize = 19f
             setTextColor(color)
             typeface = medium
         })
 
-        addView(AppCompatTextView(ctx).apply {
+        addView(TextView(ctx).apply {
             textSize = 17f
             setTextColor(color)
             text = chart.names[id]
@@ -102,7 +102,7 @@ fun ViewHolder.setup(idx: Idx) {
 
     floating.visibility = View.INVISIBLE
     chartView.listener = object : ChartView.Listener {
-        override fun onTouch(idx: Idx, x: PxF) {
+        override fun onTouch(idx: Idx, x: PxF, max: Float) {
             floating.visibility = visibleOrInvisible(idx != -1)
 
             if (idx in 0..(size - 1)) {
@@ -128,7 +128,7 @@ fun ViewHolder.setup(idx: Idx) {
 
                 lineTexts.forEach { id, view ->
                     val points = data.columns[id]!!
-                    view.component1().toTextView().text = points[idx].toString()
+                    view.component1().toTextView().text = chartValue(points[idx], max)
                 }
             }
         }

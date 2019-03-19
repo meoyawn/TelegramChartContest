@@ -6,9 +6,11 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.util.AttributeSet
+import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
 import help.*
+
 
 class ScrollBarView @JvmOverloads constructor(
     ctx: Context,
@@ -27,21 +29,8 @@ class ScrollBarView @JvmOverloads constructor(
     var listener: Listener? = null
 
     private var left: Float = 0f
-        set(value) {
-            field = value
-            listener?.onBoundsChange(left = left / widthF, right = right / widthF)
-            invalidate()
-        }
-
     private var right: Float = 0f
-        set(value) {
-            field = value
-            listener?.onBoundsChange(left = left / widthF, right = right / widthF)
-            invalidate()
-        }
-
-    private var dragging: Dragging? = null
-    private var wasDragging: Dragging? = null
+    private val dragging: SparseArray<Dragging> = SparseArray()
 
     private var radius: PxF = 0f
         set(value) {
@@ -54,64 +43,80 @@ class ScrollBarView @JvmOverloads constructor(
     private fun around(x: X, view: X): Boolean =
         Math.abs(x - view) <= 24.dp
 
+    private fun set(left: Float, right: Float) {
+        this.left = left
+        this.right = right
+        listener?.onBoundsChange(left = left / width, right = right / width)
+        invalidate()
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                when {
-                    around(event.x, left) ->
-                        dragging = Dragging.Left
+        val pointerId = event.pointerId()
+        val evX = event.x()
 
-                    around(event.x, right) ->
-                        dragging = Dragging.Right
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                if (dragging[pointerId] == null) {
+                    println("down $pointerId")
 
-                    event.x in left..right ->
-                        dragging = Dragging.Between(left = left, right = right, x = event.x)
+                    val d = when {
+                        around(evX, left) ->
+                            Dragging.Left
+
+                        around(evX, right) ->
+                            Dragging.Right
+
+                        evX in left..right && pointerId == 0 ->
+                            Dragging.Between(left = left, right = right, x = evX)
+
+                        else ->
+                            null
+                    }
+                    dragging.put(pointerId, d)
+
+                    anim?.cancel()
+                    anim = animateFloat(radius, (heightF + 32.dp) / 2) {
+                        radius = it
+                    }
+                    anim?.start()
                 }
-
-                anim?.cancel()
-                anim = animateFloat(radius, (heightF + 32.dp) / 2) {
-                    radius = it
-                }
-                anim?.start()
             }
 
-            MotionEvent.ACTION_MOVE ->
-                when (val d = dragging) {
+            MotionEvent.ACTION_MOVE -> {
+                println("moving $pointerId")
+
+                when (val d = dragging[pointerId]) {
                     Dragging.Left ->
-                        left = Math.min(Math.max(event.x, 0f), right - 48.dp)
+                        set(clamp(evX, 0f, right - 48.dp), right)
 
                     Dragging.Right ->
-                        right = Math.max(left + 48.dp, Math.min(event.x, widthF - 1))
+                        set(left, clamp(evX, left + 48.dp, widthF))
 
                     is Dragging.Between -> {
-                        val diff = event.x - d.x
+                        val diff = evX - d.x
                         val newLeft = d.left + diff
                         val newRight = d.right + diff
                         val distance = d.right - d.left
 
                         when {
-                            newLeft >= 0 && newRight < width -> {
-                                left = newLeft
-                                right = newRight
-                            }
+                            newLeft >= 0 && newRight < width ->
+                                set(newLeft, newRight)
 
-                            newLeft <= 0 -> {
-                                left = 0f
-                                right = distance
-                            }
+                            newLeft <= 0 ->
+                                set(left = 0f, right = distance)
 
-                            newRight >= widthF -> {
-                                left = widthF - 1 - distance
-                                right = widthF - 1
-                            }
+                            newRight >= widthF ->
+                                set(left = width - 1 - distance, right = width - 1f)
                         }
                     }
                 }
+            }
 
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                wasDragging = dragging
-                dragging = null
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_POINTER_UP -> {
+                println("up $pointerId")
+
+                dragging.delete(pointerId)
 
                 anim?.cancel()
                 anim = animateFloat(radius, 0f) {
@@ -125,7 +130,7 @@ class ScrollBarView @JvmOverloads constructor(
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        this.right = widthF - 1
+        set(0f, width - 1f)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -147,15 +152,17 @@ class ScrollBarView @JvmOverloads constructor(
         canvas.drawRect(left + halfLineWidth, height - lineHeight, right - halfLineWidth, height, bright)
         canvas.drawRect(right - halfLineWidth, 0f, right + halfLineWidth, height, bright)
 
-        when (dragging ?: wasDragging) {
-            Dragging.Left ->
-                canvas.drawCircle(left, halfHeight, radius, touch)
+        dragging.forEach { _, d ->
+            when (d) {
+                Dragging.Left ->
+                    canvas.drawCircle(left, halfHeight, radius, touch)
 
-            Dragging.Right ->
-                canvas.drawCircle(right, halfHeight, radius, touch)
+                Dragging.Right ->
+                    canvas.drawCircle(right, halfHeight, radius, touch)
 
-            is Dragging.Between ->
-                canvas.drawCircle((right - left) / 2 + left, halfHeight, radius, touch)
+                is Dragging.Between ->
+                    canvas.drawCircle((right - left) / 2 + left, halfHeight, radius, touch)
+            }
         }
     }
 }
