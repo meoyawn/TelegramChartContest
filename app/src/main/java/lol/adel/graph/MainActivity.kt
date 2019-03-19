@@ -12,7 +12,6 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.chart)
-        setTitle(R.string.title)
 
         val vh = ViewHolder(
             root = findViewById(R.id.parent),
@@ -26,7 +25,7 @@ class MainActivity : Activity() {
             floatingContainer = findViewById(R.id.floating_container)
         )
 
-        vh.setup(idx = 4)
+        vh.setup(idx = 0)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -37,7 +36,7 @@ class MainActivity : Activity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when (item.itemId) {
             R.id.night -> {
-                setNightMode(night = !resources.configuration.isNight())
+                resources.setNightMode(night = !resources.configuration.isNight())
                 recreate()
                 true
             }

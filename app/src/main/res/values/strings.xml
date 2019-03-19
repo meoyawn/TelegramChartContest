@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">TeleChart</string>
-    <string name="title">Statistics</string>
+    <string name="app_name">Statistics</string>
     <string name="night_mode">Night mode</string>
     <string name="chart_d">Chart %d</string>
 </resources>

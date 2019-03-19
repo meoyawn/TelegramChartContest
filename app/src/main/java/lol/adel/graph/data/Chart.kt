@@ -74,7 +74,7 @@ fun camera(
 
     val r0 = (end - start) / 2
     val x = start + r0
-    val r = r0 + (maxX - minX) / 10f
+    val r = r0 + (maxX - minX) / 20f
 
     var maxNorm = Float.MIN_VALUE
     var minNorm = Float.MAX_VALUE
@@ -107,18 +107,18 @@ fun camera(
 
 private val FMT = DecimalFormat("0.00")
 
-fun chartValue(l: Long, max: Float): String {
-    val abs = abs(l)
+fun chartValue(value: Long, max: Float): String {
+    val abs = abs(value)
 
     return when {
         abs < 1_000 ->
-            l.toString()
+            value.toString()
 
         abs < 1_000_000 ->
-            if (max < 1_000_000) l.toString()
-            else "${l / 1_000}K"
+            if (max < 1_000_000) value.toString()
+            else "${value / 1_000} K"
 
         else ->
-            "${FMT.format(l / 1_000_000.0)}M"
+            "${FMT.format(value / 1_000_000.0)} M"
     }
 }

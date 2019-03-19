@@ -154,6 +154,8 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
                 camera = cameraY,
                 absolutes = cameraTarget
             )
+            cameraY.min = absoluteMin.toFloat()
+            cameraTarget.min = absoluteMin.toFloat()
 
             if (currentLine.empty() || currentLine.distanceSq(cameraTarget) > currentLine.lenSq() * 0.15f.sq()) {
                 oldLine.set(from = currentLine)
