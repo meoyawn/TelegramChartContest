@@ -107,6 +107,9 @@ fun camera(
 
 private val FMT = DecimalFormat("0.00")
 
+fun chartName(idx: Idx): String =
+    "Chart ${idx + 1}"
+
 fun chartValue(value: Long, max: Float): String {
     val abs = abs(value)
 

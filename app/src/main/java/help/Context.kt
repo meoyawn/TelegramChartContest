@@ -2,6 +2,7 @@ package help
 
 import android.content.Context
 import android.content.res.Resources
+import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 
@@ -31,3 +32,10 @@ val View.heightF: PxF
 
 const val MATCH_PARENT = ViewGroup.LayoutParams.MATCH_PARENT
 const val WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT
+
+val TV = TypedValue()
+
+fun Context.attr(id: Int): Int {
+    theme.resolveAttribute(id, TV, true)
+    return TV.resourceId
+}

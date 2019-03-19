@@ -60,7 +60,7 @@ private fun makeLineText(ctx: Context, chart: Chart, id: LineId, medium: Typefac
     }
 
 fun ViewHolder.setup(idx: Idx) {
-    name.text = ctx.getString(R.string.chart_d, idx)
+    name.text = chartName(idx)
     val data = CHARTS[idx]
 
     val lines = data.lines()
