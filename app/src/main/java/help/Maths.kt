@@ -6,6 +6,9 @@ typealias Y = PxF
 typealias Idx = Int
 typealias IdxF = Float
 
+fun Float.sq(): Float =
+    this * this
+
 fun Float.floor(): Int =
     Math.floor(toDouble()).toInt()
 
@@ -56,6 +59,18 @@ fun denormalize(value: Float, min: Float, max: Float): Float =
     min + (max - min) * value
 
 fun clamp(value: Float, min: Float, max: Float): Float =
+    when {
+        value < min ->
+            min
+
+        value > max ->
+            max
+
+        else ->
+            value
+    }
+
+fun clamp(value: Int, min: Int, max: Int): Int =
     when {
         value < min ->
             min

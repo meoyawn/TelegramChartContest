@@ -84,7 +84,7 @@ class ScrollBarView @JvmOverloads constructor(
             }
 
             MotionEvent.ACTION_MOVE -> {
-                println("moving $pointerId")
+//                println("moving $pointerId")
 
                 when (val d = dragging[pointerId]) {
                     Dragging.Left ->

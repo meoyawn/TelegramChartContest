@@ -101,11 +101,17 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         }
     }
 
+    fun x(): Float =
+        start + (end - start) / 2
+
     fun setHorizontalBounds(from: IdxF, to: IdxF) {
+        val oldStart = start
+        val oldEnd = end
+
         start = from
         end = to
 
-        calculateMinMax(animate = false)
+        calculateMinMax(animate = false, startDiff = start - oldStart, endDiff = end - oldEnd)
         invalidate()
     }
 
@@ -127,14 +133,24 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             absoluteMax = max
         }
 
-        calculateMinMax(animate = true)
+        calculateMinMax(animate = true, startDiff = 0f, endDiff = 0f)
         invalidate()
     }
+
+    val default: () -> Float = {
+        var l = 0L
+        anticipatedMax(start, end, enabledLines, data, 0f, 0f) { visibleMaxIdx, visibleMax ->
+            l = visibleMax
+        }
+        l.toFloat()
+    }
+
+    var function: () -> Float = default
 
     /**
      * depends on [enabledLines], [data], [start], [end]
      */
-    private fun calculateMinMax(animate: Boolean) {
+    private fun calculateMinMax(animate: Boolean, startDiff: PxF, endDiff: PxF) {
         if (enabledLines.isEmpty()) return
 
         val oldMax = cameraY.max
@@ -144,18 +160,44 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             cameraY.min = absoluteMin.toFloat()
             cameraY.max = absoluteMax.toFloat()
         } else {
-            camera(
-                start = start,
-                end = end,
-                minY = absoluteMin,
-                maxY = absoluteMax,
-                enabled = enabledLines,
-                chart = data,
-                camera = cameraY,
-                absolutes = cameraTarget
-            )
             cameraY.min = absoluteMin.toFloat()
-            cameraTarget.min = absoluteMin.toFloat()
+            cameraY.max = function()
+
+            anticipatedMax(start, end, enabledLines, data, 0f, 0f) { visibleMaxIdx, visibleMax ->
+                anticipatedMax(start, end, enabledLines, data, startDiff, endDiff) { anticipatedIdx, anticipatedMax ->
+                    val wasMax = cameraTarget.max.toLong()
+                    when {
+                        anticipatedMax != wasMax -> {
+                            println("creating easing function from ${wasMax} to ${anticipatedMax}")
+
+                            cameraTarget.min = absoluteMin.toFloat()
+                            cameraTarget.max = anticipatedMax.toFloat()
+
+                            val theStart = start
+                            val theEnd = end
+                            function = {
+                                smooth(
+                                    s1 = theStart,
+                                    e1 = theEnd,
+                                    m1 = cameraY.max,
+                                    i1 = visibleMaxIdx,
+                                    s2 = theStart + startDiff,
+                                    e2 = theEnd + endDiff,
+                                    m2 = anticipatedMax.toFloat(),
+                                    i2 = anticipatedIdx,
+                                    s = start,
+                                    e = end
+                                )
+                            }
+                        }
+
+                        anticipatedMax == visibleMax -> {
+                            println("deleting easing function")
+                            function = default
+                        }
+                    }
+                }
+            }
 
             if (currentLine.empty() || currentLine.distanceSq(cameraTarget) > currentLine.lenSq() * 0.15f.sq()) {
                 oldLine.set(from = currentLine)

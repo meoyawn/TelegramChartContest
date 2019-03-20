@@ -4,8 +4,7 @@ import androidx.collection.SimpleArrayMap
 import help.*
 import java.text.DecimalFormat
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.sign
 
 enum class ColumnType {
     line,
@@ -59,50 +58,120 @@ inline fun absolutes(chart: Chart, enabled: Set<LineId>, result: (Long, Long) ->
     result(min, max)
 }
 
-fun camera(
+inline fun anticipatedMax(
     start: IdxF,
     end: IdxF,
-    minY: Long,
-    maxY: Long,
     enabled: Set<LineId>,
     chart: Chart,
-    camera: MinMax,
-    absolutes: MinMax
+    startDiff: PxF,
+    endDiff: PxF,
+    result: (Idx, Long) -> Unit
 ) {
-    val minX = 0f
-    val maxX = chart.size() - 1f
+    val maxX = chart.size() - 1
 
-    val r0 = (end - start) / 2
-    val x = start + r0
-    val r = r0 + (maxX - minX) / 20f
+    var theMax = Long.MIN_VALUE
+    var maxIdx = -1
 
-    var maxNorm = Float.MIN_VALUE
-    var minNorm = Float.MAX_VALUE
+    val startMult = sign(startDiff) * 10
+    val endMult = sign(endDiff) * 10
 
-    absolutes.reset()
-
-    val rNorm = normalize(r, minX, maxX)
-    val xNorm = normalize(x, minX, maxX)
+    val begin = clamp((start + startMult).ceil(), 0, maxX)
+    val finish = clamp((end + endMult).floor(), 0, maxX)
 
     for (id in enabled) {
         val points = chart[id]
-        for (i in Math.max(minX, x - r).ceil()..Math.min(maxX, x + r).floor()) {
-            yCoordinate(
-                radius = rNorm,
-                x = xNorm,
-                x1 = normalize(i, minX, maxX),
-                y1 = normalize(points[i], minY, maxY)
-            ) { bottom, top ->
-                minNorm = min(minNorm, bottom)
-                maxNorm = max(maxNorm, top)
+        for (i in begin..finish) {
+            val point = points[i]
+            if (point > theMax) {
+                theMax = point
+                maxIdx = i
             }
-
-            absolutes.update(points[i].toFloat())
         }
     }
 
-    camera.min = denormalize(minNorm, minY, maxY)
-    camera.max = denormalize(maxNorm, minY, maxY)
+    if (maxIdx != -1) {
+        result(maxIdx, theMax)
+    }
+}
+
+fun smooth(
+    s1: Float,
+    e1: Float,
+    m1: Float,
+    i1: Idx,
+    s2: Float,
+    e2: Float,
+    m2: Float,
+    i2: Idx,
+    s: Float,
+    e: Float
+): Float {
+    val i2F = i2.toFloat()
+
+    return when {
+        m2 > m1 ->
+            when {
+                abs(s2 - s1) > abs(e2 - e1) -> {
+                    println("start $s in ${i2F..s1}")
+
+                    if (s in i2F..s1) {
+                        val norm = normalize(s, i2F, s1)
+                        denormalize(value = 1 - norm, min = m1, max = m2)
+                    } else {
+                        println("defaulting")
+                        m2
+                    }
+                }
+
+                else -> {
+                    println("end $e")
+
+                    if (e in e1..i2F) {
+                        val norm = normalize(e, e1, i2F)
+                        println("norm $norm")
+                        denormalize(norm, m1, m2)
+                    } else {
+                        println("defaulting")
+                        m2
+                    }
+                }
+            }
+
+        m2 == m1 ->
+            m2
+
+        else -> {
+            when {
+                abs(s2 - s1) > abs(e2 - e1) ->
+                    smooth(
+                        s1 = i2F,
+                        e1 = e2,
+                        m1 = m2,
+                        i1 = i2,
+                        s2 = s1,
+                        e2 = e1,
+                        m2 = m1,
+                        i2 = i1,
+                        s = e,
+                        e = s
+                    )
+
+                else ->
+                    smooth(
+                        s1 = s2,
+                        e1 = i2F,
+                        m1 = m2,
+                        i1 = i2,
+                        s2 = s1,
+                        e2 = e1,
+                        m2 = m1,
+                        i2 = i1,
+                        s = s,
+                        e = e
+                    )
+            }
+        }
+    }
 }
 
 private val FMT = DecimalFormat("0.00")
