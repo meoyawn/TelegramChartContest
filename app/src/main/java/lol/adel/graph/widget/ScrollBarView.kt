@@ -1,4 +1,4 @@
-package lol.adel.graph
+package lol.adel.graph.widget
 
 import android.animation.Animator
 import android.annotation.SuppressLint
@@ -12,6 +12,8 @@ import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
 import help.*
+import lol.adel.graph.Dragging
+import lol.adel.graph.R
 import kotlin.math.max
 
 class ScrollBarView @JvmOverloads constructor(
@@ -164,7 +166,7 @@ class ScrollBarView @JvmOverloads constructor(
         val height = heightF
         val halfHeight = height / 2
 
-        val lineWidth = 8.dpF
+        val lineWidth = 5.dpF
         val lineHeight = 2.dpF
         val halfLineWidth = lineWidth / 2
 

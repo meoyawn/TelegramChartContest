@@ -1,4 +1,4 @@
-package lol.adel.graph
+package lol.adel.graph.widget
 
 import android.content.Context
 import android.graphics.Canvas
@@ -6,8 +6,8 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
 import help.*
+import lol.adel.graph.R
 import lol.adel.graph.data.Chart
-import lol.adel.graph.data.EMPTY_CHART
 import lol.adel.graph.data.xs
 import java.text.SimpleDateFormat
 import java.util.*
@@ -35,12 +35,12 @@ class HorizontalLabelsView @JvmOverloads constructor(
         isAntiAlias = true
     }
 
-    private var chart: Chart = EMPTY_CHART
     private var start: IdxF = 0f
     private var end: IdxF = 0f
+    private var xs = LongArray(0)
 
-    fun setup(data: Chart) {
-        chart = data
+    fun setup(data: LongArray) {
+        xs = data
     }
 
     fun setHorizontalRange(from: IdxF, to: IdxF) {
@@ -67,7 +67,6 @@ class HorizontalLabelsView @JvmOverloads constructor(
         else (rawStep - stepFloor) / (stepCeil - stepFloor)
 
         val startFromIdx = (start - start % stepCeil).toInt()
-        val xs = chart.xs()
         val hiddenEnd = end.ceil()
 
         iterate(from = startFromIdx, to = hiddenEnd, step = stepCeil) { idx ->

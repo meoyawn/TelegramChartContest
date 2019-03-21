@@ -13,6 +13,7 @@ import help.attr
 import help.color
 import help.dp
 import help.updatePadding
+import lol.adel.graph.data.CHARTS
 import lol.adel.graph.data.chartName
 
 class ListFragment : Fragment() {

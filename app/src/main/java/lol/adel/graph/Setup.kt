@@ -13,6 +13,8 @@ import android.widget.TextView
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
+import lol.adel.graph.widget.ChartView
+import lol.adel.graph.widget.ScrollBarView
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -47,31 +49,33 @@ private fun makeLineText(ctx: Context, chart: Chart, id: LineId, medium: Typefac
         val color = chart.color(id)
 
         addView(TextView(ctx).apply {
-            textSize = 19f
+            textSize = 18f
             setTextColor(color)
             typeface = medium
         })
 
         addView(TextView(ctx).apply {
-            textSize = 17f
+            textSize = 16f
             setTextColor(color)
             text = chart.names[id]
         })
     }
 
 fun ViewHolder.setup(idx: Idx) {
-    name.text = chartName(idx)
     val data = CHARTS[idx]
+    val xs = data.xs()
+    val lineIds = data.lineIds()
 
-    val lines = data.lines()
-    chartView.setup(data, lines)
-    background.setup(data, lines)
-    horizontalLabels.setup(data)
+    name.text = chartName(idx)
+
+    chartView.setup(data, lineIds)
+    background.setup(data, lineIds)
+    horizontalLabels.setup(xs)
 
     val medium = Typeface.create("sans-serif-medium", Typeface.NORMAL)
 
     val lineTexts = simpleArrayMapOf<LineId, ViewGroup>()
-    for (id in lines) {
+    for (id in lineIds) {
         linear.addView(makeCheckbox(data, id, this, lineTexts))
         linear.addView(ImageView(ctx).apply { setImageResource(R.drawable.h_divider) })
 
@@ -94,8 +98,7 @@ fun ViewHolder.setup(idx: Idx) {
         }
     }
 
-    val fmt = SimpleDateFormat("EEE, MMM d", Locale.getDefault())
-    val xs = data.xs()
+    val fmt = SimpleDateFormat("EEE, MMM d", Locale.US)
 
     floating.visibility = View.INVISIBLE
     chartView.listener = object : ChartView.Listener {

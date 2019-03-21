@@ -26,12 +26,12 @@
                 android:textColor="@color/colorAccent"
                 android:textSize="18sp" />
 
-            <lol.adel.graph.ChartView
+            <lol.adel.graph.widget.ChartView
                 android:id="@+id/chart"
                 android:layout_width="match_parent"
                 android:layout_height="270dp" />
 
-            <lol.adel.graph.HorizontalLabelsView
+            <lol.adel.graph.widget.HorizontalLabelsView
                 android:id="@+id/horizontal_labels"
                 android:layout_width="match_parent"
                 android:layout_height="36dp" />
@@ -41,12 +41,12 @@
                 android:layout_height="48dp"
                 android:clipChildren="false">
 
-                <lol.adel.graph.BackgroundChartView
+                <lol.adel.graph.widget.BackgroundChartView
                     android:id="@+id/background"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
 
-                <lol.adel.graph.ScrollBarView
+                <lol.adel.graph.widget.ScrollBarView
                     android:id="@+id/scroll"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />

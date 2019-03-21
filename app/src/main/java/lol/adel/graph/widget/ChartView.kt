@@ -1,4 +1,4 @@
-package lol.adel.graph
+package lol.adel.graph.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -10,6 +10,7 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.collection.SimpleArrayMap
 import help.*
+import lol.adel.graph.*
 import lol.adel.graph.data.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -177,7 +178,11 @@ class ChartView @JvmOverloads constructor(
                     currentMaxIdx.toFloat()
 
                 else ->
-                    when (startEnd(startDiff, endDiff, goingUp = smoothScroll.anticipatedMax > cameraY.max)) {
+                    when (startEnd(
+                        startDiff,
+                        endDiff,
+                        goingUp = smoothScroll.anticipatedMax > cameraY.max
+                    )) {
                         StartEnd.START ->
                             cameraX.min
 
@@ -304,7 +309,12 @@ class ChartView @JvmOverloads constructor(
             linePaints.forEach { line, paint ->
                 mapped(width, height, data[line], touchingIdx, cameraX, cameraY) { x, y ->
                     canvas.drawCircle(x, y, outerCircleRadius, paint)
-                    canvas.drawCircle(x, y, innerCircleRadius, innerCirclePaint)
+                    canvas.drawCircle(
+                        x,
+                        y,
+                        innerCircleRadius,
+                        innerCirclePaint
+                    )
                 }
             }
         }

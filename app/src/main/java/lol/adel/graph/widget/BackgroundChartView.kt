@@ -1,4 +1,4 @@
-package lol.adel.graph
+package lol.adel.graph.widget
 
 import android.content.Context
 import android.graphics.Canvas
@@ -9,6 +9,7 @@ import android.view.View
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
+import lol.adel.graph.mapped
 
 class BackgroundChartView @JvmOverloads constructor(
     ctx: Context,

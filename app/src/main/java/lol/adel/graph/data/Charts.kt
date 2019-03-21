@@ -1,8 +1,6 @@
-package lol.adel.graph
+package lol.adel.graph.data
 
 import help.simpleArrayMapOf
-import lol.adel.graph.data.Chart
-import lol.adel.graph.data.ColumnType
 
 val CHARTS: List<Chart> = listOf(
     Chart(

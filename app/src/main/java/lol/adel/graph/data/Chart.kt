@@ -36,7 +36,7 @@ fun Chart.size(): Int =
 operator fun Chart.get(id: LineId): LongArray =
     columns[id] ?: error("data not found for $id")
 
-fun Chart.lines(): Set<LineId> =
+fun Chart.lineIds(): Set<LineId> =
     types.filterKeys { _, type -> type == ColumnType.line }
 
 fun Chart.xs(): LongArray =

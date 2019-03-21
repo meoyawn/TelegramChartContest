@@ -52,23 +52,21 @@ private fun smooth(
     return when {
         anticipatedMax > currentMax -> {
             when (startEnd(startDiff, endDiff, goingUp = true)) {
-                StartEnd.START -> {
+                StartEnd.START ->
                     if (start in anticipatedMaxIdx..visibleStart) {
                         val norm = normalize(start, anticipatedMaxIdx, visibleStart)
                         denormalize(value = 1 - norm, min = currentMax, max = anticipatedMax)
                     } else {
                         anticipatedMax
                     }
-                }
 
-                StartEnd.END -> {
+                StartEnd.END ->
                     if (end in visibleEnd..anticipatedMaxIdx) {
                         val norm = normalize(end, visibleEnd, anticipatedMaxIdx)
                         denormalize(norm, currentMax, anticipatedMax)
                     } else {
                         anticipatedMax
                     }
-                }
             }
         }
 
