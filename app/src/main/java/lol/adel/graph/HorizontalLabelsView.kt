@@ -66,12 +66,22 @@ class HorizontalLabelsView @JvmOverloads constructor(
         val startFromIdx = (start - start % stepCeil).toInt()
         val xs = chart.xs()
         val hiddenEnd = end.ceil()
+
+        val perChar = 4.3f.dp
+
         iterate(from = startFromIdx, to = hiddenEnd, step = stepCeil) { idx ->
-            canvas.drawText(format.format(xs[idx]), pxPerIdx * (idx - start), halfHeight, opaque)
+            val text = format.format(xs[idx])
+            canvas.drawText(
+                format.format(xs[idx]),
+                pxPerIdx * (idx - start) - (text.length * perChar),
+                halfHeight,
+                opaque
+            )
         }
         transparent.alphaF = 1 - fraction
         iterate(from = startFromIdx + stepFloor, to = hiddenEnd, step = stepCeil) { idx ->
-            canvas.drawText(format.format(xs[idx]), pxPerIdx * (idx - start), halfHeight, transparent)
+            val text = format.format(xs[idx])
+            canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * perChar), halfHeight, transparent)
         }
     }
 }

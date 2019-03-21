@@ -18,6 +18,9 @@ val Context.ctx: Context
 private fun dpToPx(dp: DpF): PxF =
     dp * Resources.getSystem().displayMetrics.density
 
+val DpF.dp: PxF
+    get() = dpToPx(this)
+
 val Dp.dpF: PxF
     get() = dpToPx(toFloat())
 

@@ -130,7 +130,8 @@ class ScrollBarView @JvmOverloads constructor(
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        set(0f, width - 1f)
+        val quarter = width / 4f
+        set(quarter, quarter * 3)
     }
 
     override fun onDraw(canvas: Canvas) {
