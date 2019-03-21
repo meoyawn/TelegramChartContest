@@ -18,8 +18,11 @@ class HorizontalLabelsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(ctx, attrs, defStyleAttr) {
 
-    private val format = SimpleDateFormat("MMM d", Locale.getDefault())
-    private val GAP = 80.dpF
+    companion object {
+        private val format = SimpleDateFormat("MMM d", Locale.US)
+        private val GAP = 80.dpF
+        private val PER_CHAR = 4.3f.dp
+    }
 
     private val opaque = Paint().apply {
         color = ctx.color(R.color.label_text)
@@ -67,21 +70,14 @@ class HorizontalLabelsView @JvmOverloads constructor(
         val xs = chart.xs()
         val hiddenEnd = end.ceil()
 
-        val perChar = 4.3f.dp
-
         iterate(from = startFromIdx, to = hiddenEnd, step = stepCeil) { idx ->
             val text = format.format(xs[idx])
-            canvas.drawText(
-                format.format(xs[idx]),
-                pxPerIdx * (idx - start) - (text.length * perChar),
-                halfHeight,
-                opaque
-            )
+            canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * PER_CHAR), halfHeight, opaque)
         }
         transparent.alphaF = 1 - fraction
         iterate(from = startFromIdx + stepFloor, to = hiddenEnd, step = stepCeil) { idx ->
             val text = format.format(xs[idx])
-            canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * perChar), halfHeight, transparent)
+            canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * PER_CHAR), halfHeight, transparent)
         }
     }
 }

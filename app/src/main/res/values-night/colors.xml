@@ -13,7 +13,7 @@
     <color name="floating_edge">#1A232D</color>
     <color name="floating_text">#E5EFF5</color>
 
-    <color name="scroll_overlay_pale">#BFb3e5fc</color>
-    <color name="scroll_overlay_bright">#80039be5</color>
-    <color name="scroll_overlay_touch">#404fc3f7</color>
+    <color name="scroll_overlay_pale">#BF3b4045</color>
+    <color name="scroll_overlay_bright">#80b1bfca</color>
+    <color name="scroll_overlay_touch">#40b1bfca</color>
 </resources>

@@ -5,12 +5,13 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.os.Bundle
+import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
 import help.*
-
 
 class ScrollBarView @JvmOverloads constructor(
     ctx: Context,
@@ -28,8 +29,8 @@ class ScrollBarView @JvmOverloads constructor(
 
     var listener: Listener? = null
 
-    private var left: Float = 0f
-    private var right: Float = 0f
+    private var left: Float = -1f
+    private var right: Float = -1f
     private val dragging: SparseArray<Dragging> = SparseArray()
 
     private var radius: PxF = 0f
@@ -130,8 +131,29 @@ class ScrollBarView @JvmOverloads constructor(
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        val quarter = width / 4f
-        set(quarter, quarter * 3)
+        if (this.left < 0) {
+            val quarter = width / 4f
+            set(quarter, quarter * 3)
+        } else {
+            set(this.left, this.right)
+        }
+    }
+
+    override fun onSaveInstanceState(): Parcelable =
+        Bundle().apply {
+            putParcelable("super", super.onSaveInstanceState())
+            putFloat("left", left)
+            putFloat("right", right)
+        }
+
+    override fun onRestoreInstanceState(state: Parcelable) {
+        if (state is Bundle) {
+            super.onRestoreInstanceState(state.getParcelable("super"))
+            left = state.getFloat("left")
+            right = state.getFloat("right")
+        } else {
+            super.onRestoreInstanceState(state)
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
