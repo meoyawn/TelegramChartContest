@@ -58,13 +58,13 @@ inline fun absolutes(chart: Chart, enabled: Set<LineId>, result: (Long, Long) ->
     result(min, max)
 }
 
-inline fun <T> anticipatedMax(
+inline fun <T> findMax(
     start: IdxF,
     end: IdxF,
     enabled: Set<LineId>,
     chart: Chart,
-    startDiff: PxF,
-    endDiff: PxF,
+    startDiff: PxF = 0f,
+    endDiff: PxF = 0f,
     result: (Idx, Long) -> T
 ) {
     val minX = 0

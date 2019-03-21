@@ -1,12 +1,13 @@
 package help
 
-import kotlin.math.round
-
 typealias X = PxF
 typealias Y = PxF
 
 typealias Idx = Int
 typealias IdxF = Float
+
+// -1, 0, 1
+typealias Sign = Float
 
 fun Float.sq(): Float =
     this * this

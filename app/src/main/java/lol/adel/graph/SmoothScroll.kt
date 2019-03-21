@@ -1,5 +1,6 @@
 package lol.adel.graph
 
+import help.Idx
 import help.IdxF
 import help.denormalize
 import help.normalize
@@ -11,10 +12,62 @@ enum class StartEnd {
     END,
 }
 
-fun rnd(f: Float): Float =
+private fun rnd(f: Float): Float =
     round(f * 10_000) / 10_000
 
-fun startEnd(startDiffRaw: Float, endDiffRaw: Float, upward: Boolean): StartEnd {
+enum class Direction {
+    FORWARD,
+    BACKWARD,
+    NONE;
+
+    companion object {
+
+        fun of(speed: Float): Direction =
+            when {
+                speed < 0 ->
+                    BACKWARD
+
+                speed > 0 ->
+                    FORWARD
+
+                else ->
+                    NONE
+            }
+    }
+}
+
+class SmoothScroll {
+
+    var startDir = Direction.NONE
+    var endDir = Direction.NONE
+
+    var visibleStart: IdxF = 0f
+    var visibleEnd: IdxF = 0f
+
+    var anticipatedStart: IdxF = 0f
+    var anticipatedEnd: IdxF = 0f
+
+    var currentMax: Float = 0f
+    var currentMaxIdx: IdxF = 0f
+    var anticipatedMax: Long = 0L
+    var anticipatedMaxIdx: Idx = 0
+
+    fun cameraMax(start: IdxF, end: IdxF): Float =
+        smooth(
+            visibleStart = visibleStart,
+            visibleEnd = visibleEnd,
+            anticipatedStart = anticipatedStart,
+            anticipatedEnd = anticipatedEnd,
+            currentMax = currentMax,
+            currentMaxIdx = currentMaxIdx,
+            anticipatedMax = anticipatedMax.toFloat(),
+            anticipatedMaxIdx = anticipatedMaxIdx.toFloat(),
+            start = start,
+            end = end
+        )
+}
+
+fun startEnd(startDiffRaw: Float, endDiffRaw: Float, goingUp: Boolean): StartEnd {
     val startDiff = rnd(startDiffRaw)
     val endDiff = rnd(endDiffRaw)
 
@@ -26,10 +79,12 @@ fun startEnd(startDiffRaw: Float, endDiffRaw: Float, upward: Boolean): StartEnd 
 
     return when {
         startDiff == endDiff && forward ->
-            if (upward) StartEnd.END else StartEnd.START
+            if (goingUp) StartEnd.END
+            else StartEnd.START
 
         startDiff == endDiff && backward ->
-            if (upward) StartEnd.START else StartEnd.END
+            if (goingUp) StartEnd.START
+            else StartEnd.END
 
         absStartDiff > absEndDiff ->
             StartEnd.START
@@ -39,30 +94,28 @@ fun startEnd(startDiffRaw: Float, endDiffRaw: Float, upward: Boolean): StartEnd 
     }
 }
 
-fun smooth(
+private fun smooth(
     visibleStart: Float,
     visibleEnd: Float,
-    currentMax: Float,
-    currentMaxIdx: IdxF,
     anticipatedStart: Float,
     anticipatedEnd: Float,
+
+    currentMax: Float,
+    currentMaxIdx: IdxF,
     anticipatedMax: Float,
     anticipatedMaxIdx: IdxF,
-    s: Float,
-    e: Float,
-    reverse: Boolean = false
+
+    start: Float,
+    end: Float
 ): Float {
     val startDiff = anticipatedStart - visibleStart
     val endDiff = anticipatedEnd - visibleEnd
     return when {
         anticipatedMax > currentMax -> {
-            when (startEnd(startDiff, endDiff, upward = true)) {
+            when (startEnd(startDiff, endDiff, goingUp = true)) {
                 StartEnd.START -> {
-                    println("to 1 ${currentMax} at ${currentMaxIdx} to ${anticipatedMax} at ${anticipatedMaxIdx}")
-                    println("${s} in ${anticipatedMaxIdx..visibleStart}")
-
-                    if (s in anticipatedMaxIdx..visibleStart) {
-                        val norm = normalize(s, anticipatedMaxIdx, visibleStart)
+                    if (start in anticipatedMaxIdx..visibleStart) {
+                        val norm = normalize(start, anticipatedMaxIdx, visibleStart)
                         denormalize(value = 1 - norm, min = currentMax, max = anticipatedMax)
                     } else {
                         anticipatedMax
@@ -70,10 +123,8 @@ fun smooth(
                 }
 
                 StartEnd.END -> {
-                    println("to 2 ${currentMax} (${currentMaxIdx}) to ${anticipatedMax} (${anticipatedMaxIdx})")
-
-                    if (e in visibleEnd..anticipatedMaxIdx) {
-                        val norm = normalize(e, visibleEnd, anticipatedMaxIdx)
+                    if (end in visibleEnd..anticipatedMaxIdx) {
+                        val norm = normalize(end, visibleEnd, anticipatedMaxIdx)
                         denormalize(norm, currentMax, anticipatedMax)
                     } else {
                         anticipatedMax
@@ -86,46 +137,40 @@ fun smooth(
             currentMax
 
         else ->
-            when (startEnd(startDiff, endDiff, upward = false)) {
-                StartEnd.START -> {
-                    println("reversing start from ${currentMax} (${currentMaxIdx}) to ${anticipatedMax} (${anticipatedMaxIdx})")
+            when (startEnd(startDiff, endDiff, goingUp = false)) {
+                StartEnd.START ->
                     smooth(
                         visibleStart = anticipatedMaxIdx,
                         visibleEnd = anticipatedEnd,
 
-                        anticipatedStart = visibleStart,
-                        anticipatedEnd = visibleEnd,
-
                         currentMax = anticipatedMax,
                         currentMaxIdx = anticipatedMaxIdx,
+
+                        anticipatedStart = visibleStart,
+                        anticipatedEnd = visibleEnd,
                         anticipatedMax = currentMax,
                         anticipatedMaxIdx = currentMaxIdx,
 
-                        s = s,
-                        e = e,
-                        reverse = true
+                        start = start,
+                        end = end
                     )
-                }
 
-                StartEnd.END -> {
-                    println("reversing end from ${currentMax} at ${currentMaxIdx} to ${anticipatedMax} at ${anticipatedMaxIdx} ($startDiff $endDiff)")
+                StartEnd.END ->
                     smooth(
                         visibleStart = anticipatedStart,
                         visibleEnd = anticipatedMaxIdx,
 
-                        anticipatedStart = visibleStart,
-                        anticipatedEnd = visibleEnd,
-
                         currentMax = anticipatedMax,
                         currentMaxIdx = anticipatedMaxIdx,
+
+                        anticipatedStart = visibleStart,
+                        anticipatedEnd = visibleEnd,
                         anticipatedMax = currentMax,
                         anticipatedMaxIdx = currentMaxIdx,
 
-                        s = s,
-                        e = e,
-                        reverse = true
+                        start = start,
+                        end = end
                     )
-                }
             }
     }
 }

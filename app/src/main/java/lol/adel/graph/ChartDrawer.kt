@@ -9,7 +9,6 @@ import help.*
 import lol.adel.graph.data.*
 import kotlin.math.max
 import kotlin.math.roundToInt
-import kotlin.math.sign
 
 class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> Unit) {
 
@@ -61,7 +60,6 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     }
     private val currentLine = MinMax(0f, 0f)
     private val oldLine = MinMax(0f, 0f)
-    private val cameraTarget = MinMax(0f, 0f)
     //endregion
 
     //region Touch Feedback
@@ -110,7 +108,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         start = from
         end = to
 
-        calculateMinMax(animate = false, startDiff = start - oldStart, endDiff = end - oldEnd)
+        calculateMinMax(startDiff = start - oldStart, endDiff = end - oldEnd)
         invalidate()
     }
 
@@ -132,62 +130,48 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             absoluteMax = max
         }
 
-        calculateMinMax(animate = true, startDiff = 0f, endDiff = 0f)
-        invalidate()
+        calculateMinMaxAnimate()
     }
 
-    val default: () -> Float = {
-        var l = 0L
-        anticipatedMax(start, end, enabledLines, data, 0f, 0f) { visibleMaxIdx, visibleMax ->
-            l = visibleMax
+    private val smoothScroll = SmoothScroll()
+
+    private fun calculateMinMaxAnimate(): Unit =
+        findMax(start, end, enabledLines, data, 0f, 0f) { _, max ->
+            oldLine.set(from = currentLine)
+
+            val visibleMax = max.toFloat()
+            currentLine.set(absoluteMin.toFloat(), visibleMax)
+
+            animateFloat(cameraY.min, absoluteMin.toFloat()) {
+                cameraY.min = it
+                updateAlphas()
+                invalidate()
+            }.start()
+
+            animateFloat(cameraY.max, visibleMax) {
+                cameraY.max = it
+                updateAlphas()
+                invalidate()
+            }.start()
         }
-        l.toFloat()
-    }
-
-    var function: () -> Float = default
-
-    var currentMax = 0f
-    var currentIdx = 0f
-
-    var anticipatedMax = 0L
-    var anticipatedIdx = 0
-
-    var startSign = 0f
-    var endSign = 0f
 
     /**
      * depends on [enabledLines], [data], [start], [end]
      */
-    private fun calculateMinMax(animate: Boolean, startDiff: PxF, endDiff: PxF) {
-        if (enabledLines.isEmpty()) return
-
-        val oldMax = cameraY.max
-        val oldMin = cameraY.min
+    private fun calculateMinMax(startDiff: PxF, endDiff: PxF) {
+        if (enabledLines.isEmpty() || (startDiff == 0f && endDiff == 0f)) return
 
         if (!drawLabels) {
             cameraY.min = absoluteMin.toFloat()
             cameraY.max = absoluteMax.toFloat()
         } else {
-            cameraY.min = absoluteMin.toFloat()
-            cameraY.max = function()
-
-            val lastAnticipated = anticipatedMax
-            val currentVisible = cameraY.max
-
-            if (startDiff == 0f && endDiff == 0f) {
-                return
-            }
-
-            println("start speed $startDiff end speed $endDiff")
-
-            anticipatedMax(start, end, enabledLines, data, 0f, 0f) { currentMaxIdx, maybeCurrentMax ->
-
-                currentIdx = when {
-                    maybeCurrentMax.toFloat() >= currentVisible ->
+            findMax(start, end, enabledLines, data) { currentMaxIdx, maybeCurrentMax ->
+                val currentIdx = when {
+                    maybeCurrentMax.toFloat() >= cameraY.max ->
                         currentMaxIdx.toFloat()
 
                     else ->
-                        when (startEnd(startDiff, endDiff, upward = anticipatedMax > cameraY.max)) {
+                        when (startEnd(startDiff, endDiff, goingUp = smoothScroll.anticipatedMax > cameraY.max)) {
                             StartEnd.START ->
                                 start
 
@@ -195,68 +179,48 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
                                 end
                         }
                 }
-                currentMax = max(maybeCurrentMax.toFloat(), currentVisible)
+                val currentMax = max(maybeCurrentMax.toFloat(), cameraY.max)
 
-                anticipatedMax(start, end, enabledLines, data, startDiff, endDiff) { anticipatedIdx, anticipatedMax ->
-
-                    this.anticipatedIdx = anticipatedIdx
-                    this.anticipatedMax = anticipatedMax
-
-                    when {
-                        anticipatedMax != lastAnticipated || sign(startDiff) != startSign || sign(endDiff) != endSign -> {
-                            cameraTarget.min = absoluteMin.toFloat()
-                            cameraTarget.max = anticipatedMax.toFloat()
-
-                            val theStart = start
-                            val theEnd = end
-
-                            val theCurrentMax = currentMax
-                            val theCurrentIdx = currentIdx
-                            function = {
-                                smooth(
-                                    visibleStart = theStart,
-                                    visibleEnd = theEnd,
-
-                                    anticipatedStart = theStart + startDiff,
-                                    anticipatedEnd = theEnd + endDiff,
-
-                                    currentMax = theCurrentMax,
-                                    currentMaxIdx = theCurrentIdx,
-                                    anticipatedMax = anticipatedMax.toFloat(),
-                                    anticipatedMaxIdx = anticipatedIdx.toFloat(),
-                                    s = start,
-                                    e = end
-                                )
-                            }
+                findMax(start, end, enabledLines, data, startDiff, endDiff) { anticipatedIdx, anticipatedMax ->
+                    if (
+                        anticipatedMax != smoothScroll.anticipatedMax
+                        || Direction.of(startDiff) != smoothScroll.startDir
+                        || Direction.of(endDiff) != smoothScroll.endDir
+                    ) {
+                        if (anticipatedMax < smoothScroll.anticipatedMax) {
+                            oldLine.set(from = currentLine) // down
+                        } else {
+                            oldLine.set(from = cameraY)
                         }
+                        currentLine.min = absoluteMin.toFloat()
+                        currentLine.max = anticipatedMax.toFloat()
+
+                        smoothScroll.visibleStart = start
+                        smoothScroll.visibleEnd = end
+
+                        smoothScroll.anticipatedStart = start + startDiff
+                        smoothScroll.anticipatedEnd = end + endDiff
+
+                        smoothScroll.currentMax = currentMax
+                        smoothScroll.currentMaxIdx = currentIdx
+
+                        smoothScroll.anticipatedMax = anticipatedMax
+                        smoothScroll.anticipatedMaxIdx = anticipatedIdx
+
+                        smoothScroll.startDir = Direction.of(startDiff)
+                        smoothScroll.endDir = Direction.of(endDiff)
+                    }
+
+                    if (currentLine.empty()) {
+                        currentLine.min = absoluteMin.toFloat()
+                        currentLine.max = anticipatedMax.toFloat()
                     }
                 }
             }
 
-            startSign = sign(startDiff)
-            endSign = sign(endDiff)
+            cameraY.min = absoluteMin.toFloat()
+            cameraY.max = smoothScroll.cameraMax(start, end)
 
-            if (currentLine.empty() || currentLine.distanceSq(cameraTarget) > currentLine.lenSq() * 0.2f.sq()) {
-                oldLine.set(from = currentLine)
-                currentLine.set(from = cameraTarget)
-            }
-        }
-
-        if (animate) {
-            animateFloat(oldMin, cameraY.min) {
-                cameraY.min = it
-                updateAlphas()
-                invalidate()
-            }.start()
-
-            animateFloat(oldMax, cameraY.max) {
-                cameraY.max = it
-                updateAlphas()
-                invalidate()
-            }.start()
-
-            cameraY.set(oldMin, oldMax)
-        } else {
             updateAlphas()
         }
     }
@@ -276,13 +240,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     fun mapX(idx: Idx, width: PxF): X =
         normalize(value = idx, min = start, max = end) * width
 
-    fun mapX(idx: IdxF, width: PxF): X =
-        normalize(value = idx, min = start, max = end) * width
-
     private fun mapY(value: Long, height: PxF): Y =
-        (1 - cameraY.normalize(value)) * height
-
-    private fun mapY(value: Float, height: PxF): Y =
         (1 - cameraY.normalize(value)) * height
 
     private val path = Path()
