@@ -5,6 +5,9 @@ data class MinMax(
     var max: Float
 )
 
+fun MinMax.len(): Float =
+    max - min
+
 fun MinMax.distanceSq(that: MinMax): Float =
     (that.min - this.min).sq() + (that.max - this.max).sq()
 

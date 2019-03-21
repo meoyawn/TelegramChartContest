@@ -19,13 +19,17 @@ class ListFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup, savedInstanceState: Bundle?): View {
         val ctx = container.context
+
+        activity.actionBar?.setDisplayHomeAsUpEnabled(false)
+
         return LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
+
             for (idx in CHARTS.indices) {
                 addView(TextView(ctx).apply {
                     text = chartName(idx)
                     setBackgroundResource(ctx.attr(android.R.attr.selectableItemBackground))
-                    minHeight = 48.dp
+                    minHeight = 56.dp
                     gravity = Gravity.CENTER_VERTICAL
                     textSize = 18f
                     setTextColor(ctx.color(R.color.floating_text))
@@ -35,10 +39,12 @@ class ListFragment : Fragment() {
                             .replace(android.R.id.content, ChartFragment.newInstance(idx))
                             .addToBackStack(null)
                             .commit()
+                        fragmentManager.executePendingTransactions()
                     }
                 })
                 addView(ImageView(ctx).apply { setImageResource(R.drawable.h_divider_full) })
             }
+
             removeViewAt(childCount - 1)
         }
     }

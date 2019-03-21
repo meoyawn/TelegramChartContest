@@ -28,9 +28,11 @@ class ChartFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        activity.actionBar?.setDisplayHomeAsUpEnabled(true)
+
         val vh = view.run {
             ViewHolder(
-                root = findViewById(R.id.parent),
+                linear = findViewById(R.id.parent),
                 chartView = findViewById(R.id.chart),
                 scroll = findViewById(R.id.scroll),
                 background = findViewById(R.id.background),

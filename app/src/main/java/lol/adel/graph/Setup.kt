@@ -72,14 +72,14 @@ fun ViewHolder.setup(idx: Idx) {
 
     val lineTexts = simpleArrayMapOf<LineId, ViewGroup>()
     for (id in lines) {
-        root.addView(makeCheckbox(data, id, this, lineTexts))
-        root.addView(ImageView(ctx).apply { setImageResource(R.drawable.h_divider) })
+        linear.addView(makeCheckbox(data, id, this, lineTexts))
+        linear.addView(ImageView(ctx).apply { setImageResource(R.drawable.h_divider) })
 
         val text = makeLineText(ctx, data, id, medium)
         floatingContainer.addView(text)
         lineTexts[id] = text
     }
-    root.removeViewAt(root.childCount - 1)
+    linear.removeViewAt(linear.childCount - 1)
 
     val size = data.size()
     background.setHorizontalBounds(from = 0f, to = size - 1f)

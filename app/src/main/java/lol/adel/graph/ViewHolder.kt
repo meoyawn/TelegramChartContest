@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 
 class ViewHolder(
-    val root: ViewGroup,
+    val linear: ViewGroup,
     val name: TextView,
     val chartView: ChartView,
     val scroll: ScrollBarView,
@@ -18,4 +18,4 @@ class ViewHolder(
 )
 
 val ViewHolder.ctx: Context
-    get() = root.context
+    get() = linear.context

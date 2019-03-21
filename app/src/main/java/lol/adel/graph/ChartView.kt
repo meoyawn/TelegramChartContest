@@ -11,6 +11,7 @@ import android.view.View
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -192,13 +193,11 @@ class ChartView @JvmOverloads constructor(
                     || Direction.of(startDiff) != smoothScroll.startDir
                     || Direction.of(endDiff) != smoothScroll.endDir
                 ) {
-                    if (anticipatedMax < smoothScroll.anticipatedMax) {
-                        oldLine.set(from = currentLine) // down
-                    } else {
-                        oldLine.set(from = cameraY)
+                    if (abs(currentLine.max - anticipatedMax.toFloat()) > currentLine.len() / H_LINES) {
+                        oldLine.set(from = currentLine)
+                        currentLine.min = absoluteMin.toFloat()
+                        currentLine.max = anticipatedMax.toFloat()
                     }
-                    currentLine.min = absoluteMin.toFloat()
-                    currentLine.max = anticipatedMax.toFloat()
 
                     smoothScroll.visible.set(from = cameraX)
                     smoothScroll.anticipated.set(cameraX.min + startDiff, cameraX.max + endDiff)
@@ -261,6 +260,7 @@ class ChartView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+
         val width = widthF
         val height = heightF
 

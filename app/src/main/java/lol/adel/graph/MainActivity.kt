@@ -16,6 +16,7 @@ class MainActivity : Activity() {
                 .replace(android.R.id.content, ListFragment())
                 .commit()
         }
+        fragmentManager.executePendingTransactions()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -25,6 +26,11 @@ class MainActivity : Activity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when (item.itemId) {
+            android.R.id.home -> {
+                fragmentManager.popBackStackImmediate()
+                true
+            }
+
             R.id.night -> {
                 setNightMode(night = !resources.configuration.isNight())
                 recreate()
