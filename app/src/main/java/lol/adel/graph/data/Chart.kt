@@ -73,11 +73,12 @@ inline fun <T> anticipatedMax(
     var theMax = Long.MIN_VALUE
     var maxIdx = -1
 
-    val startMult = sign(startDiff) * (end - start) / 2
-    val endMult = sign(endDiff) * (end - start) / 2
+    val halfRange = (end - start) / 2
+    val startMult = sign(startDiff) * halfRange
+    val endMult = sign(endDiff) * halfRange
 
-    val begin = clamp((start + startMult).ceil(), 0, maxX)
-    val finish = clamp((end + endMult).floor(), 0, maxX)
+    val begin = clamp((start + startMult).ceil(), minX, maxX)
+    val finish = clamp((end + endMult).floor(), minX, maxX)
 
     for (id in enabled) {
         val points = chart[id]
@@ -109,9 +110,9 @@ fun chartValue(value: Long, max: Float): String {
 
         abs < 1_000_000 ->
             if (max < 1_000_000) value.toString()
-            else "${value / 1_000} K"
+            else "${value / 1_000}K"
 
         else ->
-            "${FMT.format(value / 1_000_000.0)} M"
+            "${FMT.format(value / 1_000_000.0)}M"
     }
 }

@@ -109,7 +109,7 @@ fun ViewHolder.setup(idx: Idx) {
                 val floatingWidth = floating.width
 
                 val target = x - 20.dp
-                val altTarget = x - floatingWidth + 20.dp
+                val altTarget = x - floatingWidth + 40.dp
 
                 val rightOk = target + floatingWidth <= chartView.width
 
