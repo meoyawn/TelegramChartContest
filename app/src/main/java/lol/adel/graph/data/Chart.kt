@@ -58,22 +58,22 @@ inline fun absolutes(chart: Chart, enabled: Set<LineId>, result: (Long, Long) ->
     result(min, max)
 }
 
-inline fun anticipatedMax(
+inline fun <T> anticipatedMax(
     start: IdxF,
     end: IdxF,
     enabled: Set<LineId>,
     chart: Chart,
     startDiff: PxF,
     endDiff: PxF,
-    result: (Idx, Long) -> Unit
+    result: (Idx, Long) -> T
 ) {
     val maxX = chart.size() - 1
 
     var theMax = Long.MIN_VALUE
     var maxIdx = -1
 
-    val startMult = sign(startDiff) * 10
-    val endMult = sign(endDiff) * 10
+    val startMult = sign(startDiff) * 5
+    val endMult = sign(endDiff) * 5
 
     val begin = clamp((start + startMult).ceil(), 0, maxX)
     val finish = clamp((end + endMult).floor(), 0, maxX)
@@ -91,86 +91,6 @@ inline fun anticipatedMax(
 
     if (maxIdx != -1) {
         result(maxIdx, theMax)
-    }
-}
-
-fun smooth(
-    s1: Float,
-    e1: Float,
-    m1: Float,
-    i1: Idx,
-    s2: Float,
-    e2: Float,
-    m2: Float,
-    i2: Idx,
-    s: Float,
-    e: Float
-): Float {
-    val i2F = i2.toFloat()
-
-    return when {
-        m2 > m1 ->
-            when {
-                abs(s2 - s1) > abs(e2 - e1) -> {
-                    println("start $s in ${i2F..s1}")
-
-                    if (s in i2F..s1) {
-                        val norm = normalize(s, i2F, s1)
-                        denormalize(value = 1 - norm, min = m1, max = m2)
-                    } else {
-                        println("defaulting")
-                        m2
-                    }
-                }
-
-                else -> {
-                    println("end $e")
-
-                    if (e in e1..i2F) {
-                        val norm = normalize(e, e1, i2F)
-                        println("norm $norm")
-                        denormalize(norm, m1, m2)
-                    } else {
-                        println("defaulting")
-                        m2
-                    }
-                }
-            }
-
-        m2 == m1 ->
-            m2
-
-        else -> {
-            when {
-                abs(s2 - s1) > abs(e2 - e1) ->
-                    smooth(
-                        s1 = i2F,
-                        e1 = e2,
-                        m1 = m2,
-                        i1 = i2,
-                        s2 = s1,
-                        e2 = e1,
-                        m2 = m1,
-                        i2 = i1,
-                        s = e,
-                        e = s
-                    )
-
-                else ->
-                    smooth(
-                        s1 = s2,
-                        e1 = i2F,
-                        m1 = m2,
-                        i1 = i2,
-                        s2 = s1,
-                        e2 = e1,
-                        m2 = m1,
-                        i2 = i1,
-                        s = s,
-                        e = e
-                    )
-            }
-        }
     }
 }
 

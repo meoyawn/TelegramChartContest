@@ -2,12 +2,15 @@ package lol.adel.graph
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
+import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.math.sign
 
 class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> Unit) {
 
@@ -101,9 +104,6 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
         }
     }
 
-    fun x(): Float =
-        start + (end - start) / 2
-
     fun setHorizontalBounds(from: IdxF, to: IdxF) {
         val oldStart = start
         val oldEnd = end
@@ -147,6 +147,15 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
 
     var function: () -> Float = default
 
+    var currentMax = 0f
+    var currentIdx = 0f
+
+    var anticipatedMax = 0L
+    var anticipatedIdx = 0
+
+    var startSign = 0f
+    var endSign = 0f
+
     /**
      * depends on [enabledLines], [data], [start], [end]
      */
@@ -163,28 +172,61 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
             cameraY.min = absoluteMin.toFloat()
             cameraY.max = function()
 
-            anticipatedMax(start, end, enabledLines, data, 0f, 0f) { visibleMaxIdx, visibleMax ->
-                anticipatedMax(start, end, enabledLines, data, startDiff, endDiff) { anticipatedIdx, anticipatedMax ->
-                    val wasMax = cameraTarget.max.toLong()
-                    when {
-                        anticipatedMax != wasMax -> {
-                            println("creating easing function from ${wasMax} to ${anticipatedMax}")
+            val lastAnticipated = anticipatedMax
+            val currentVisible = cameraY.max
 
+            if (startDiff == 0f && endDiff == 0f) {
+                return
+            }
+
+            println("start speed $startDiff end speed $endDiff")
+
+            anticipatedMax(start, end, enabledLines, data, 0f, 0f) { currentMaxIdx, maybeCurrentMax ->
+
+                currentIdx = when {
+                    maybeCurrentMax.toFloat() >= currentVisible ->
+                        currentMaxIdx.toFloat()
+
+                    else ->
+                        when (startEnd(startDiff, endDiff)) {
+                            StartEnd.START ->
+                                start
+
+                            StartEnd.END ->
+                                end
+                        }
+                }
+                currentMax = max(maybeCurrentMax.toFloat(), currentVisible)
+
+                anticipatedMax(start, end, enabledLines, data, startDiff, endDiff) { anticipatedIdx, anticipatedMax ->
+
+                    this.anticipatedIdx = anticipatedIdx
+                    this.anticipatedMax = anticipatedMax
+
+                    println("last $lastAnticipated new $anticipatedMax")
+
+                    when {
+                        anticipatedMax != lastAnticipated || sign(startDiff) != startSign || sign(endDiff) != endSign -> {
                             cameraTarget.min = absoluteMin.toFloat()
                             cameraTarget.max = anticipatedMax.toFloat()
 
                             val theStart = start
                             val theEnd = end
+
+                            val theCurrentMax = currentMax
+                            val theCurrentIdx = currentIdx
                             function = {
                                 smooth(
-                                    s1 = theStart,
-                                    e1 = theEnd,
-                                    m1 = cameraY.max,
-                                    i1 = visibleMaxIdx,
-                                    s2 = theStart + startDiff,
-                                    e2 = theEnd + endDiff,
-                                    m2 = anticipatedMax.toFloat(),
-                                    i2 = anticipatedIdx,
+                                    visibleStart = theStart,
+                                    visibleEnd = theEnd,
+
+                                    anticipatedStart = theStart + startDiff,
+                                    anticipatedEnd = theEnd + endDiff,
+
+                                    currentMax = theCurrentMax,
+                                    currentMaxIdx = theCurrentIdx,
+                                    anticipatedMax = anticipatedMax.toFloat(),
+                                    anticipatedMaxIdx = anticipatedIdx.toFloat(),
                                     s = start,
                                     e = end
                                 )
@@ -199,7 +241,10 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
                 }
             }
 
-            if (currentLine.empty() || currentLine.distanceSq(cameraTarget) > currentLine.lenSq() * 0.15f.sq()) {
+            startSign = sign(startDiff)
+            endSign = sign(endDiff)
+
+            if (currentLine.empty() || currentLine.distanceSq(cameraTarget) > currentLine.lenSq() * 0.2f.sq()) {
                 oldLine.set(from = currentLine)
                 currentLine.set(from = cameraTarget)
             }
@@ -239,7 +284,13 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
     fun mapX(idx: Idx, width: PxF): X =
         normalize(value = idx, min = start, max = end) * width
 
+    fun mapX(idx: IdxF, width: PxF): X =
+        normalize(value = idx, min = start, max = end) * width
+
     private fun mapY(value: Long, height: PxF): Y =
+        (1 - cameraY.normalize(value)) * height
+
+    private fun mapY(value: Float, height: PxF): Y =
         (1 - cameraY.normalize(value)) * height
 
     private val path = Path()
@@ -318,5 +369,14 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
                 )
             }
         }
+
+        canvas.drawPoint(mapX(currentIdx, width), mapY(currentMax, height), Paint().apply {
+            color = Color.GREEN
+            strokeWidth = 10.dpF
+        })
+        canvas.drawPoint(mapX(anticipatedIdx, width), mapY(anticipatedMax, height), Paint().apply {
+            color = Color.RED
+            strokeWidth = 10.dpF
+        })
     }
 }

@@ -34,6 +34,9 @@ inline fun MinMax.iterate(steps: Int, f: (Float) -> Unit): Unit =
 fun MinMax.normalize(value: Long): Float =
     normalize(value = value, min = min, max = max)
 
+fun MinMax.normalize(value: Float): Float =
+    normalize(value = value, min = min, max = max)
+
 fun MinMax.reset() {
     min = Float.MAX_VALUE
     max = Float.MIN_VALUE
