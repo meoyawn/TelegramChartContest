@@ -67,6 +67,7 @@ inline fun <T> anticipatedMax(
     endDiff: PxF,
     result: (Idx, Long) -> T
 ) {
+    val minX = 0
     val maxX = chart.size() - 1
 
     var theMax = Long.MIN_VALUE

@@ -2,7 +2,6 @@ package lol.adel.graph
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import androidx.collection.SimpleArrayMap
@@ -188,7 +187,7 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
                         currentMaxIdx.toFloat()
 
                     else ->
-                        when (startEnd(startDiff, endDiff)) {
+                        when (startEnd(startDiff, endDiff, upward = anticipatedMax > cameraY.max)) {
                             StartEnd.START ->
                                 start
 
@@ -202,8 +201,6 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
 
                     this.anticipatedIdx = anticipatedIdx
                     this.anticipatedMax = anticipatedMax
-
-                    println("last $lastAnticipated new $anticipatedMax")
 
                     when {
                         anticipatedMax != lastAnticipated || sign(startDiff) != startSign || sign(endDiff) != endSign -> {
@@ -231,11 +228,6 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
                                     e = end
                                 )
                             }
-                        }
-
-                        anticipatedMax == visibleMax -> {
-                            println("deleting easing function")
-                            function = default
                         }
                     }
                 }
@@ -369,14 +361,5 @@ class ChartDrawer(ctx: Context, val drawLabels: Boolean, val invalidate: () -> U
                 )
             }
         }
-
-        canvas.drawPoint(mapX(currentIdx, width), mapY(currentMax, height), Paint().apply {
-            color = Color.GREEN
-            strokeWidth = 10.dpF
-        })
-        canvas.drawPoint(mapX(anticipatedIdx, width), mapY(anticipatedMax, height), Paint().apply {
-            color = Color.RED
-            strokeWidth = 10.dpF
-        })
     }
 }

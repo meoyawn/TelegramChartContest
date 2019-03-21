@@ -14,19 +14,22 @@ enum class StartEnd {
 fun rnd(f: Float): Float =
     round(f * 10_000) / 10_000
 
-fun startEnd(startDiffRaw: Float, endDiffRaw: Float): StartEnd {
+fun startEnd(startDiffRaw: Float, endDiffRaw: Float, upward: Boolean): StartEnd {
     val startDiff = rnd(startDiffRaw)
     val endDiff = rnd(endDiffRaw)
 
     val absStartDiff = abs(startDiff)
     val absEndDiff = abs(endDiff)
 
-    return when {
-        startDiff == endDiff && startDiff > 0 ->
-            StartEnd.START
+    val forward = startDiff > 0
+    val backward = !forward
 
-        startDiff == endDiff && startDiff <= 0 ->
-            StartEnd.END
+    return when {
+        startDiff == endDiff && forward ->
+            if (upward) StartEnd.END else StartEnd.START
+
+        startDiff == endDiff && backward ->
+            if (upward) StartEnd.START else StartEnd.END
 
         absStartDiff > absEndDiff ->
             StartEnd.START
@@ -46,13 +49,14 @@ fun smooth(
     anticipatedMax: Float,
     anticipatedMaxIdx: IdxF,
     s: Float,
-    e: Float
+    e: Float,
+    reverse: Boolean = false
 ): Float {
     val startDiff = anticipatedStart - visibleStart
     val endDiff = anticipatedEnd - visibleEnd
     return when {
         anticipatedMax > currentMax -> {
-            when (startEnd(startDiff, endDiff)) {
+            when (startEnd(startDiff, endDiff, upward = true)) {
                 StartEnd.START -> {
                     println("to 1 ${currentMax} at ${currentMaxIdx} to ${anticipatedMax} at ${anticipatedMaxIdx}")
                     println("${s} in ${anticipatedMaxIdx..visibleStart}")
@@ -82,7 +86,7 @@ fun smooth(
             currentMax
 
         else ->
-            when (startEnd(startDiff, endDiff)) {
+            when (startEnd(startDiff, endDiff, upward = false)) {
                 StartEnd.START -> {
                     println("reversing start from ${currentMax} (${currentMaxIdx}) to ${anticipatedMax} (${anticipatedMaxIdx})")
                     smooth(
@@ -98,7 +102,8 @@ fun smooth(
                         anticipatedMaxIdx = currentMaxIdx,
 
                         s = s,
-                        e = e
+                        e = e,
+                        reverse = true
                     )
                 }
 
@@ -117,7 +122,8 @@ fun smooth(
                         anticipatedMaxIdx = currentMaxIdx,
 
                         s = s,
-                        e = e
+                        e = e,
+                        reverse = true
                     )
                 }
             }
