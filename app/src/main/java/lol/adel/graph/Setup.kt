@@ -102,7 +102,7 @@ fun ViewHolder.setup(idx: Idx) {
 
     floating.visibility = View.INVISIBLE
     chartView.listener = object : ChartView.Listener {
-        override fun onTouch(idx: Idx, x: PxF, max: Float) {
+        override fun onTouch(idx: Idx, x: PxF, maxY: Float) {
             floating.visibility = visibleOrInvisible(idx != -1)
 
             if (idx in 0..(size - 1)) {
@@ -128,7 +128,7 @@ fun ViewHolder.setup(idx: Idx) {
 
                 lineTexts.forEach { id, view ->
                     val points = data.columns[id]!!
-                    view.component1().toTextView().text = chartValue(points[idx], max)
+                    view.component1().toTextView().text = chartValue(points[idx], maxY)
                 }
             }
         }

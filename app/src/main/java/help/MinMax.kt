@@ -1,15 +1,9 @@
 package help
 
-import kotlin.math.max
-import kotlin.math.min
-
 data class MinMax(
     var min: Float,
     var max: Float
 )
-
-fun MinMax.len() =
-    max - min
 
 fun MinMax.distanceSq(that: MinMax): Float =
     (that.min - this.min).sq() + (that.max - this.max).sq()
@@ -34,20 +28,8 @@ inline fun MinMax.iterate(steps: Int, f: (Float) -> Unit): Unit =
 fun MinMax.normalize(value: Long): Float =
     normalize(value = value, min = min, max = max)
 
-fun MinMax.normalize(value: Float): Float =
+fun MinMax.normalize(value: Int): Float =
     normalize(value = value, min = min, max = max)
 
-fun MinMax.reset() {
-    min = Float.MAX_VALUE
-    max = Float.MIN_VALUE
-}
-
-fun MinMax.update(value: Float) {
-    min = min(min, value)
-    max = max(max, value)
-}
-
-fun MinMax.update(bottom: Float, top: Float) {
-    min = min(min, bottom)
-    max = max(max, top)
-}
+fun MinMax.denormalize(value: Float): Float =
+    denormalize(value = value, min = min, max = max)

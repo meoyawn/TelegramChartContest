@@ -1,9 +1,6 @@
 package lol.adel.graph
 
-import help.Idx
-import help.IdxF
-import help.denormalize
-import help.normalize
+import help.*
 import kotlin.math.abs
 import kotlin.math.round
 
@@ -41,29 +38,26 @@ class SmoothScroll {
     var startDir = Direction.NONE
     var endDir = Direction.NONE
 
-    var visibleStart: IdxF = 0f
-    var visibleEnd: IdxF = 0f
-
-    var anticipatedStart: IdxF = 0f
-    var anticipatedEnd: IdxF = 0f
+    val visible = MinMax(0f, 0f)
+    val anticipated = MinMax(0f, 0f)
 
     var currentMax: Float = 0f
     var currentMaxIdx: IdxF = 0f
     var anticipatedMax: Long = 0L
     var anticipatedMaxIdx: Idx = 0
 
-    fun cameraMax(start: IdxF, end: IdxF): Float =
+    fun cameraYMax(cameraX: MinMax): Float =
         smooth(
-            visibleStart = visibleStart,
-            visibleEnd = visibleEnd,
-            anticipatedStart = anticipatedStart,
-            anticipatedEnd = anticipatedEnd,
+            visibleStart = visible.min,
+            visibleEnd = visible.max,
+            anticipatedStart = visible.min,
+            anticipatedEnd = visible.max,
             currentMax = currentMax,
             currentMaxIdx = currentMaxIdx,
             anticipatedMax = anticipatedMax.toFloat(),
             anticipatedMaxIdx = anticipatedMaxIdx.toFloat(),
-            start = start,
-            end = end
+            start = cameraX.min,
+            end = cameraX.max
         )
 }
 

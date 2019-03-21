@@ -59,8 +59,7 @@ inline fun absolutes(chart: Chart, enabled: Set<LineId>, result: (Long, Long) ->
 }
 
 inline fun <T> findMax(
-    start: IdxF,
-    end: IdxF,
+    cameraX: MinMax,
     enabled: Set<LineId>,
     chart: Chart,
     startDiff: PxF = 0f,
@@ -70,8 +69,11 @@ inline fun <T> findMax(
     val minX = 0
     val maxX = chart.size() - 1
 
-    var theMax = Long.MIN_VALUE
+    var maxY = Long.MIN_VALUE
     var maxIdx = -1
+
+    val start = cameraX.min
+    val end = cameraX.max
 
     val halfRange = (end - start) / 2
     val startMult = sign(startDiff) * halfRange
@@ -84,15 +86,15 @@ inline fun <T> findMax(
         val points = chart[id]
         for (i in begin..finish) {
             val point = points[i]
-            if (point > theMax) {
-                theMax = point
+            if (point > maxY) {
+                maxY = point
                 maxIdx = i
             }
         }
     }
 
     if (maxIdx != -1) {
-        result(maxIdx, theMax)
+        result(maxIdx, maxY)
     }
 }
 
