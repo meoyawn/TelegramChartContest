@@ -283,12 +283,12 @@ class ChartView @JvmOverloads constructor(
             canvas.drawLine(0f, y, width, y, currentLinePaint)
         }
 
+        val start = cameraX.min
+        val end = cameraX.max
+
         linePaints.forEach { line, paint ->
             if (paint.alpha > 0) {
                 path.reset()
-
-                val start = cameraX.min
-                val end = cameraX.max
 
                 val points = data[line]
                 mapped(width, height, points, start.floor(), cameraX, cameraY, path::moveTo)

@@ -12,6 +12,7 @@ import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
 import help.*
+import kotlin.math.max
 
 class ScrollBarView @JvmOverloads constructor(
     ctx: Context,
@@ -108,7 +109,7 @@ class ScrollBarView @JvmOverloads constructor(
                                 set(left = 0f, right = distance)
 
                             newRight >= widthF ->
-                                set(left = width - 1 - distance, right = width - 1f)
+                                set(left = max(0f, width - 1 - distance), right = width - 1f)
                         }
                     }
                 }

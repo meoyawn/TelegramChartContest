@@ -82,18 +82,15 @@ fun ViewHolder.setup(idx: Idx) {
     linear.removeViewAt(linear.childCount - 1)
 
     val size = data.size()
-    background.setHorizontalBounds(from = 0f, to = size - 1f)
+    val lastIndex = size - 1
+    background.setHorizontalBounds(from = 0f, to = lastIndex.toFloat())
 
     scroll.listener = object : ScrollBarView.Listener {
         override fun onBoundsChange(left: Float, right: Float) {
-            chartView.setHorizontalBounds(
-                from = left * size.dec(),
-                to = right * size.dec()
-            )
-            horizontalLabels.setHorizontalRange(
-                from = left * size.dec(),
-                to = right * size.dec()
-            )
+            val start = left * lastIndex
+            val end = right * lastIndex
+            chartView.setHorizontalBounds(from = start, to = end)
+            horizontalLabels.setHorizontalRange(from = start, to = end)
         }
     }
 
@@ -105,7 +102,7 @@ fun ViewHolder.setup(idx: Idx) {
         override fun onTouch(idx: Idx, x: PxF, maxY: Float) {
             floating.visibility = visibleOrInvisible(idx != -1)
 
-            if (idx in 0..(size - 1)) {
+            if (idx in 0..lastIndex) {
                 val floatingWidth = floating.width
 
                 val target = x - 20.dp
