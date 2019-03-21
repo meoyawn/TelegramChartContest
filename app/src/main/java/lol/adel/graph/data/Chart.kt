@@ -73,8 +73,8 @@ inline fun <T> anticipatedMax(
     var theMax = Long.MIN_VALUE
     var maxIdx = -1
 
-    val startMult = sign(startDiff) * 5
-    val endMult = sign(endDiff) * 5
+    val startMult = sign(startDiff) * (end - start) / 2
+    val endMult = sign(endDiff) * (end - start) / 2
 
     val begin = clamp((start + startMult).ceil(), 0, maxX)
     val finish = clamp((end + endMult).floor(), 0, maxX)
