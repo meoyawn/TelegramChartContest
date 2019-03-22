@@ -74,7 +74,6 @@ fun ViewHolder.setup(idx: Idx) {
 
     name.text = chartName(idx)
 
-    chartView.setup(data, lineIds)
     background.setup(data, lineIds)
     horizontalLabels.setup(xs)
 

@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
-import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import androidx.collection.SimpleArrayMap
@@ -16,11 +15,8 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class ChartView @JvmOverloads constructor(
-    ctx: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : View(ctx, attrs, defStyleAttr) {
+@SuppressLint("ViewConstructor")
+class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx) {
 
     interface Listener {
         fun onTouch(idx: Idx, x: PxF, maxY: Float)
@@ -41,9 +37,15 @@ class ChartView @JvmOverloads constructor(
         // circles
         val OUTER_CIRCLE_RADIUS = 4.dpF
         val INNER_CIRCLE_RADIUS = 3.dpF
-    }
 
-    private var data: Chart = EMPTY_CHART
+        fun makeLinePaint(clr: ColorInt): Paint =
+            Paint().apply {
+                style = Paint.Style.STROKE
+                isAntiAlias = true
+                strokeWidth = 2.dpF
+                color = clr
+            }
+    }
 
     private val cameraX = MinMax(0f, 0f)
     private val cameraY = MinMax(0f, 0f)
@@ -97,22 +99,14 @@ class ChartView @JvmOverloads constructor(
     }
     //endregion
 
-    fun setup(chart: Chart, enabled: Set<LineId>) {
-        data = chart
+    init {
+        enabledLines.addAll(lineIds)
 
-        enabledLines.clear()
-        linePaints.clear()
-        enabled.forEach { line ->
-            enabledLines += line
-            linePaints[line] = Paint().apply {
-                style = Paint.Style.STROKE
-                isAntiAlias = true
-                strokeWidth = 2.dpF
-                color = chart.color(line)
-            }
+        for (id in lineIds) {
+            linePaints[id] = makeLinePaint(data.color(id))
         }
 
-        absolutes(chart, enabled) { min, max ->
+        absolutes(data, lineIds) { min, max ->
             absoluteMin = min
             absoluteMax = max
         }

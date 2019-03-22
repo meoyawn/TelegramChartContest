@@ -8,6 +8,8 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import help.*
+import lol.adel.graph.data.Chart
+import lol.adel.graph.data.LineId
 import lol.adel.graph.widget.BackgroundChartView
 import lol.adel.graph.widget.ChartView
 import lol.adel.graph.widget.HorizontalLabelsView
@@ -15,7 +17,7 @@ import lol.adel.graph.widget.ScrollBarView
 
 private val scrollId = View.generateViewId()
 
-fun makeChartLayout(ctx: Context, medium: Typeface): ViewHolder {
+fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<LineId>): ViewHolder {
     lateinit var linear: LinearLayout
     lateinit var name: TextView
     lateinit var chart: ChartView
@@ -50,7 +52,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface): ViewHolder {
             addView(FrameLayout(ctx).apply {
                 clipChildren = true
 
-                chart = ChartView(ctx)
+                chart = ChartView(ctx, data, lineIds)
                 addView(chart, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
                 floating = LinearLayout(ctx).apply {
