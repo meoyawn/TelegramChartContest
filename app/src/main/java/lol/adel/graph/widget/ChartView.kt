@@ -30,7 +30,6 @@ class ChartView(
 
         // labels
         val LINE_LABEL_DIST = 5.dp
-        val LABEL_TEXT_SIZE = 16.dpF
 
         // circles
         val OUTER_CIRCLE_RADIUS = 4.dpF
@@ -58,12 +57,12 @@ class ChartView(
     //region Vertical Labels
     private val oldLabelPaint = Paint().apply {
         color = ctx.color(R.color.label_text)
-        textSize = LABEL_TEXT_SIZE
+        textSize = HorizontalLabelsView.TEXT_SIZE_PX
         isAntiAlias = true
     }
     private val currentLabelPaint = Paint().apply {
         color = ctx.color(R.color.label_text)
-        textSize = LABEL_TEXT_SIZE
+        textSize = HorizontalLabelsView.TEXT_SIZE_PX
         isAntiAlias = true
     }
     private val oldLinePaint = Paint().apply {
@@ -302,6 +301,7 @@ class ChartView(
                 val points = data[line]
 
                 mapped(width, height, points, start.floor()) { x, y ->
+                    // start of first line
                     lineBuf[0] = x
                     lineBuf[1] = y
                 }
@@ -309,8 +309,11 @@ class ChartView(
                 var iBuf = 2
                 for (i in start.ceil()..end.ceil()) {
                     mapped(width, height, points, i) { x, y ->
+                        // end of prev line
                         lineBuf[iBuf + 0] = x
                         lineBuf[iBuf + 1] = y
+
+                        // start of next line
                         lineBuf[iBuf + 2] = x
                         lineBuf[iBuf + 3] = y
                     }

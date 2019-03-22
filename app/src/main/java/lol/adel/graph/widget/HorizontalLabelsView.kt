@@ -14,19 +14,21 @@ import java.util.*
 class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) {
 
     companion object {
-        private val format = SimpleDateFormat("MMM d", Locale.US)
-        private val GAP = 80.dpF
-        private val PER_CHAR = 4.3f.dp
+        val TEXT_SIZE_PX: PxF = 15.dpF
+        private val GAP: PxF = 80.dpF
+        private val PX_PER_CHAR: PxF = TEXT_SIZE_PX / 3.8f
+
+        private val FMT = SimpleDateFormat("MMM d", Locale.US)
     }
 
     private val opaque = Paint().apply {
         color = ctx.color(R.color.label_text)
-        textSize = 16.dpF
+        textSize = TEXT_SIZE_PX
         isAntiAlias = true
     }
     private val transparent = Paint().apply {
         color = ctx.color(R.color.label_text)
-        textSize = 16.dpF
+        textSize = TEXT_SIZE_PX
         isAntiAlias = true
     }
 
@@ -63,13 +65,13 @@ class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) 
         val hiddenEnd = end.ceil()
 
         iterate(from = startFromIdx, to = hiddenEnd, step = stepCeil) { idx ->
-            val text = format.format(xs[idx])
-            canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * PER_CHAR), halfHeight, opaque)
+            val text = FMT.format(xs[idx])
+            canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * PX_PER_CHAR), halfHeight, opaque)
         }
         transparent.alphaF = 1 - fraction
         iterate(from = startFromIdx + stepFloor, to = hiddenEnd, step = stepCeil) { idx ->
-            val text = format.format(xs[idx])
-            canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * PER_CHAR), halfHeight, transparent)
+            val text = FMT.format(xs[idx])
+            canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * PX_PER_CHAR), halfHeight, transparent)
         }
     }
 }
