@@ -5,6 +5,18 @@ data class MinMax(
     var max: Float
 )
 
+operator fun MinMax.compareTo(other: MinMax): Int =
+    when {
+        this.min == other.min ->
+            this.max.compareTo(other.max)
+
+        this.max == other.max ->
+            this.min.compareTo(other.min)
+
+        else ->
+            0
+    }
+
 fun MinMax.len(): Float =
     max - min
 
@@ -26,7 +38,12 @@ fun MinMax.empty(): Boolean =
 
 inline fun MinMax.iterate(steps: Int, f: (Float) -> Unit): Unit =
     if (empty()) Unit
-    else iterate(from = min, to = max, step = (max - min) / steps, f = f)
+    else {
+        val origStepSize = (max - min) / steps
+        val newMax = max - origStepSize / 3
+        val newStepSize = (newMax - min) / steps
+        iterate(from = min, to = newMax, stepSize = newStepSize, f = f)
+    }
 
 fun MinMax.normalize(value: Long): Float =
     normalize(value = value, min = min, max = max)

@@ -144,24 +144,25 @@ class ChartView(
             enabledLines -= id
         }
 
-        animateAlpha(linePaints[id]!!, if (enabled) 255 else 0)
-
         absolutes(data, enabledLines) { min, max ->
             absoluteMin = min
             absoluteMax = max
         }
 
+        animateAlpha(linePaints[id]!!, if (enabled) 255 else 0)
         animateCameraY()
     }
 
     private fun animateCameraY(): Unit =
         findMax(cameraX, enabledLines, data) { _, max ->
-            oldLine.set(from = currentLine)
-
+            val visibleMin = absoluteMin.toFloat()
             val visibleMax = max.toFloat()
-            currentLine.set(min = absoluteMin.toFloat(), max = visibleMax)
 
-            animateFloat(cameraY.min, absoluteMin.toFloat()) {
+            oldLine.set(from = currentLine)
+            currentLine.set(min = visibleMin, max = visibleMax)
+            updateAlphas()
+
+            animateFloat(cameraY.min, visibleMin) {
                 cameraY.min = it
                 updateAlphas()
                 invalidate()
@@ -178,6 +179,8 @@ class ChartView(
         if (enabledLines.isEmpty() || (startDiff == 0f && endDiff == 0f)) return
 
         findMax(cameraX, enabledLines, data) { currentMaxIdx, maybeCurrentMax ->
+            val upwards = smoothScroll.anticipatedMax > cameraY.max
+
             val currentIdx = when {
                 maybeCurrentMax.toFloat() >= cameraY.max ->
                     currentMaxIdx.toFloat()
@@ -186,7 +189,7 @@ class ChartView(
                     when (startEnd(
                         startDiff,
                         endDiff,
-                        goingUp = smoothScroll.anticipatedMax > cameraY.max
+                        goingUp = upwards
                     )) {
                         StartEnd.START ->
                             cameraX.min
@@ -203,10 +206,34 @@ class ChartView(
                     || Direction.of(startDiff) != smoothScroll.startDir
                     || Direction.of(endDiff) != smoothScroll.endDir
                 ) {
-                    if (abs(currentLine.max - anticipatedMax.toFloat()) > currentLine.len() / H_LINES) {
-                        oldLine.set(from = currentLine)
-                        currentLine.min = absoluteMin.toFloat()
-                        currentLine.max = anticipatedMax.toFloat()
+                    if (currentLine.empty() || abs(currentLine.max - anticipatedMax.toFloat()) > currentLine.len() / H_LINES) {
+                        when {
+                            oldLine > currentLine && !upwards -> {
+                                if (oldLine.empty() && !currentLine.empty()) {
+                                    oldLine.set(from = currentLine)
+                                }
+                                currentLine.min = absoluteMin.toFloat()
+                                currentLine.max = anticipatedMax.toFloat()
+                            }
+
+                            oldLine < currentLine && upwards -> {
+                                if (oldLine.empty() && !currentLine.empty()) {
+                                    oldLine.set(from = currentLine)
+                                }
+                                currentLine.min = absoluteMin.toFloat()
+                                currentLine.max = anticipatedMax.toFloat()
+                            }
+
+                            else -> {
+                                if (!currentLine.empty()) {
+                                    oldLine.set(from = currentLine)
+                                }
+                                currentLine.min = absoluteMin.toFloat()
+                                currentLine.max = anticipatedMax.toFloat()
+                            }
+                        }
+
+                        check(!currentLine.empty())
                     }
 
                     smoothScroll.visible.set(from = cameraX)
@@ -239,13 +266,25 @@ class ChartView(
     private fun updateAlphas() {
         val dist1 = currentLine.distanceSq(cameraY)
         val dist2 = oldLine.distanceSq(cameraY)
-        val frac1 = dist1 / (dist1 + dist2)
+        val sum = dist1 + dist2
 
-        currentLinePaint.alphaF = 1 - frac1
-        currentLabelPaint.alphaF = 1 - frac1
+        val oldFrac = when {
+            oldLine.empty() ->
+                0f
 
-        oldLinePaint.alphaF = frac1
-        oldLabelPaint.alphaF = frac1
+            sum == 0f ->
+                0f
+
+            else ->
+                dist1 / sum
+        }
+
+        oldLinePaint.alphaF = oldFrac
+        oldLabelPaint.alphaF = oldFrac
+
+        val currentFrac = 1 - oldFrac
+        currentLinePaint.alphaF = currentFrac
+        currentLabelPaint.alphaF = currentFrac
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -338,12 +377,7 @@ class ChartView(
 
         oldLine.iterate(H_LINES) {
             val value = it.toLong()
-            canvas.drawText(
-                chartValue(value, cameraY.max),
-                0f,
-                mapY(value, height) - LINE_LABEL_DIST,
-                oldLabelPaint
-            )
+            canvas.drawText(chartValue(value, cameraY.max), 0f, mapY(value, height) - LINE_LABEL_DIST, oldLabelPaint)
         }
         currentLine.iterate(H_LINES) {
             val value = it.toLong()

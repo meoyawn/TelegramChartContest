@@ -2,8 +2,8 @@ package lol.adel.graph.data
 
 import androidx.collection.SimpleArrayMap
 import help.*
-import java.text.DecimalFormat
 import kotlin.math.abs
+import kotlin.math.round
 import kotlin.math.sign
 
 enum class ColumnType {
@@ -91,23 +91,21 @@ inline fun <T> findMax(
     }
 }
 
-private val FMT = DecimalFormat("0.00")
-
 fun chartName(idx: Idx): String =
     "Chart ${idx + 1}"
 
-fun chartValue(value: Long, max: Float): String {
-    val abs = abs(value)
+private fun rnd(value: Double): Double =
+    round(value * 100) / 100
 
-    return when {
-        abs < 1_000 ->
-            value.toString()
+fun chartValue(value: Long, max: Float): String =
+    when (abs(value)) {
+        in 0..1_000 ->
+            "$value"
 
-        abs < 1_000_000 ->
-            if (max < 1_000_000) value.toString()
+        in 0..1_000_000 ->
+            if (max < 1_000_000) "$value"
             else "${value / 1_000}K"
 
         else ->
-            "${FMT.format(value / 1_000_000.0)}M"
+            "${rnd(value = value / 1_000_000.0)}M"
     }
-}

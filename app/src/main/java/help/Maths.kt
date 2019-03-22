@@ -32,11 +32,11 @@ inline fun iterate(from: Int, to: Int, step: Int, f: (Int) -> Unit) {
     }
 }
 
-inline fun iterate(from: Float, to: Float, step: Float, f: (Float) -> Unit) {
+inline fun iterate(from: Float, to: Float, stepSize: Float, f: (Float) -> Unit) {
     var idx = from
     while (idx <= to) {
         f(idx)
-        idx += step
+        idx += stepSize
     }
 }
 
