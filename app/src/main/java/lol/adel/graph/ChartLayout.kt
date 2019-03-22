@@ -10,6 +10,7 @@ import android.widget.TextView
 import help.*
 import lol.adel.graph.data.Chart
 import lol.adel.graph.data.LineId
+import lol.adel.graph.data.size
 import lol.adel.graph.widget.BackgroundChartView
 import lol.adel.graph.widget.ChartView
 import lol.adel.graph.widget.HorizontalLabelsView
@@ -39,7 +40,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
 
             name = TextView(ctx).apply {
                 layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                    topMargin = 16.dp
+                    topMargin = 8.dp
                     bottomMargin = 8.dp
                 }
                 typeface = medium
@@ -48,10 +49,11 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
             }
             addView(name)
 
+            val lineBuffer = FloatArray(size = data.size().inc() * 4)
             addView(FrameLayout(ctx).apply {
                 clipChildren = true
 
-                chart = ChartView(ctx, data, lineIds)
+                chart = ChartView(ctx, data, lineIds, lineBuffer)
                 addView(chart, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
                 floating = LinearLayout(ctx).apply {
@@ -77,7 +79,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                 addView(floating, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
                     topMargin = 16.dp
                 })
-            }, ViewGroup.LayoutParams(MATCH_PARENT, 270.dp))
+            }, ViewGroup.LayoutParams(MATCH_PARENT, 260.dp))
 
             horizintal = HorizontalLabelsView(ctx, xs)
             addView(horizintal, ViewGroup.LayoutParams(MATCH_PARENT, 36.dp))
@@ -86,7 +88,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                 clipChildren = false
 
                 addView(FrameLayout(ctx).apply {
-                    background = BackgroundChartView(ctx, data, lineIds)
+                    background = BackgroundChartView(ctx, data, lineIds, lineBuffer)
                     addView(background, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
                 }, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 

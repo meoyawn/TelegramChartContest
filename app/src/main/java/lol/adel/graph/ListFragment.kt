@@ -2,6 +2,7 @@ package lol.adel.graph
 
 import android.app.Activity
 import android.app.Fragment
+import android.app.FragmentTransaction
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -55,6 +56,7 @@ class ListFragment : Fragment() {
                         fragmentManager.sync {
                             beginTransaction()
                                 .replace(android.R.id.content, ChartFragment.newInstance(idx))
+                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                                 .addToBackStack(null)
                                 .commit()
                         }

@@ -11,7 +11,12 @@ import help.*
 import lol.adel.graph.data.*
 
 @SuppressLint("ViewConstructor")
-class BackgroundChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx) {
+class BackgroundChartView(
+    ctx: Context,
+    private val data: Chart,
+    lineIds: Set<LineId>,
+    private val lineBuf: FloatArray
+) : View(ctx) {
 
     private val cameraX = MinMax(0f, 0f)
     private val cameraY = MinMax(0f, 0f)
@@ -85,15 +90,26 @@ class BackgroundChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) :
 
         linePaints.forEach { line, paint ->
             if (paint.alpha > 0) {
-                path.reset()
-
                 val points = data[line]
-                mapped(width, height, points, start.floor(), path::moveTo)
-                for (i in start.ceil()..end.ceil()) {
-                    mapped(width, height, points, i, path::lineTo)
+
+                mapped(width, height, points, start.floor()) { x, y ->
+                    lineBuf[0] = x
+                    lineBuf[1] = y
                 }
 
-                canvas.drawPath(path, paint)
+                var iBuf = 2
+                for (i in start.ceil()..end.ceil()) {
+                    mapped(width, height, points, i) { x, y ->
+                        lineBuf[iBuf + 0] = x
+                        lineBuf[iBuf + 1] = y
+                        lineBuf[iBuf + 2] = x
+                        lineBuf[iBuf + 3] = y
+                    }
+                    iBuf += 4
+                }
+                iBuf -= 2
+
+                canvas.drawLines(lineBuf, 0, iBuf, paint)
             }
         }
     }
