@@ -32,7 +32,6 @@ private fun makeCheckbox(
         minHeight = 48.dp
         gravity = Gravity.CENTER_VERTICAL
         textSize = 18f
-        setTextColor(ctx.color(R.color.floating_text))
         isChecked = true
 
         setOnCheckedChangeListener { _, isChecked ->

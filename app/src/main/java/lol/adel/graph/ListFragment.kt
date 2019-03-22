@@ -10,7 +10,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import help.attr
-import help.color
 import help.dp
 import help.updatePadding
 import lol.adel.graph.data.CHARTS
@@ -33,7 +32,7 @@ class ListFragment : Fragment() {
                     minHeight = 56.dp
                     gravity = Gravity.CENTER_VERTICAL
                     textSize = 18f
-                    setTextColor(ctx.color(R.color.floating_text))
+//                    setTextColor(ctx.color(R.color.floating_text))
                     updatePadding(left = 16.dp, right = 16.dp)
                     setOnClickListener {
                         fragmentManager.beginTransaction()
@@ -47,6 +46,13 @@ class ListFragment : Fragment() {
             }
 
             removeViewAt(childCount - 1)
+
+            addView(TextView(ctx).apply {
+                updatePadding(top = 16.dp)
+                textSize = 16f
+                gravity = Gravity.CENTER
+                text = "Multitouch available on the scroll bar"
+            })
         }
     }
 }
