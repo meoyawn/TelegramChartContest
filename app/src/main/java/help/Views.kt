@@ -28,3 +28,8 @@ operator fun ViewGroup.component2(): View =
 
 fun View.toTextView(): TextView =
     this as TextView
+
+inline fun ViewGroup.forEach(f: (View) -> Unit): Unit =
+    repeat(childCount) {
+        f(getChildAt(it))
+    }

@@ -6,8 +6,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.os.Bundle
-import android.os.Parcelable
 import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
@@ -48,6 +46,12 @@ class ScrollBarView(ctx: Context) : View(ctx) {
         this.right = right
         listener?.onBoundsChange(left = left / width, right = right / width)
         invalidate()
+    }
+
+    fun toggleNight() {
+        animatePaint(pale, R.color.scroll_overlay_pale)
+        animatePaint(bright, R.color.scroll_overlay_bright)
+        animatePaint(touch, R.color.scroll_overlay_touch)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -162,23 +166,6 @@ class ScrollBarView(ctx: Context) : View(ctx) {
             set(quarter, quarter * 3)
         } else {
             set(this.left, this.right)
-        }
-    }
-
-    override fun onSaveInstanceState(): Parcelable =
-        Bundle().apply {
-            putParcelable("super", super.onSaveInstanceState())
-            putFloat("left", left)
-            putFloat("right", right)
-        }
-
-    override fun onRestoreInstanceState(state: Parcelable) {
-        if (state is Bundle) {
-            super.onRestoreInstanceState(state.getParcelable("super"))
-            left = state.getFloat("left")
-            right = state.getFloat("right")
-        } else {
-            super.onRestoreInstanceState(state)
         }
     }
 

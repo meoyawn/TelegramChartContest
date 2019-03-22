@@ -33,6 +33,7 @@ private fun makeCheckbox(
         gravity = Gravity.CENTER_VERTICAL
         textSize = 18f
         isChecked = true
+        setTextColor(ctx.color(R.color.floating_text))
 
         setOnCheckedChangeListener { _, isChecked ->
             viewHolder.chartView.selectLine(id, isChecked)
@@ -74,8 +75,10 @@ fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: Set<LineId>, xs: LongArray)
     for (id in lineIds) {
         linear.addView(makeCheckbox(data, id, this, lineTexts))
         linear.addView(
-            View(ctx).apply { setBackgroundResource(R.drawable.h_divider) },
-            ViewGroup.LayoutParams(MATCH_PARENT, 1.dp)
+            View(ctx).apply { setBackgroundResource(R.color.divider) },
+            LinearLayout.LayoutParams(MATCH_PARENT, 1.dp).apply {
+                marginStart = 48.dp
+            }
         )
 
         val text = makeLineText(ctx, data, id, Typefaces.medium)

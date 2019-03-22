@@ -1,22 +1,23 @@
 package lol.adel.graph
 
 import android.app.Activity
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import help.isNight
-import help.setNightMode
+import help.*
 
 class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) {
-            fragmentManager.beginTransaction()
-                .replace(android.R.id.content, ListFragment())
-                .commit()
+            fragmentManager.sync {
+                beginTransaction()
+                    .replace(android.R.id.content, ListFragment())
+                    .commit()
+            }
         }
-        fragmentManager.executePendingTransactions()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -32,8 +33,25 @@ class MainActivity : Activity() {
             }
 
             R.id.night -> {
+                val oldBg = color(R.color.background)
+                val oldToolbar = color(R.color.colorPrimary)
                 setNightMode(night = !resources.configuration.isNight())
-                recreate()
+                setTheme(R.style.AppTheme)
+
+                animateColor(window.statusBarColor, color(R.color.colorPrimaryDark)) {
+                    window.statusBarColor = it
+                }.start()
+
+                val toolbarBg = ColorDrawable(oldToolbar)
+                actionBar?.setBackgroundDrawable(toolbarBg)
+                toolbarBg.animate(color(R.color.colorPrimary))
+
+                val windowBg = ColorDrawable(oldBg)
+                window.setBackgroundDrawable(windowBg)
+                windowBg.animate(color(R.color.background))
+
+                ListFragment.toggleNight(act)
+                ChartFragment.toggleNight(act)
                 true
             }
 

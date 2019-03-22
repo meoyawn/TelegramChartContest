@@ -74,6 +74,13 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
     private val oldLine = MinMax(0f, 0f)
     //endregion
 
+    fun toggleNight() {
+        animatePaint(oldLabelPaint, currentLabelPaint, R.color.label_text)
+        animatePaint(oldLinePaint, currentLinePaint, R.color.divider)
+        animatePaint(innerCirclePaint, R.color.background)
+        animatePaint(verticalLinePaint, R.color.vertical_line)
+    }
+
     //region Touch Feedback
     private var touching: PxF = -1f
         set(value) {

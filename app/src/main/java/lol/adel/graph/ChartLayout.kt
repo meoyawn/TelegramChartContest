@@ -15,8 +15,6 @@ import lol.adel.graph.widget.ChartView
 import lol.adel.graph.widget.HorizontalLabelsView
 import lol.adel.graph.widget.ScrollBarView
 
-private val scrollId = View.generateViewId()
-
 fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<LineId>, xs: LongArray): ViewHolder {
     lateinit var linear: LinearLayout
     lateinit var name: TextView
@@ -27,6 +25,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
     lateinit var horizintal: HorizontalLabelsView
     lateinit var background: BackgroundChartView
     lateinit var scroll: ScrollBarView
+    lateinit var bottom: View
 
     val root = LinearLayout(ctx).apply {
         layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
@@ -91,9 +90,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                     addView(background, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
                 }, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
-                scroll = ScrollBarView(ctx).apply {
-                    id = scrollId
-                }
+                scroll = ScrollBarView(ctx)
                 addView(scroll, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
             }, LinearLayout.LayoutParams(MATCH_PARENT, 48.dp).apply {
                 bottomMargin = 10.dp
@@ -101,9 +98,10 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
         }
         addView(linear, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
 
-        addView(View(ctx).apply {
+        bottom = View(ctx).apply {
             setBackgroundResource(R.color.bottom)
-        }, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+        }
+        addView(bottom, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
     }
 
     return ViewHolder(
@@ -116,6 +114,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
         floatingContainer = floatingContainer,
         horizontalLabels = horizintal,
         background = background,
-        scroll = scroll
+        scroll = scroll,
+        bottom = bottom
     )
 }

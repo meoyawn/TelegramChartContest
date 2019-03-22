@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import help.dp
 import lol.adel.graph.widget.BackgroundChartView
 import lol.adel.graph.widget.ChartView
 import lol.adel.graph.widget.HorizontalLabelsView
@@ -19,8 +20,16 @@ class ViewHolder(
     val horizontalLabels: HorizontalLabelsView,
     val floating: View,
     val floatingText: TextView,
-    val floatingContainer: ViewGroup
+    val floatingContainer: ViewGroup,
+    val bottom: View
 )
 
 val ViewHolder.ctx: Context
     get() = root.context
+
+object ViewIds {
+    val list = View.generateViewId()
+}
+
+fun isDivider(view: View): Boolean =
+    view.layoutParams.height == 1.dp

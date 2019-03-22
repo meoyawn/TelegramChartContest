@@ -1,5 +1,6 @@
 package help
 
+import android.app.Activity
 import android.content.Context
 import android.content.res.Resources
 import android.util.TypedValue
@@ -15,6 +16,9 @@ typealias PxF = Float
 val Context.ctx: Context
     get() = this
 
+val Activity.act: Activity
+    get() = this
+
 private fun dpToPx(dp: DpF): PxF =
     dp * Resources.getSystem().displayMetrics.density
 
@@ -26,6 +30,9 @@ val Dp.dpF: PxF
 
 val Dp.dp: Px
     get() = dpF.toInt()
+
+val Int.px: Px
+    get() = this
 
 val View.widthF: PxF
     get() = width.toFloat()
