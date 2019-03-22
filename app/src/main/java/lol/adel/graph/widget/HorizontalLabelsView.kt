@@ -1,22 +1,17 @@
 package lol.adel.graph.widget
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.util.AttributeSet
 import android.view.View
 import help.*
 import lol.adel.graph.R
-import lol.adel.graph.data.Chart
-import lol.adel.graph.data.xs
 import java.text.SimpleDateFormat
 import java.util.*
 
-class HorizontalLabelsView @JvmOverloads constructor(
-    ctx: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : View(ctx, attrs, defStyleAttr) {
+@SuppressLint("ViewConstructor")
+class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) {
 
     companion object {
         private val format = SimpleDateFormat("MMM d", Locale.US)
@@ -37,11 +32,6 @@ class HorizontalLabelsView @JvmOverloads constructor(
 
     private var start: IdxF = 0f
     private var end: IdxF = 0f
-    private var xs = LongArray(0)
-
-    fun setup(data: LongArray) {
-        xs = data
-    }
 
     fun setHorizontalRange(from: IdxF, to: IdxF) {
         start = from

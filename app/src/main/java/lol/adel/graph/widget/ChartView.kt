@@ -18,12 +18,6 @@ import kotlin.math.roundToInt
 @SuppressLint("ViewConstructor")
 class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx) {
 
-    interface Listener {
-        fun onTouch(idx: Idx, x: PxF, maxY: Float)
-    }
-
-    var listener: Listener? = null
-
     private companion object {
 
         // lines
@@ -38,6 +32,12 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
         val OUTER_CIRCLE_RADIUS = 4.dpF
         val INNER_CIRCLE_RADIUS = 3.dpF
     }
+
+    interface Listener {
+        fun onTouch(idx: Idx, x: PxF, maxY: Float)
+    }
+
+    var listener: Listener? = null
 
     private val cameraX = MinMax(0f, 0f)
     private val cameraY = MinMax(0f, 0f)

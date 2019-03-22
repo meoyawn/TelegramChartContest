@@ -17,7 +17,7 @@ import lol.adel.graph.widget.ScrollBarView
 
 private val scrollId = View.generateViewId()
 
-fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<LineId>): ViewHolder {
+fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<LineId>, xs: LongArray): ViewHolder {
     lateinit var linear: LinearLayout
     lateinit var name: TextView
     lateinit var chart: ChartView
@@ -80,7 +80,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                 })
             }, ViewGroup.LayoutParams(MATCH_PARENT, 270.dp))
 
-            horizintal = HorizontalLabelsView(ctx)
+            horizintal = HorizontalLabelsView(ctx, xs)
             addView(horizintal, ViewGroup.LayoutParams(MATCH_PARENT, 36.dp))
 
             addView(FrameLayout(ctx).apply {

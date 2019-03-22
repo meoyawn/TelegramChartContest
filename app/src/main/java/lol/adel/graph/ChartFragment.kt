@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import help.Idx
 import lol.adel.graph.data.CHARTS
 import lol.adel.graph.data.lineIds
+import lol.adel.graph.data.xs
 
 class ChartFragment : Fragment() {
 
@@ -27,13 +28,9 @@ class ChartFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val data = CHARTS[idx()]
         val lineIds = data.lineIds()
-
-        return makeChartLayout(ctx = activity, medium = Typefaces.medium, data = data, lineIds = lineIds).run {
-            activity.actionBar?.setDisplayHomeAsUpEnabled(true)
-
-            setup(idx())
-
-            root
-        }
+        val xs = data.xs()
+        val vh = makeChartLayout(ctx = activity, medium = Typefaces.medium, data = data, lineIds = lineIds, xs = xs)
+        vh.setup(idx(), data, lineIds, xs)
+        return vh.root
     }
 }

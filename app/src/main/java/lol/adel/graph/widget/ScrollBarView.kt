@@ -8,7 +8,6 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.os.Bundle
 import android.os.Parcelable
-import android.util.AttributeSet
 import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
@@ -19,11 +18,7 @@ import lol.adel.graph.Handle
 import lol.adel.graph.R
 import kotlin.math.max
 
-class ScrollBarView @JvmOverloads constructor(
-    ctx: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : View(ctx, attrs, defStyleAttr) {
+class ScrollBarView(ctx: Context) : View(ctx) {
 
     private companion object {
         val accelerate = AccelerateInterpolator()

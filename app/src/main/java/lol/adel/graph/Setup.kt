@@ -67,14 +67,8 @@ object Typefaces {
     val medium: Typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
 }
 
-fun ViewHolder.setup(idx: Idx) {
-    val data = CHARTS[idx]
-    val xs = data.xs()
-    val lineIds = data.lineIds()
-
+fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: Set<LineId>, xs: LongArray) {
     name.text = chartName(idx)
-
-    horizontalLabels.setup(xs)
 
     val lineTexts = simpleArrayMapOf<LineId, ViewGroup>()
     for (id in lineIds) {
