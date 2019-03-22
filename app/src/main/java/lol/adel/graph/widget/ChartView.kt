@@ -179,18 +179,12 @@ class ChartView(
         if (enabledLines.isEmpty() || (startDiff == 0f && endDiff == 0f)) return
 
         findMax(cameraX, enabledLines, data) { currentMaxIdx, maybeCurrentMax ->
-            val upwards = smoothScroll.anticipatedMax > cameraY.max
-
             val currentIdx = when {
                 maybeCurrentMax.toFloat() >= cameraY.max ->
                     currentMaxIdx.toFloat()
 
                 else ->
-                    when (startEnd(
-                        startDiff,
-                        endDiff,
-                        goingUp = upwards
-                    )) {
+                    when (startEnd(startDiff, endDiff, goingUp = smoothScroll.anticipatedMax > cameraY.max)) {
                         StartEnd.START ->
                             cameraX.min
 
@@ -207,6 +201,8 @@ class ChartView(
                     || Direction.of(endDiff) != smoothScroll.endDir
                 ) {
                     if (currentLine.empty() || abs(currentLine.max - anticipatedMax.toFloat()) > currentLine.len() / H_LINES) {
+                        val upwards = anticipatedMax > currentLine.max
+
                         when {
                             oldLine > currentLine && !upwards -> {
                                 if (oldLine.empty() && !currentLine.empty()) {
@@ -233,7 +229,7 @@ class ChartView(
                             }
                         }
 
-                        check(!currentLine.empty())
+                        println("set $oldLine $currentLine $upwards")
                     }
 
                     smoothScroll.visible.set(from = cameraX)
