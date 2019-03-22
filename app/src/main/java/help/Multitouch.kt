@@ -4,11 +4,11 @@ import android.view.MotionEvent
 
 typealias PointerId = Int
 
-fun MotionEvent.pointerId(): PointerId =
+fun MotionEvent.downUpPointerId(): PointerId =
     getPointerId(actionIndex)
 
-fun MotionEvent.x(): Float =
+fun MotionEvent.downUpX(): Float =
     getX(actionIndex)
 
-fun MotionEvent.y(): Float =
+fun MotionEvent.downUpY(): Float =
     getY(actionIndex)

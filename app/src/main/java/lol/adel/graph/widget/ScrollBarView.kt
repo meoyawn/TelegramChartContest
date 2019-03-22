@@ -1,6 +1,7 @@
 package lol.adel.graph.widget
 
 import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
@@ -11,8 +12,10 @@ import android.util.AttributeSet
 import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.AccelerateInterpolator
 import help.*
 import lol.adel.graph.Dragging
+import lol.adel.graph.Handle
 import lol.adel.graph.R
 import kotlin.math.max
 
@@ -21,6 +24,10 @@ class ScrollBarView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : View(ctx, attrs, defStyleAttr) {
+
+    private companion object {
+        val accelerate = AccelerateInterpolator()
+    }
 
     interface Listener {
         fun onBoundsChange(left: Float, right: Float)
@@ -34,15 +41,9 @@ class ScrollBarView @JvmOverloads constructor(
 
     private var left: Float = -1f
     private var right: Float = -1f
+
     private val dragging: SparseArray<Dragging> = SparseArray()
-
-    private var radius: PxF = 0f
-        set(value) {
-            field = value
-            invalidate()
-        }
-
-    private var anim: Animator? = null
+    private val wasDragging: SparseArray<Dragging> = SparseArray()
 
     private fun around(x: X, view: X): Boolean =
         Math.abs(x - view) <= 24.dp
@@ -56,79 +57,105 @@ class ScrollBarView @JvmOverloads constructor(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        val pointerId = event.pointerId()
-        val evX = event.x()
-
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
-                if (dragging[pointerId] == null) {
-                    println("down $pointerId")
+                val pointerId = event.downUpPointerId()
+                val evX = event.downUpX()
 
-                    val d = when {
+                val draggingSize = dragging.size()
+                if (draggingSize == 1 && dragging.valueAt(0)?.handle is Handle.Between) {
+                    return true
+                }
+                if (dragging[pointerId] == null && draggingSize < 2) {
+                    val handle = when {
+                        evX in (left + 24.dp)..(right - 24.dp) && draggingSize == 0 ->
+                            Handle.Between(left = left, right = right, x = evX)
+
                         around(evX, left) ->
-                            Dragging.Left
+                            Handle.Left
 
                         around(evX, right) ->
-                            Dragging.Right
-
-                        evX in left..right && pointerId == 0 ->
-                            Dragging.Between(left = left, right = right, x = evX)
+                            Handle.Right
 
                         else ->
                             null
                     }
-                    dragging.put(pointerId, d)
+                    val d = handle?.let {
+                        var self: Dragging? = null
 
-                    anim?.cancel()
-                    anim = animateFloat(radius, (heightF + 32.dp) / 2) {
-                        radius = it
+                        self = Dragging(
+                            radius = 0f,
+                            handle = it,
+                            anim = animateFloat(0f, (heightF + 32.dp) / 2) {
+                                self?.radius = it
+                                invalidate()
+                            }.apply {
+                                interpolator = accelerate
+                                start()
+                            }
+                        )
+
+                        self
                     }
-                    anim?.start()
+                    dragging.put(pointerId, d)
                 }
             }
 
             MotionEvent.ACTION_MOVE -> {
-//                println("moving $pointerId")
+                for (i in 0 until event.pointerCount) {
+                    val pointerId = event.getPointerId(i)
+                    val evX = event.getX(i)
 
-                when (val d = dragging[pointerId]) {
-                    Dragging.Left ->
-                        set(clamp(evX, 0f, right - 48.dp), right)
+                    when (val handle = dragging[pointerId]?.handle) {
+                        Handle.Left ->
+                            set(clamp(evX, 0f, right - 48.dp), right)
 
-                    Dragging.Right ->
-                        set(left, clamp(evX, left + 48.dp, widthF))
+                        Handle.Right ->
+                            set(left, clamp(evX, left + 48.dp, widthF))
 
-                    is Dragging.Between -> {
-                        val diff = evX - d.x
-                        val newLeft = d.left + diff
-                        val newRight = d.right + diff
-                        val distance = d.right - d.left
+                        is Handle.Between -> {
+                            val diff = evX - handle.x
+                            val newLeft = handle.left + diff
+                            val newRight = handle.right + diff
+                            val distance = handle.right - handle.left
 
-                        when {
-                            newLeft >= 0 && newRight < width ->
-                                set(newLeft, newRight)
+                            when {
+                                newLeft >= 0 && newRight < width ->
+                                    set(newLeft, newRight)
 
-                            newLeft <= 0 ->
-                                set(left = 0f, right = distance)
+                                newLeft <= 0 ->
+                                    set(left = 0f, right = distance)
 
-                            newRight >= widthF ->
-                                set(left = max(0f, width - 1 - distance), right = width - 1f)
+                                newRight >= widthF ->
+                                    set(left = max(0f, width - 1 - distance), right = width - 1f)
+                            }
                         }
                     }
                 }
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_POINTER_UP -> {
-                println("up $pointerId")
+                val pointerId = event.downUpPointerId()
 
-                dragging.delete(pointerId)
-
-                anim?.cancel()
-                anim = animateFloat(radius, 0f) {
-                    radius = it
+                dragging[pointerId]?.run {
+                    anim.cancel()
+                    anim = animateFloat(radius, 0f) {
+                        radius = it
+                        invalidate()
+                    }.apply {
+                        addListener(object : AnimatorListenerAdapter() {
+                            override fun onAnimationEnd(animation: Animator?) {
+                                wasDragging.delete(pointerId)
+                            }
+                        })
+                        start()
+                    }
+                    wasDragging.put(pointerId, this)
                 }
-                anim?.start()
+                dragging.delete(pointerId)
             }
         }
+
         return true
     }
 
@@ -159,6 +186,21 @@ class ScrollBarView @JvmOverloads constructor(
         }
     }
 
+    private fun draw(d: Dragging?, canvas: Canvas, halfHeight: Float): Unit =
+        when (d?.handle) {
+            Handle.Left ->
+                canvas.drawCircle(left, halfHeight, d.radius, touch)
+
+            Handle.Right ->
+                canvas.drawCircle(right, halfHeight, d.radius, touch)
+
+            is Handle.Between ->
+                canvas.drawCircle((right - left) / 2 + left, halfHeight, d.radius, touch)
+
+            else ->
+                Unit
+        }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
@@ -178,17 +220,7 @@ class ScrollBarView @JvmOverloads constructor(
         canvas.drawRect(left + halfLineWidth, height - lineHeight, right - halfLineWidth, height, bright)
         canvas.drawRect(right - halfLineWidth, 0f, right + halfLineWidth, height, bright)
 
-        dragging.forEach { _, d ->
-            when (d) {
-                Dragging.Left ->
-                    canvas.drawCircle(left, halfHeight, radius, touch)
-
-                Dragging.Right ->
-                    canvas.drawCircle(right, halfHeight, radius, touch)
-
-                is Dragging.Between ->
-                    canvas.drawCircle((right - left) / 2 + left, halfHeight, radius, touch)
-            }
-        }
+        dragging.forEach { _, d -> draw(d, canvas, halfHeight) }
+        wasDragging.forEach { _, d -> draw(d, canvas, halfHeight) }
     }
 }
