@@ -22,28 +22,12 @@ class ChartFragment : Fragment() {
             arguments.getInt("idx")
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.chart, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle?): View =
+        makeChartLayout(container.context, Typefaces.medium).run {
+            activity.actionBar?.setDisplayHomeAsUpEnabled(true)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+            setup(idx())
 
-        activity.actionBar?.setDisplayHomeAsUpEnabled(true)
-
-        val vh = view.run {
-            ViewHolder(
-                linear = findViewById(R.id.parent),
-                chartView = findViewById(R.id.chart),
-                scroll = findViewById(R.id.scroll),
-                background = findViewById(R.id.background),
-                horizontalLabels = findViewById(R.id.horizontal_labels),
-                name = findViewById(R.id.chart_name),
-                floating = findViewById(R.id.floating_panel),
-                floatingText = findViewById(R.id.floating_text),
-                floatingContainer = findViewById(R.id.floating_container)
-            )
+            root
         }
-
-        vh.setup(idx())
-    }
 }

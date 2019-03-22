@@ -33,8 +33,8 @@ val View.widthF: PxF
 val View.heightF: PxF
     get() = height.toFloat()
 
-const val MATCH_PARENT = ViewGroup.LayoutParams.MATCH_PARENT
-const val WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT
+const val MATCH_PARENT = ViewGroup.MarginLayoutParams.MATCH_PARENT
+const val WRAP_CONTENT = ViewGroup.MarginLayoutParams.WRAP_CONTENT
 
 val TV = TypedValue()
 

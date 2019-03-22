@@ -27,6 +27,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface): ViewHolder {
     lateinit var scroll: ScrollBarView
 
     val root = LinearLayout(ctx).apply {
+        layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
         orientation = LinearLayout.VERTICAL
 
         linear = LinearLayout(ctx).apply {
@@ -34,14 +35,15 @@ fun makeChartLayout(ctx: Context, medium: Typeface): ViewHolder {
             clipChildren = false
 
             name = TextView(ctx).apply {
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                    topMargin = 16.dp
+                    bottomMargin = 8.dp
+                }
                 typeface = medium
                 setTextColor(ctx.color(R.color.colorAccent))
                 textSize = 18f
             }
-            addView(name, ViewGroup.MarginLayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                topMargin = 16.dp
-                bottomMargin = 8.dp
-            })
+            addView(name)
 
             addView(FrameLayout(ctx).apply {
                 clipChildren = true
@@ -69,8 +71,8 @@ fun makeChartLayout(ctx: Context, medium: Typeface): ViewHolder {
                     }
                     addView(floatingContainer)
                 }
-                addView(floating, ViewGroup.MarginLayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
-                    topMargin = 8.dp
+                addView(floating, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+                    topMargin = 10.dp
                 })
             }, ViewGroup.LayoutParams(MATCH_PARENT, 270.dp))
 
@@ -87,11 +89,11 @@ fun makeChartLayout(ctx: Context, medium: Typeface): ViewHolder {
                     id = scrollId
                 }
                 addView(scroll, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
-            }, ViewGroup.MarginLayoutParams(MATCH_PARENT, 48.dp).apply {
+            }, LinearLayout.LayoutParams(MATCH_PARENT, 48.dp).apply {
                 bottomMargin = 10.dp
             })
         }
-        addView(linear, ViewGroup.MarginLayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+        addView(linear, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
             marginStart = 20.dp
             marginEnd = 20.dp
         })

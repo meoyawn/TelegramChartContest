@@ -22,14 +22,17 @@ private fun makeCheckbox(
     id: LineId,
     viewHolder: ViewHolder,
     texts: SimpleArrayMap<LineId, ViewGroup>
-): CheckBox =
-    CheckBox(viewHolder.ctx).apply {
+): CheckBox {
+    val ctx = viewHolder.ctx
+
+    return CheckBox(ctx).apply {
         text = chart.names[id]
         buttonTintList = ColorStateList.valueOf(chart.color(id))
 
         minHeight = 48.dp
         gravity = Gravity.CENTER_VERTICAL
         textSize = 18f
+        setTextColor(ctx.color(R.color.floating_text))
         isChecked = true
 
         setOnCheckedChangeListener { _, isChecked ->
@@ -40,6 +43,7 @@ private fun makeCheckbox(
 
         updatePadding(left = 10.dp)
     }
+}
 
 private fun makeLineText(ctx: Context, chart: Chart, id: LineId, medium: Typeface): ViewGroup =
     LinearLayout(ctx).apply {
@@ -60,6 +64,10 @@ private fun makeLineText(ctx: Context, chart: Chart, id: LineId, medium: Typefac
         })
     }
 
+object Typefaces {
+    val medium: Typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+}
+
 fun ViewHolder.setup(idx: Idx) {
     val data = CHARTS[idx]
     val xs = data.xs()
@@ -71,8 +79,6 @@ fun ViewHolder.setup(idx: Idx) {
     background.setup(data, lineIds)
     horizontalLabels.setup(xs)
 
-    val medium = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-
     val lineTexts = simpleArrayMapOf<LineId, ViewGroup>()
     for (id in lineIds) {
         linear.addView(makeCheckbox(data, id, this, lineTexts))
@@ -81,7 +87,7 @@ fun ViewHolder.setup(idx: Idx) {
             ViewGroup.LayoutParams(MATCH_PARENT, 1.dp)
         )
 
-        val text = makeLineText(ctx, data, id, medium)
+        val text = makeLineText(ctx, data, id, Typefaces.medium)
         floatingContainer.addView(text)
         lineTexts[id] = text
     }
