@@ -79,7 +79,7 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
         cameraX.normalize(idx) * width
 
     private fun mapY(value: Long, height: PxF): Y =
-        (1 - cameraY.normalize(value)) * height + Y_OFFSET_TO_SEE_CIRCLES
+        (1 - cameraY.normalize(value)) * (height - Y_OFFSET_TO_SEE_CIRCLES * 2) + Y_OFFSET_TO_SEE_CIRCLES
 
     private inline fun mapped(width: PxF, height: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
         f(

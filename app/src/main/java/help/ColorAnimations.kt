@@ -10,7 +10,7 @@ typealias PaintAlpha = Int
 
 fun View.animateAlpha(paint: Paint, to: PaintAlpha): Unit =
     animateInt(paint.alpha, to) {
-        paint.color = it
+        paint.alpha = it
         invalidate()
     }.start()
 
