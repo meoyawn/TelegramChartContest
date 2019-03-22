@@ -2,7 +2,7 @@
 -repackageclasses ''
 -allowaccessmodification
 -dontpreverify
--dontskipnonpubliclibraryclasses
+-verbose
 
 -assumenosideeffects class kotlin.jvm.internal.Intrinsics {
     static void checkParameterIsNotNull(java.lang.Object, java.lang.String);

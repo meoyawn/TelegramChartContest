@@ -3,7 +3,7 @@
     <item android:left="48dp">
         <shape xmlns:android="http://schemas.android.com/apk/res/android">
             <solid android:color="@color/divider" />
-            <size android:height="1px" />
+            <size android:height="1dp" />
         </shape>
     </item>
 </layer-list>

@@ -7,7 +7,6 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.collection.SimpleArrayMap
@@ -77,7 +76,10 @@ fun ViewHolder.setup(idx: Idx) {
     val lineTexts = simpleArrayMapOf<LineId, ViewGroup>()
     for (id in lineIds) {
         linear.addView(makeCheckbox(data, id, this, lineTexts))
-        linear.addView(ImageView(ctx).apply { setImageResource(R.drawable.h_divider) })
+        linear.addView(
+            View(ctx).apply { setBackgroundResource(R.drawable.h_divider) },
+            ViewGroup.LayoutParams(MATCH_PARENT, 1.dp)
+        )
 
         val text = makeLineText(ctx, data, id, medium)
         floatingContainer.addView(text)

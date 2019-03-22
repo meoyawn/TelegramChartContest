@@ -10,6 +10,7 @@ import lol.adel.graph.widget.HorizontalLabelsView
 import lol.adel.graph.widget.ScrollBarView
 
 class ViewHolder(
+    val root:View,
     val linear: ViewGroup,
     val name: TextView,
     val chartView: ChartView,
