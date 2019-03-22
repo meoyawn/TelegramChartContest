@@ -19,7 +19,7 @@ import lol.adel.graph.data.chartName
 class ListFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup, savedInstanceState: Bundle?): View {
-        val ctx = container.context
+        val ctx = activity
 
         activity.actionBar?.setDisplayHomeAsUpEnabled(false)
 

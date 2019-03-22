@@ -31,6 +31,8 @@ fun makeChartLayout(ctx: Context, medium: Typeface): ViewHolder {
         orientation = LinearLayout.VERTICAL
 
         linear = LinearLayout(ctx).apply {
+            updatePadding(left = 20.dp, right = 20.dp)
+            clipToPadding = false
             orientation = LinearLayout.VERTICAL
             clipChildren = false
 
@@ -82,8 +84,10 @@ fun makeChartLayout(ctx: Context, medium: Typeface): ViewHolder {
             addView(FrameLayout(ctx).apply {
                 clipChildren = false
 
-                background = BackgroundChartView(ctx)
-                addView(background, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+                addView(FrameLayout(ctx).apply {
+                    background = BackgroundChartView(ctx)
+                    addView(background, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+                }, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
                 scroll = ScrollBarView(ctx).apply {
                     id = scrollId
@@ -93,10 +97,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface): ViewHolder {
                 bottomMargin = 10.dp
             })
         }
-        addView(linear, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-            marginStart = 20.dp
-            marginEnd = 20.dp
-        })
+        addView(linear, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
 
         addView(View(ctx).apply {
             setBackgroundResource(R.color.bottom)

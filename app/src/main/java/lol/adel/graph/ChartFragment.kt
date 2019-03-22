@@ -22,8 +22,8 @@ class ChartFragment : Fragment() {
             arguments.getInt("idx")
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle?): View =
-        makeChartLayout(container.context, Typefaces.medium).run {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
+        makeChartLayout(ctx = activity, medium = Typefaces.medium).run {
             activity.actionBar?.setDisplayHomeAsUpEnabled(true)
 
             setup(idx())
