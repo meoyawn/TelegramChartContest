@@ -1,5 +1,6 @@
-package lol.adel.graph
+package lol.adel.graph.widget
 
+import android.graphics.Paint
 import help.*
 
 fun mapX(idx: Idx, width: PxF, cameraX: MinMax): X =
@@ -21,3 +22,11 @@ inline fun mapped(
         mapX(idx = idx, width = width, cameraX = cameraX),
         mapY(value = points[idx], height = height, cameraY = cameraY)
     )
+
+fun makeLinePaint(clr: ColorInt): Paint =
+    Paint().apply {
+        style = Paint.Style.STROKE
+        isAntiAlias = true
+        strokeWidth = 2.dpF
+        color = clr
+    }

@@ -87,7 +87,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                 clipChildren = false
 
                 addView(FrameLayout(ctx).apply {
-                    background = BackgroundChartView(ctx)
+                    background = BackgroundChartView(ctx, data, lineIds)
                     addView(background, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
                 }, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 

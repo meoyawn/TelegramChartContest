@@ -1,23 +1,17 @@
 package lol.adel.graph.widget
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
-import android.util.AttributeSet
 import android.view.View
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
-import lol.adel.graph.mapped
 
-class BackgroundChartView @JvmOverloads constructor(
-    ctx: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : View(ctx, attrs, defStyleAttr) {
-
-    private var data: Chart = EMPTY_CHART
+@SuppressLint("ViewConstructor")
+class BackgroundChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx) {
 
     private val cameraX = MinMax(0f, 0f)
     private val cameraY = MinMax(0f, 0f)
@@ -26,6 +20,18 @@ class BackgroundChartView @JvmOverloads constructor(
     private val linePaints: SimpleArrayMap<LineId, Paint> = simpleArrayMapOf()
 
     private val path = Path()
+
+    init {
+        enabledLines.addAll(lineIds)
+
+        for (id in lineIds) {
+            linePaints[id] = makeLinePaint(data.color(id))
+        }
+
+        absolutes(data, lineIds) { min, max ->
+            cameraY.set(min.toFloat(), max.toFloat())
+        }
+    }
 
     fun setHorizontalBounds(from: IdxF, to: IdxF) {
         cameraX.set(from, to)
@@ -58,26 +64,6 @@ class BackgroundChartView @JvmOverloads constructor(
         }.start()
 
         absolutes(data, enabledLines) { min, _ -> animateCameraY(min) }
-    }
-
-    fun setup(chart: Chart, enabled: Set<LineId>) {
-        data = chart
-
-        enabledLines.clear()
-        linePaints.clear()
-        enabled.forEach { line ->
-            enabledLines += line
-            linePaints[line] = Paint().apply {
-                style = Paint.Style.STROKE
-                isAntiAlias = true
-                strokeWidth = 2.dpF
-                color = chart.color(line)
-            }
-        }
-
-        absolutes(chart, enabled) { min, max ->
-            cameraY.set(min.toFloat(), max.toFloat())
-        }
     }
 
     override fun onDraw(canvas: Canvas) {

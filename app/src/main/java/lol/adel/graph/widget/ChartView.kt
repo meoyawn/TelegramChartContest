@@ -37,14 +37,6 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
         // circles
         val OUTER_CIRCLE_RADIUS = 4.dpF
         val INNER_CIRCLE_RADIUS = 3.dpF
-
-        fun makeLinePaint(clr: ColorInt): Paint =
-            Paint().apply {
-                style = Paint.Style.STROKE
-                isAntiAlias = true
-                strokeWidth = 2.dpF
-                color = clr
-            }
     }
 
     private val cameraX = MinMax(0f, 0f)

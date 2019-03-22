@@ -74,7 +74,6 @@ fun ViewHolder.setup(idx: Idx) {
 
     name.text = chartName(idx)
 
-    background.setup(data, lineIds)
     horizontalLabels.setup(xs)
 
     val lineTexts = simpleArrayMapOf<LineId, ViewGroup>()
