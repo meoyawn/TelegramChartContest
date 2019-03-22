@@ -160,17 +160,16 @@ class ChartView(
 
             oldLine.set(from = currentLine)
             currentLine.set(min = visibleMin, max = visibleMax)
-            updateAlphas()
 
             animateFloat(cameraY.min, visibleMin) {
                 cameraY.min = it
-                updateAlphas()
+                updateLabelAlphas()
                 invalidate()
             }.start()
 
             animateFloat(cameraY.max, visibleMax) {
                 cameraY.max = it
-                updateAlphas()
+                updateLabelAlphas()
                 invalidate()
             }.start()
         }
@@ -255,11 +254,10 @@ class ChartView(
         cameraY.min = absoluteMin.toFloat()
         cameraY.max = smoothScroll.cameraYMax(cameraX)
 
-        updateAlphas()
-
+        updateLabelAlphas()
     }
 
-    private fun updateAlphas() {
+    private fun updateLabelAlphas() {
         val dist1 = currentLine.distanceSq(cameraY)
         val dist2 = oldLine.distanceSq(cameraY)
         val sum = dist1 + dist2

@@ -14,18 +14,31 @@ fun View.animateAlpha(paint: Paint, to: PaintAlpha): Unit =
         invalidate()
     }.start()
 
-fun View.animateColor(paint: Paint, toRes: ColorRes): Unit =
+fun View.animateColor(paint: Paint, toRes: ColorRes) {
+    val alpha = paint.alpha
+
     animateColor(paint.color, color(toRes)) {
         paint.color = it
+        paint.alpha = alpha
+
         invalidate()
     }.start()
+}
 
-fun View.animateColor(paint1: Paint, paint2: Paint, toRes: ColorRes): Unit =
+fun View.animateColor(paint1: Paint, paint2: Paint, toRes: ColorRes) {
+    val alpha1 = paint1.alpha
+    val alpha2 = paint2.alpha
+
     animateColor(paint1.color, color(toRes)) {
         paint1.color = it
+        paint1.alpha = alpha1
+
         paint2.color = it
+        paint2.alpha = alpha2
+
         invalidate()
     }.start()
+}
 
 fun ColorDrawable.animate(toInt: ColorInt): Unit =
     animateColor(color, toInt) {
