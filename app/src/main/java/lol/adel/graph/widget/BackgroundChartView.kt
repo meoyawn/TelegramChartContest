@@ -57,11 +57,7 @@ class BackgroundChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) :
             enabledLines -= id
         }
 
-        val paint = linePaints[id]!!
-        animateInt(from = paint.alpha, to = if (enabled) 255 else 0) {
-            paint.alpha = it
-            invalidate()
-        }.start()
+        animateAlpha(linePaints[id]!!, if (enabled) 255 else 0)
 
         absolutes(data, enabledLines) { min, _ -> animateCameraY(min) }
     }

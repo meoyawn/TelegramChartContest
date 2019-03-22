@@ -75,10 +75,10 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
     //endregion
 
     fun toggleNight() {
-        animatePaint(oldLabelPaint, currentLabelPaint, R.color.label_text)
-        animatePaint(oldLinePaint, currentLinePaint, R.color.divider)
-        animatePaint(innerCirclePaint, R.color.background)
-        animatePaint(verticalLinePaint, R.color.vertical_line)
+        animateColor(oldLabelPaint, currentLabelPaint, R.color.label_text)
+        animateColor(oldLinePaint, currentLinePaint, R.color.divider)
+        animateColor(innerCirclePaint, R.color.background)
+        animateColor(verticalLinePaint, R.color.vertical_line)
     }
 
     //region Touch Feedback
@@ -128,26 +128,22 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
             enabledLines -= id
         }
 
-        val paint = linePaints[id]!!
-        animateInt(from = paint.alpha, to = if (enabled) 255 else 0) {
-            paint.alpha = it
-            invalidate()
-        }.start()
+        animateAlpha(linePaints[id]!!, if (enabled) 255 else 0)
 
         absolutes(data, enabledLines) { min, max ->
             absoluteMin = min
             absoluteMax = max
         }
 
-        calculateMinMaxAnimate()
+        animateCameraY()
     }
 
-    private fun calculateMinMaxAnimate(): Unit =
+    private fun animateCameraY(): Unit =
         findMax(cameraX, enabledLines, data) { _, max ->
             oldLine.set(from = currentLine)
 
             val visibleMax = max.toFloat()
-            currentLine.set(absoluteMin.toFloat(), visibleMax)
+            currentLine.set(min = absoluteMin.toFloat(), max = visibleMax)
 
             animateFloat(cameraY.min, absoluteMin.toFloat()) {
                 cameraY.min = it

@@ -49,9 +49,9 @@ class ScrollBarView(ctx: Context) : View(ctx) {
     }
 
     fun toggleNight() {
-        animatePaint(pale, R.color.scroll_overlay_pale)
-        animatePaint(bright, R.color.scroll_overlay_bright)
-        animatePaint(touch, R.color.scroll_overlay_touch)
+        animateColor(pale, R.color.scroll_overlay_pale)
+        animateColor(bright, R.color.scroll_overlay_bright)
+        animateColor(touch, R.color.scroll_overlay_touch)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -84,10 +84,10 @@ class ScrollBarView(ctx: Context) : View(ctx) {
                         var self: Dragging? = null
 
                         self = Dragging(
-                            radius = 0f,
+                            feedbackRadius = 0f,
                             handle = it,
-                            anim = animateFloat(0f, (heightF + 32.dp) / 2) {
-                                self?.radius = it
+                            radiusAnim = animateFloat(0f, (heightF + 32.dp) / 2) {
+                                self?.feedbackRadius = it
                                 invalidate()
                             }.apply {
                                 interpolator = accelerate
@@ -138,9 +138,9 @@ class ScrollBarView(ctx: Context) : View(ctx) {
                 val pointerId = event.downUpPointerId()
 
                 dragging[pointerId]?.run {
-                    anim.cancel()
-                    anim = animateFloat(radius, 0f) {
-                        radius = it
+                    radiusAnim.cancel()
+                    radiusAnim = animateFloat(feedbackRadius, 0f) {
+                        feedbackRadius = it
                         invalidate()
                     }.apply {
                         addListener(object : AnimatorListenerAdapter() {
@@ -172,13 +172,13 @@ class ScrollBarView(ctx: Context) : View(ctx) {
     private fun draw(d: Dragging?, canvas: Canvas, halfHeight: Float): Unit =
         when (d?.handle) {
             Handle.Left ->
-                canvas.drawCircle(left, halfHeight, d.radius, touch)
+                canvas.drawCircle(left, halfHeight, d.feedbackRadius, touch)
 
             Handle.Right ->
-                canvas.drawCircle(right, halfHeight, d.radius, touch)
+                canvas.drawCircle(right, halfHeight, d.feedbackRadius, touch)
 
             is Handle.Between ->
-                canvas.drawCircle((right - left) / 2 + left, halfHeight, d.radius, touch)
+                canvas.drawCircle((right - left) / 2 + left, halfHeight, d.feedbackRadius, touch)
 
             else ->
                 Unit

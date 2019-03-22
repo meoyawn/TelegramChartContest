@@ -17,7 +17,7 @@ sealed class Handle {
 }
 
 data class Dragging(
-    var radius: Float,
+    var feedbackRadius: Float,
     val handle: Handle,
-    var anim: Animator
+    var radiusAnim: Animator
 )

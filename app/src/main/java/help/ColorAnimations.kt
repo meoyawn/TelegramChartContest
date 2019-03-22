@@ -5,13 +5,22 @@ import android.graphics.drawable.ColorDrawable
 import android.view.View
 import android.widget.TextView
 
-fun View.animatePaint(paint: Paint, toRes: ColorRes): Unit =
+// 0 to 255
+typealias PaintAlpha = Int
+
+fun View.animateAlpha(paint: Paint, to: PaintAlpha): Unit =
+    animateInt(paint.alpha, to) {
+        paint.color = it
+        invalidate()
+    }.start()
+
+fun View.animateColor(paint: Paint, toRes: ColorRes): Unit =
     animateColor(paint.color, color(toRes)) {
         paint.color = it
         invalidate()
     }.start()
 
-fun View.animatePaint(paint1: Paint, paint2: Paint, toRes: ColorRes): Unit =
+fun View.animateColor(paint1: Paint, paint2: Paint, toRes: ColorRes): Unit =
     animateColor(paint1.color, color(toRes)) {
         paint1.color = it
         paint2.color = it

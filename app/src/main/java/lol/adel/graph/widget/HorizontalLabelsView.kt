@@ -31,7 +31,7 @@ class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) 
     }
 
     fun toggleNight() {
-        animatePaint(opaque, transparent, R.color.label_text)
+        animateColor(opaque, transparent, R.color.label_text)
     }
 
     private var start: IdxF = 0f

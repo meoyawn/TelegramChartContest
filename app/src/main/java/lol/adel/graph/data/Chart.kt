@@ -20,13 +20,6 @@ data class Chart(
     val colors: SimpleArrayMap<LineId, ColorString>
 )
 
-val EMPTY_CHART = Chart(
-    columns = simpleArrayMapOf(),
-    types = simpleArrayMapOf(),
-    names = simpleArrayMapOf(),
-    colors = simpleArrayMapOf()
-)
-
 fun Chart.color(id: LineId): ColorInt =
     parseColor(colors[id] ?: error("color not found for $id"))
 
