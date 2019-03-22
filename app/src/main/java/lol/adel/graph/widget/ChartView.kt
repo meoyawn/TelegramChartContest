@@ -24,11 +24,9 @@ class ChartView(
 
     private companion object {
 
-        // lines
+        // labels
         const val H_LINES = 5
         val H_LINE_THICKNESS = 2.dpF
-
-        // labels
         val LINE_LABEL_DIST = 5.dp
 
         // circles
@@ -301,6 +299,14 @@ class ChartView(
         return true
     }
 
+    private fun drawLine(value: Long, height: PxF, canvas: Canvas, width: PxF, paint: Paint) {
+        val y = mapY(value, height)
+        canvas.drawLine(0f, y, width, y, paint)
+    }
+
+    private fun drawLabel(canvas: Canvas, value: Long, height: PxF, paint: Paint): Unit =
+        canvas.drawText(chartValue(value, cameraY.max), 0f, mapY(value, height) - LINE_LABEL_DIST, paint)
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
@@ -309,21 +315,16 @@ class ChartView(
 
         val touchingIdx = if (touching in 0f..width) {
             val idx = cameraX.denormalize(touching / width).roundToInt()
-
             val mappedX = mapX(idx, width)
-
             canvas.drawLine(mappedX, 0f, mappedX, height, verticalLinePaint)
-
             idx
         } else -1
 
-        oldLine.iterate(H_LINES) {
-            val y = mapY(it.toLong(), height)
-            canvas.drawLine(0f, y, width, y, oldLinePaint)
+        oldLine.iterate(H_LINES, oldLinePaint) { value, paint ->
+            drawLine(value, height, canvas, width, paint)
         }
-        currentLine.iterate(H_LINES) {
-            val y = mapY(it.toLong(), height)
-            canvas.drawLine(0f, y, width, y, currentLinePaint)
+        currentLine.iterate(H_LINES, currentLinePaint) { value, paint ->
+            drawLine(value, height, canvas, width, paint)
         }
 
         val start = cameraX.min
@@ -369,18 +370,11 @@ class ChartView(
             }
         }
 
-        oldLine.iterate(H_LINES) {
-            val value = it.toLong()
-            canvas.drawText(chartValue(value, cameraY.max), 0f, mapY(value, height) - LINE_LABEL_DIST, oldLabelPaint)
+        oldLine.iterate(H_LINES, oldLabelPaint) { value, paint ->
+            drawLabel(canvas, value, height, paint)
         }
-        currentLine.iterate(H_LINES) {
-            val value = it.toLong()
-            canvas.drawText(
-                chartValue(value, cameraY.max),
-                0f,
-                mapY(value, height) - LINE_LABEL_DIST,
-                currentLabelPaint
-            )
+        currentLine.iterate(H_LINES, currentLabelPaint) { value, paint ->
+            drawLabel(canvas, value, height, paint)
         }
     }
 }
