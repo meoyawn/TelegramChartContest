@@ -66,9 +66,10 @@ class ScrollBarView @JvmOverloads constructor(
                 if (draggingSize == 1 && dragging.valueAt(0)?.handle is Handle.Between) {
                     return true
                 }
+
                 if (dragging[pointerId] == null && draggingSize < 2) {
                     val handle = when {
-                        evX in (left + 24.dp)..(right - 24.dp) && draggingSize == 0 ->
+                        evX in (left + 12.dp)..(right - 12.dp) && draggingSize == 0 ->
                             Handle.Between(left = left, right = right, x = evX)
 
                         around(evX, left) ->
