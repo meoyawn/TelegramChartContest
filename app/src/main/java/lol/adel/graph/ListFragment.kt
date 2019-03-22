@@ -17,8 +17,10 @@ class ListFragment : Fragment() {
 
     companion object {
 
+        private val listId = View.generateViewId()
+
         fun toggleNight(act: Activity) =
-            act.findViewById<ViewGroup?>(ViewIds.list)?.forEach {
+            act.findViewById<ViewGroup?>(listId)?.forEach {
                 when {
                     it is TextView -> {
                         it.animateTextColor(R.color.floating_text)
@@ -37,7 +39,7 @@ class ListFragment : Fragment() {
         activity.actionBar?.setDisplayHomeAsUpEnabled(false)
 
         return LinearLayout(ctx).apply {
-            id = ViewIds.list
+            id = listId
             orientation = LinearLayout.VERTICAL
 
             for (idx in CHARTS.indices) {

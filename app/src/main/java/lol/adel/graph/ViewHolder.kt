@@ -27,9 +27,5 @@ class ViewHolder(
 val ViewHolder.ctx: Context
     get() = root.context
 
-object ViewIds {
-    val list = View.generateViewId()
-}
-
 fun isDivider(view: View): Boolean =
     view.layoutParams.height == 1.dp
