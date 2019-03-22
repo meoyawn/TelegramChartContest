@@ -2,7 +2,9 @@ package lol.adel.graph.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -305,14 +307,11 @@ class ChartView @JvmOverloads constructor(
 
         if (touchingIdx != -1) {
             linePaints.forEach { line, paint ->
-                mapped(width, height, data[line], touchingIdx, cameraX, cameraY) { x, y ->
-                    canvas.drawCircle(x, y, OUTER_CIRCLE_RADIUS, paint)
-                    canvas.drawCircle(
-                        x,
-                        y,
-                        INNER_CIRCLE_RADIUS,
-                        innerCirclePaint
-                    )
+                if (paint.alpha > 0) {
+                    mapped(width, height, data[line], touchingIdx, cameraX, cameraY) { x, y ->
+                        canvas.drawCircle(x, y, OUTER_CIRCLE_RADIUS, paint)
+                        canvas.drawCircle(x, y, INNER_CIRCLE_RADIUS, innerCirclePaint)
+                    }
                 }
             }
         }
