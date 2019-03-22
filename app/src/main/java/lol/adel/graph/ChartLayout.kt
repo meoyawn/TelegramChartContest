@@ -75,7 +75,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                     addView(floatingContainer)
                 }
                 addView(floating, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
-                    topMargin = 10.dp
+                    topMargin = 16.dp
                 })
             }, ViewGroup.LayoutParams(MATCH_PARENT, 270.dp))
 

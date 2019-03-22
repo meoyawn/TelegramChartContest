@@ -31,6 +31,7 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
         // circles
         val OUTER_CIRCLE_RADIUS = 4.dpF
         val INNER_CIRCLE_RADIUS = 3.dpF
+        val Y_OFFSET_TO_SEE_CIRCLES = 5.dp
     }
 
     interface Listener {
@@ -73,6 +74,18 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
     private val currentLine = MinMax(0f, 0f)
     private val oldLine = MinMax(0f, 0f)
     //endregion
+
+    private fun mapX(idx: Idx, width: PxF): X =
+        cameraX.normalize(idx) * width
+
+    private fun mapY(value: Long, height: PxF): Y =
+        (1 - cameraY.normalize(value)) * height + Y_OFFSET_TO_SEE_CIRCLES
+
+    private inline fun mapped(width: PxF, height: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
+        f(
+            mapX(idx = idx, width = width),
+            mapY(value = points[idx], height = height)
+        )
 
     fun toggleNight() {
         animateColor(oldLabelPaint, currentLabelPaint, R.color.label_text)
@@ -239,7 +252,7 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
                 touching = event.x
 
                 val idx = cameraX.denormalize(touching / widthF).roundToInt()
-                val mappedX = mapX(idx, widthF, cameraX)
+                val mappedX = mapX(idx, widthF)
 
                 listener?.onTouch(idx = idx, x = mappedX, maxY = cameraY.max)
             }
@@ -261,7 +274,7 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
         val touchingIdx = if (touching in 0f..width) {
             val idx = cameraX.denormalize(touching / width).roundToInt()
 
-            val mappedX = mapX(idx, width, cameraX)
+            val mappedX = mapX(idx, width)
 
             canvas.drawLine(mappedX, 0f, mappedX, height, verticalLinePaint)
 
@@ -269,11 +282,11 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
         } else -1
 
         oldLine.iterate(H_LINES) {
-            val y = mapY(it.toLong(), height, cameraY)
+            val y = mapY(it.toLong(), height)
             canvas.drawLine(0f, y, width, y, oldLinePaint)
         }
         currentLine.iterate(H_LINES) {
-            val y = mapY(it.toLong(), height, cameraY)
+            val y = mapY(it.toLong(), height)
             canvas.drawLine(0f, y, width, y, currentLinePaint)
         }
 
@@ -285,9 +298,9 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
                 path.reset()
 
                 val points = data[line]
-                mapped(width, height, points, start.floor(), cameraX, cameraY, path::moveTo)
+                mapped(width, height, points, start.floor(), path::moveTo)
                 for (i in start.ceil()..end.ceil()) {
-                    mapped(width, height, points, i, cameraX, cameraY, path::lineTo)
+                    mapped(width, height, points, i, path::lineTo)
                 }
 
                 canvas.drawPath(path, paint)
@@ -297,7 +310,7 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
         if (touchingIdx != -1) {
             linePaints.forEach { line, paint ->
                 if (paint.alpha > 0) {
-                    mapped(width, height, data[line], touchingIdx, cameraX, cameraY) { x, y ->
+                    mapped(width, height, data[line], touchingIdx) { x, y ->
                         canvas.drawCircle(x, y, OUTER_CIRCLE_RADIUS, paint)
                         canvas.drawCircle(x, y, INNER_CIRCLE_RADIUS, innerCirclePaint)
                     }
@@ -310,7 +323,7 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
             canvas.drawText(
                 chartValue(value, cameraY.max),
                 0f,
-                mapY(value, height, cameraY) - LINE_LABEL_DIST,
+                mapY(value, height) - LINE_LABEL_DIST,
                 oldLabelPaint
             )
         }
@@ -319,7 +332,7 @@ class ChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) : View(ctx)
             canvas.drawText(
                 chartValue(value, cameraY.max),
                 0f,
-                mapY(value, height, cameraY) - LINE_LABEL_DIST,
+                mapY(value, height) - LINE_LABEL_DIST,
                 currentLabelPaint
             )
         }

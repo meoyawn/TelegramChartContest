@@ -33,6 +33,18 @@ class BackgroundChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) :
         }
     }
 
+    private fun mapX(idx: Idx, width: PxF): X =
+        cameraX.normalize(idx) * width
+
+    private fun mapY(value: Long, height: PxF): Y =
+        (1 - cameraY.normalize(value)) * height
+
+    private inline fun mapped(width: PxF, height: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
+        f(
+            mapX(idx = idx, width = width),
+            mapY(value = points[idx], height = height)
+        )
+
     fun setHorizontalBounds(from: IdxF, to: IdxF) {
         cameraX.set(from, to)
         invalidate()
@@ -76,9 +88,9 @@ class BackgroundChartView(ctx: Context, val data: Chart, lineIds: Set<LineId>) :
                 path.reset()
 
                 val points = data[line]
-                mapped(width, height, points, start.floor(), cameraX, cameraY, path::moveTo)
+                mapped(width, height, points, start.floor(), path::moveTo)
                 for (i in start.ceil()..end.ceil()) {
-                    mapped(width, height, points, i, cameraX, cameraY, path::lineTo)
+                    mapped(width, height, points, i, path::lineTo)
                 }
 
                 canvas.drawPath(path, paint)
