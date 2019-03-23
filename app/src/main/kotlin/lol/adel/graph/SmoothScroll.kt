@@ -1,5 +1,6 @@
 package lol.adel.graph
 
+import android.view.animation.AccelerateDecelerateInterpolator
 import help.*
 
 class SmoothScroll {
@@ -33,6 +34,8 @@ class SmoothScroll {
         )
 }
 
+val ad = AccelerateDecelerateInterpolator()
+
 private fun smooth(
     visibleStart: Float,
     visibleEnd: Float,
@@ -55,7 +58,7 @@ private fun smooth(
                 StartEnd.START ->
                     if (start in anticipatedMaxIdx..visibleStart) {
                         val norm = normalize(start, anticipatedMaxIdx, visibleStart)
-                        denormalize(value = 1 - norm, min = currentMax, max = anticipatedMax)
+                        denormalize(value = ad.getInterpolation(1 - norm), min = currentMax, max = anticipatedMax)
                     } else {
                         anticipatedMax
                     }
@@ -63,7 +66,7 @@ private fun smooth(
                 StartEnd.END ->
                     if (end in visibleEnd..anticipatedMaxIdx) {
                         val norm = normalize(end, visibleEnd, anticipatedMaxIdx)
-                        denormalize(norm, currentMax, anticipatedMax)
+                        denormalize(ad.getInterpolation(norm), currentMax, anticipatedMax)
                     } else {
                         anticipatedMax
                     }

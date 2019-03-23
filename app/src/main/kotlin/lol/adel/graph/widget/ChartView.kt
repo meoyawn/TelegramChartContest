@@ -337,22 +337,15 @@ class ChartView(
                     lineBuf[1] = y
                 }
 
-                var iBuf = 2
+                var bufIdx = 2
                 for (i in start.ceil()..end.ceil()) {
                     mapped(width, height, points, i) { x, y ->
-                        // end of prev line
-                        lineBuf[iBuf + 0] = x
-                        lineBuf[iBuf + 1] = y
-
-                        // start of next line
-                        lineBuf[iBuf + 2] = x
-                        lineBuf[iBuf + 3] = y
+                        bufIdx = fill(lineBuf, bufIdx, x, y)
                     }
-                    iBuf += 4
                 }
-                iBuf -= 2
+                bufIdx -= 2
 
-                canvas.drawLines(lineBuf, 0, iBuf, paint)
+                canvas.drawLines(lineBuf, 0, bufIdx, paint)
             }
         }
 
