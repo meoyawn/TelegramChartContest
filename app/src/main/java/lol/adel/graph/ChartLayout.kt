@@ -57,13 +57,13 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                 val lineBuffer = FloatArray(size = data.size().inc() * 4)
                 val disp = (ctx.resources.displayMetrics.heightPixels / 3f).toInt()
                 addView(FrameLayout(ctx).apply {
+                    layoutTransition = LayoutTransition()
                     clipChildren = true
 
                     chart = ChartView(ctx, data, lineIds, lineBuffer)
                     addView(chart, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
                     floating = LinearLayout(ctx).apply {
-                        layoutTransition = LayoutTransition()
                         orientation = LinearLayout.VERTICAL
                         setBackgroundResource(R.drawable.floating_bg)
                         elevation = 2.dpF
@@ -88,7 +88,6 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                         topMargin = 16.dp
                     })
                 }, ViewGroup.LayoutParams(MATCH_PARENT, disp))
-
 
                 addView(FrameLayout(ctx).apply {
                     horizintal = HorizontalLabelsView(ctx, xs)
