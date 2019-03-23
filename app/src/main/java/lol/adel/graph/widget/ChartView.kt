@@ -198,35 +198,11 @@ class ChartView(
                     || Direction.of(endDiff) != smoothScroll.endDir
                 ) {
                     if (currentLine.empty() || abs(currentLine.max - anticipatedMax.toFloat()) > currentLine.len() / H_LINES) {
-                        val upwards = anticipatedMax > currentLine.max
-
-                        when {
-                            oldLine > currentLine && !upwards -> {
-                                if (oldLine.empty() && !currentLine.empty()) {
-                                    oldLine.set(from = currentLine)
-                                }
-                                currentLine.min = absoluteMin.toFloat()
-                                currentLine.max = anticipatedMax.toFloat()
-                            }
-
-                            oldLine < currentLine && upwards -> {
-                                if (oldLine.empty() && !currentLine.empty()) {
-                                    oldLine.set(from = currentLine)
-                                }
-                                currentLine.min = absoluteMin.toFloat()
-                                currentLine.max = anticipatedMax.toFloat()
-                            }
-
-                            else -> {
-                                if (!currentLine.empty()) {
-                                    oldLine.set(from = currentLine)
-                                }
-                                currentLine.min = absoluteMin.toFloat()
-                                currentLine.max = anticipatedMax.toFloat()
-                            }
+                        if (currentLine.distanceSq(cameraY) < oldLine.distanceSq(cameraY)) {
+                            oldLine.set(currentLine)
                         }
-
-                        println("set $oldLine $currentLine $upwards")
+                        currentLine.min = absoluteMin.toFloat()
+                        currentLine.max = anticipatedMax.toFloat()
                     }
 
                     smoothScroll.visible.set(from = cameraX)
