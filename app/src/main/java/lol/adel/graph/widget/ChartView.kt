@@ -57,7 +57,7 @@ class ChartView(
     private var absoluteMax: Long = 0
 
     private val enabledLines: MutableSet<LineId> = ArraySet()
-    private val linePaints: SimpleArrayMap<LineId, Paint> = simpleArrayMapOf()
+    private val linePaints: SimpleArrayMap<LineId, Paint> = SimpleArrayMap()
 
     private val smoothScroll = SmoothScroll()
 

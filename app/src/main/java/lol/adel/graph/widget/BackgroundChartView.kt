@@ -33,7 +33,7 @@ class BackgroundChartView(
     private val cameraY = MinMax(0f, 0f)
 
     private val enabledLines: MutableSet<LineId> = ArraySet()
-    private val linePaints: SimpleArrayMap<LineId, Paint> = simpleArrayMapOf()
+    private val linePaints: SimpleArrayMap<LineId, Paint> = SimpleArrayMap()
 
     init {
         enabledLines.addAll(lineIds)
