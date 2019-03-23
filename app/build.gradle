@@ -27,6 +27,10 @@ android {
         signingConfig signingConfigs.debug
     }
 
+    sourceSets.each {
+        it.java.srcDirs += "src/${it.name}/kotlin"
+    }
+
     buildTypes {
         release {
             minifyEnabled true
