@@ -6,6 +6,9 @@ typealias Y = PxF
 typealias Idx = Int
 typealias IdxF = Float
 
+fun Float.sq(): Float =
+    this * this
+
 fun Float.floor(): Int =
     Math.floor(toDouble()).toInt()
 

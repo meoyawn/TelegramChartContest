@@ -14,6 +14,9 @@ fun MinMax.len(): Float =
 fun MinMax.distanceOfMax(that: MinMax): Float =
     abs(that.max - this.max)
 
+fun MinMax.distanceSq(that: MinMax): Float =
+    (that.min - this.min).sq() + (that.max - this.max).sq()
+
 fun MinMax.set(from: MinMax) {
     this.min = from.min
     this.max = from.max

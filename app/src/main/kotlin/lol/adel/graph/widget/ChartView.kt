@@ -253,8 +253,8 @@ class ChartView(
     }
 
     private fun updateLabelAlphas() {
-        val dist1 = currentLine.distanceOfMax(cameraY)
-        val dist2 = oldLine.distanceOfMax(cameraY)
+        val dist1 = currentLine.distanceSq(cameraY)
+        val dist2 = oldLine.distanceSq(cameraY)
         val sum = dist1 + dist2
 
         val oldFrac = when {
