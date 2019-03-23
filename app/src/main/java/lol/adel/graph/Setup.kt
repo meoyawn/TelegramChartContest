@@ -71,7 +71,7 @@ object Typefaces {
 fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: Set<LineId>, xs: LongArray) {
     name.text = chartName(idx)
 
-    val lineTexts = simpleArrayMapOf<LineId, ViewGroup>()
+    val lineTexts = SimpleArrayMap<LineId, ViewGroup>()
     for (id in lineIds) {
         linear.addView(makeCheckbox(data, id, this, lineTexts))
         linear.addView(

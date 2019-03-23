@@ -5,12 +5,22 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import help.*
+import lol.adel.graph.data.Chart1
+import lol.adel.graph.data.Chart1AdapterFactory
+import okio.Okio
+import kotlin.system.measureTimeMillis
 
 class MainActivity : Activity() {
 
     private companion object {
         const val ID = 100500
+
+        val moshi = Moshi.Builder()
+            .add(Chart1AdapterFactory)
+            .build()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,6 +32,12 @@ class MainActivity : Activity() {
                     .commit()
             }
         }
+
+        println(measureTimeMillis {
+            val tpe = Types.newParameterizedType(List::class.java, Chart1::class.java)
+            val src = Okio.buffer(Okio.source(resources.openRawResource(R.raw.chart_data)))
+            moshi.adapter<List<Chart1>>(tpe).fromJson(src)
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

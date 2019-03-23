@@ -1,17 +1,11 @@
 package lol.adel.graph.data
 
 import androidx.collection.SimpleArrayMap
+import com.squareup.moshi.JsonClass
 import help.*
 import kotlin.math.abs
 import kotlin.math.round
 import kotlin.math.sign
-
-enum class ColumnType {
-    line,
-    x,
-}
-
-typealias LineId = String
 
 data class Chart(
     val columns: SimpleArrayMap<LineId, LongArray>,

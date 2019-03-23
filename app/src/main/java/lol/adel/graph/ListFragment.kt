@@ -72,7 +72,9 @@ class ListFragment : Fragment() {
                     )
                 }
 
-                removeViewAt(childCount - 1)
+                if (childCount > 0) {
+                    removeViewAt(childCount - 1)
+                }
 
                 addView(TextView(ctx).apply {
                     updatePadding(top = 16.dp)
