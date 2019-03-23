@@ -79,7 +79,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                 addView(floating, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
                     topMargin = 16.dp
                 })
-            }, ViewGroup.LayoutParams(MATCH_PARENT, 260.dp))
+            }, ViewGroup.LayoutParams(MATCH_PARENT, (ctx.resources.displayMetrics.heightPixels / 2.5f).toInt()))
 
             horizintal = HorizontalLabelsView(ctx, xs)
             addView(horizintal, ViewGroup.LayoutParams(MATCH_PARENT, 36.dp))
