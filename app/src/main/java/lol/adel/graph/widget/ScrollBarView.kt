@@ -26,9 +26,16 @@ class ScrollBarView(ctx: Context) : View(ctx) {
         fun onBoundsChange(left: Float, right: Float)
     }
 
-    private val pale = Paint().apply { color = ctx.color(R.color.scroll_overlay_pale) }
-    private val bright = Paint().apply { color = ctx.color(R.color.scroll_overlay_bright) }
-    private val touch = Paint().apply { color = ctx.color(R.color.scroll_overlay_touch) }
+    private val pale = Paint().apply {
+        color = ctx.color(R.color.scroll_overlay_pale)
+    }
+    private val bright = Paint().apply {
+        color = ctx.color(R.color.scroll_overlay_bright)
+    }
+    private val touch = Paint().apply {
+        color = ctx.color(R.color.scroll_overlay_touch)
+        isAntiAlias = true
+    }
 
     var listener: Listener? = null
 
