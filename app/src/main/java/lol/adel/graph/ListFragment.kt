@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import help.*
 import lol.adel.graph.data.CHARTS
@@ -39,43 +40,47 @@ class ListFragment : Fragment() {
 
         activity.actionBar?.setDisplayHomeAsUpEnabled(false)
 
-        return LinearLayout(ctx).apply {
-            id = listId
-            orientation = LinearLayout.VERTICAL
+        return ScrollView(ctx).apply {
+            isFillViewport = true
 
-            for (idx in CHARTS.indices) {
-                addView(TextView(ctx).apply {
-                    text = chartName(idx)
-                    background = ctx.getDrawable(ctx.attr(android.R.attr.selectableItemBackground))
-                    minHeight = 56.dp
-                    gravity = Gravity.CENTER_VERTICAL
-                    textSize = 18f
-                    setTextColor(ctx.color(R.color.floating_text))
-                    updatePadding(left = 16.dp, right = 16.dp)
-                    setOnClickListener {
-                        fragmentManager.sync {
-                            beginTransaction()
-                                .replace(android.R.id.content, ChartFragment.newInstance(idx))
-                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                                .addToBackStack(null)
-                                .commit()
+            addView(LinearLayout(ctx).apply {
+                id = listId
+                orientation = LinearLayout.VERTICAL
+
+                for (idx in CHARTS.indices) {
+                    addView(TextView(ctx).apply {
+                        text = chartName(idx)
+                        background = ctx.getDrawable(ctx.attr(android.R.attr.selectableItemBackground))
+                        minHeight = 56.dp
+                        gravity = Gravity.CENTER_VERTICAL
+                        textSize = 18f
+                        setTextColor(ctx.color(R.color.floating_text))
+                        updatePadding(left = 16.dp, right = 16.dp)
+                        setOnClickListener {
+                            fragmentManager.sync {
+                                beginTransaction()
+                                    .replace(android.R.id.content, ChartFragment.newInstance(idx))
+                                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                                    .addToBackStack(null)
+                                    .commit()
+                            }
                         }
-                    }
+                    })
+                    addView(
+                        View(ctx).apply { setBackgroundResource(R.color.divider) },
+                        LinearLayout.LayoutParams(MATCH_PARENT, 1.dp)
+                    )
+                }
+
+                removeViewAt(childCount - 1)
+
+                addView(TextView(ctx).apply {
+                    updatePadding(top = 16.dp)
+                    textSize = 16f
+                    gravity = Gravity.CENTER
+                    text = "Multitouch supported on the scroll bar"
+                    setTextColor(ctx.color(R.color.floating_text))
                 })
-                addView(
-                    View(ctx).apply { setBackgroundResource(R.color.divider) },
-                    LinearLayout.LayoutParams(MATCH_PARENT, 1.dp)
-                )
-            }
-
-            removeViewAt(childCount - 1)
-
-            addView(TextView(ctx).apply {
-                updatePadding(top = 16.dp)
-                textSize = 16f
-                gravity = Gravity.CENTER
-                text = "Multitouch supported on the scroll bar"
-                setTextColor(ctx.color(R.color.floating_text))
             })
         }
     }
