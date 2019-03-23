@@ -25,7 +25,7 @@ class ChartView(
     private companion object {
 
         // labels
-        const val H_LINES = 5
+        const val H_LINE_COUNT = 5
         val H_LINE_THICKNESS = 2.dpF
         val LINE_LABEL_DIST = 5.dp
 
@@ -205,14 +205,6 @@ class ChartView(
                     || Direction.of(startDiff) != smoothScroll.startDir
                     || Direction.of(endDiff) != smoothScroll.endDir
                 ) {
-                    if (currentLine.empty() || abs(currentLine.max - anticipatedMax.toFloat()) > currentLine.len() / 5) {
-                        if (currentLine.distanceOfMax(cameraY) < oldLine.distanceOfMax(cameraY)) {
-                            oldLine.set(currentLine)
-                        }
-                        currentLine.min = absoluteMin.toFloat()
-                        currentLine.max = anticipatedMax.toFloat()
-                    }
-
                     smoothScroll.visible.set(from = cameraX)
                     smoothScroll.anticipated.set(cameraX.min + startDiff, cameraX.max + endDiff)
 
@@ -226,9 +218,13 @@ class ChartView(
                     smoothScroll.endDir = Direction.of(endDiff)
                 }
 
-                if (currentLine.empty()) {
+                val anticipatedMaxF = anticipatedMax.toFloat()
+                if (currentLine.empty() || abs(currentLine.max - anticipatedMaxF) > currentLine.len() / H_LINE_COUNT) {
+                    if (currentLine.distanceOfMax(cameraY) < oldLine.distanceOfMax(cameraY)) {
+                        oldLine.set(currentLine)
+                    }
                     currentLine.min = absoluteMin.toFloat()
-                    currentLine.max = anticipatedMax.toFloat()
+                    currentLine.max = anticipatedMaxF
                 }
             }
         }
@@ -320,10 +316,10 @@ class ChartView(
             idx
         } else -1
 
-        oldLine.iterate(H_LINES, oldLinePaint) { value, paint ->
+        oldLine.iterate(H_LINE_COUNT, oldLinePaint) { value, paint ->
             drawLine(value, height, canvas, width, paint)
         }
-        currentLine.iterate(H_LINES, currentLinePaint) { value, paint ->
+        currentLine.iterate(H_LINE_COUNT, currentLinePaint) { value, paint ->
             drawLine(value, height, canvas, width, paint)
         }
 
@@ -370,10 +366,10 @@ class ChartView(
             }
         }
 
-        oldLine.iterate(H_LINES, oldLabelPaint) { value, paint ->
+        oldLine.iterate(H_LINE_COUNT, oldLabelPaint) { value, paint ->
             drawLabel(canvas, value, height, paint)
         }
-        currentLine.iterate(H_LINES, currentLabelPaint) { value, paint ->
+        currentLine.iterate(H_LINE_COUNT, currentLabelPaint) { value, paint ->
             drawLabel(canvas, value, height, paint)
         }
     }
