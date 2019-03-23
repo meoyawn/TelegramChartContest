@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import help.*
 import lol.adel.graph.data.Chart
@@ -28,82 +29,84 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
     lateinit var scroll: ScrollBarView
     lateinit var bottom: View
 
-    val root = LinearLayout(ctx).apply {
-        layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
-        orientation = LinearLayout.VERTICAL
+    val root = ScrollView(ctx).apply {
+        isFillViewport = true
 
-        linear = LinearLayout(ctx).apply {
-            updatePadding(left = 20.dp, right = 20.dp)
-            clipToPadding = false
+        addView(LinearLayout(ctx).apply {
+            layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
             orientation = LinearLayout.VERTICAL
-            clipChildren = false
 
-            name = TextView(ctx).apply {
-                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                    topMargin = 8.dp
-                    bottomMargin = 8.dp
-                }
-                typeface = medium
-                setTextColor(ctx.color(R.color.colorAccent))
-                textSize = 18f
-            }
-            addView(name)
-
-            val lineBuffer = FloatArray(size = data.size().inc() * 4)
-            addView(FrameLayout(ctx).apply {
-                clipChildren = true
-
-                chart = ChartView(ctx, data, lineIds, lineBuffer)
-                addView(chart, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
-
-                floating = LinearLayout(ctx).apply {
-                    orientation = LinearLayout.VERTICAL
-                    setBackgroundResource(R.drawable.floating_bg)
-                    elevation = 2.dpF
-                    updatePadding(left = 16.dp, top = 8.dp, right = 16.dp, bottom = 8.dp)
-
-                    floatingText = TextView(ctx).apply {
-                        typeface = medium
-                        setTextColor(ctx.color(R.color.floating_text))
-                        textSize = 17f
-                    }
-                    addView(floatingText)
-
-                    floatingContainer = LinearLayout(ctx).apply {
-                        orientation = LinearLayout.HORIZONTAL
-                        showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
-                        dividerDrawable = ctx.getDrawable(R.drawable.h_space_16)
-                    }
-                    addView(floatingContainer)
-                }
-                addView(floating, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
-                    topMargin = 16.dp
-                })
-            }, ViewGroup.LayoutParams(MATCH_PARENT, (ctx.resources.displayMetrics.heightPixels / 2.5f).toInt()))
-
-            horizintal = HorizontalLabelsView(ctx, xs)
-            addView(horizintal, ViewGroup.LayoutParams(MATCH_PARENT, 36.dp))
-
-            addView(FrameLayout(ctx).apply {
+            linear = LinearLayout(ctx).apply {
+                updatePadding(left = 20.dp, right = 20.dp)
+                clipToPadding = false
+                orientation = LinearLayout.VERTICAL
                 clipChildren = false
 
+                name = TextView(ctx).apply {
+                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                        topMargin = 8.dp
+                        bottomMargin = 8.dp
+                    }
+                    typeface = medium
+                    setTextColor(ctx.color(R.color.colorAccent))
+                    textSize = 18f
+                }
+                addView(name)
+
+                val lineBuffer = FloatArray(size = data.size().inc() * 4)
                 addView(FrameLayout(ctx).apply {
-                    background = BackgroundChartView(ctx, data, lineIds, lineBuffer)
-                    addView(background, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
-                }, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+                    clipChildren = true
 
-                scroll = ScrollBarView(ctx)
-                addView(scroll, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
-            }, LinearLayout.LayoutParams(MATCH_PARENT, 48.dp).apply {
-                bottomMargin = 10.dp
-            })
-        }
-        addView(linear, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+                    chart = ChartView(ctx, data, lineIds, lineBuffer)
+                    addView(chart, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
-        bottom = View(ctx).apply {
-            setBackgroundResource(R.color.bottom)
-        }
-        addView(bottom, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+                    floating = LinearLayout(ctx).apply {
+                        orientation = LinearLayout.VERTICAL
+                        setBackgroundResource(R.drawable.floating_bg)
+                        elevation = 2.dpF
+                        updatePadding(left = 16.dp, top = 8.dp, right = 16.dp, bottom = 8.dp)
+
+                        floatingText = TextView(ctx).apply {
+                            typeface = medium
+                            setTextColor(ctx.color(R.color.floating_text))
+                            textSize = 17f
+                        }
+                        addView(floatingText)
+
+                        floatingContainer = LinearLayout(ctx).apply {
+                            orientation = LinearLayout.HORIZONTAL
+                            showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
+                            dividerDrawable = ctx.getDrawable(R.drawable.h_space_16)
+                        }
+                        addView(floatingContainer)
+                    }
+                    addView(floating, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+                        topMargin = 16.dp
+                    })
+                }, ViewGroup.LayoutParams(MATCH_PARENT, (ctx.resources.displayMetrics.heightPixels / 2.6f).toInt()))
+
+                horizintal = HorizontalLabelsView(ctx, xs)
+                addView(horizintal, ViewGroup.LayoutParams(MATCH_PARENT, 36.dp))
+
+                addView(FrameLayout(ctx).apply {
+                    clipChildren = false
+
+                    addView(FrameLayout(ctx).apply {
+                        background = BackgroundChartView(ctx, data, lineIds, lineBuffer)
+                        addView(background, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+                    }, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+
+                    scroll = ScrollBarView(ctx)
+                    addView(scroll, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+                }, LinearLayout.LayoutParams(MATCH_PARENT, 48.dp).apply {
+                    bottomMargin = 10.dp
+                })
+            }
+            addView(linear, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+
+            bottom = View(ctx).apply { setBackgroundResource(R.color.bottom) }
+            addView(bottom, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+        })
     }
 
     return ViewHolder(
