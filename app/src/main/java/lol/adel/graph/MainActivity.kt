@@ -9,6 +9,10 @@ import help.*
 
 class MainActivity : Activity() {
 
+    private companion object {
+        const val ID = 100500
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) {
@@ -21,7 +25,11 @@ class MainActivity : Activity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.night, menu)
+        menu.add(R.string.night_mode, ID, 0, R.string.night_mode).apply {
+            setIcon(R.drawable.ic_moon)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -32,7 +40,7 @@ class MainActivity : Activity() {
                 true
             }
 
-            R.id.night -> {
+            ID -> {
                 val oldBg = color(R.color.background)
                 val oldToolbar = color(R.color.colorPrimary)
                 setNightMode(night = !resources.configuration.isNight())
