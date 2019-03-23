@@ -6,12 +6,6 @@ typealias Y = PxF
 typealias Idx = Int
 typealias IdxF = Float
 
-// -1, 0, 1
-typealias Sign = Float
-
-fun Float.sq(): Float =
-    this * this
-
 fun Float.floor(): Int =
     Math.floor(toDouble()).toInt()
 
@@ -40,12 +34,6 @@ inline fun iterate(from: Float, to: Float, stepSize: Float, f: (Float) -> Unit) 
     }
 }
 
-fun normalize(value: Long, min: Long, max: Long): Float =
-    (value - min) / (max - min).toFloat()
-
-fun normalize(value: Int, min: Int, max: Int): Float =
-    (value - min) / (max - min).toFloat()
-
 fun normalize(value: Float, min: Float, max: Float): Float =
     (value - min) / (max - min)
 
@@ -54,9 +42,6 @@ fun normalize(value: Int, min: Float, max: Float): Float =
 
 fun normalize(value: Long, min: Float, max: Float): Float =
     (value - min) / (max - min)
-
-fun denormalize(value: Float, min: Long, max: Long): Float =
-    min + (max - min) * value
 
 fun denormalize(value: Float, min: Float, max: Float): Float =
     min + (max - min) * value

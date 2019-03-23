@@ -4,8 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Path
 import android.view.View
+import androidx.collection.ArraySet
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
@@ -32,10 +32,8 @@ class BackgroundChartView(
     private val cameraX = MinMax(0f, 0f)
     private val cameraY = MinMax(0f, 0f)
 
-    private val enabledLines: MutableSet<LineId> = mutableSetOf()
+    private val enabledLines: MutableSet<LineId> = ArraySet()
     private val linePaints: SimpleArrayMap<LineId, Paint> = simpleArrayMapOf()
-
-    private val path = Path()
 
     init {
         enabledLines.addAll(lineIds)

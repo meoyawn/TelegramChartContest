@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.MotionEvent
 import android.view.View
+import androidx.collection.ArraySet
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.*
@@ -55,7 +56,7 @@ class ChartView(
     private var absoluteMin: Long = 0
     private var absoluteMax: Long = 0
 
-    private val enabledLines: MutableSet<LineId> = mutableSetOf()
+    private val enabledLines: MutableSet<LineId> = ArraySet()
     private val linePaints: SimpleArrayMap<LineId, Paint> = simpleArrayMapOf()
 
     private val smoothScroll = SmoothScroll()

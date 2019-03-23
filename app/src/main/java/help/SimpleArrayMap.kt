@@ -1,6 +1,7 @@
 package help
 
 import android.util.SparseArray
+import androidx.collection.ArraySet
 import androidx.collection.SimpleArrayMap
 
 fun <K, V> simpleArrayMapOf(vararg items: Pair<K, V>): SimpleArrayMap<K, V> =
@@ -35,7 +36,7 @@ inline fun <K, V> SimpleArrayMap<K, V>.forEachValue(f: (V) -> Unit): Unit =
     forEach { _, v -> f(v) }
 
 inline fun <K, V> SimpleArrayMap<K, V>.filterValues(f: (K, V) -> Boolean): List<V> =
-    mutableListOf<V>().also { list ->
+    ArrayList<V>().also { list ->
         forEach { k, v ->
             if (f(k, v)) {
                 list += v
@@ -44,7 +45,7 @@ inline fun <K, V> SimpleArrayMap<K, V>.filterValues(f: (K, V) -> Boolean): List<
     }
 
 inline fun <K, V> SimpleArrayMap<K, V>.filterKeys(f: (K, V) -> Boolean): Set<K> =
-    mutableSetOf<K>().also { list ->
+    ArraySet<K>().also { list ->
         forEach { k, v ->
             if (f(k, v)) {
                 list += k
