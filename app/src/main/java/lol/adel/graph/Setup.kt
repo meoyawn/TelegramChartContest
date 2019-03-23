@@ -77,7 +77,8 @@ fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: Set<LineId>, xs: LongArray)
         linear.addView(
             View(ctx).apply { setBackgroundResource(R.color.divider) },
             LinearLayout.LayoutParams(MATCH_PARENT, 1.dp).apply {
-                marginStart = 48.dp
+                marginStart = 40.dp
+                marginEnd = (-20).dp
             }
         )
 

@@ -205,7 +205,7 @@ class ChartView(
                     || Direction.of(startDiff) != smoothScroll.startDir
                     || Direction.of(endDiff) != smoothScroll.endDir
                 ) {
-                    if (currentLine.empty() || abs(currentLine.max - anticipatedMax.toFloat()) > currentLine.len() / 6) {
+                    if (currentLine.empty() || abs(currentLine.max - anticipatedMax.toFloat()) > currentLine.len() / 5) {
                         if (currentLine.distanceOfMax(cameraY) < oldLine.distanceOfMax(cameraY)) {
                             oldLine.set(currentLine)
                         }
