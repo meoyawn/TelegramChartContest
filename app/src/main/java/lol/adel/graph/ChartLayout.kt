@@ -55,7 +55,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                 addView(name)
 
                 val lineBuffer = FloatArray(size = data.size().inc() * 4)
-                val disp = (ctx.resources.displayMetrics.heightPixels / 3f).toInt()
+                val chartHeight = (ctx.resources.displayMetrics.heightPixels / 3.3).toInt()
                 addView(FrameLayout(ctx).apply {
                     layoutTransition = LayoutTransition()
                     clipChildren = true
@@ -87,7 +87,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                     addView(floating, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
                         topMargin = 16.dp
                     })
-                }, ViewGroup.LayoutParams(MATCH_PARENT, disp))
+                }, ViewGroup.LayoutParams(MATCH_PARENT, chartHeight))
 
                 addView(FrameLayout(ctx).apply {
                     horizintal = HorizontalLabelsView(ctx, xs)
