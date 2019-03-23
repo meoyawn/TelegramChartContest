@@ -1,5 +1,6 @@
 package help
 
+import android.animation.ValueAnimator
 import android.graphics.Paint
 import android.graphics.drawable.ColorDrawable
 import android.view.View
@@ -13,6 +14,13 @@ fun View.animateAlpha(paint: Paint, to: PaintAlpha): Unit =
         paint.alpha = it
         invalidate()
     }.start()
+
+fun View.animateAlpha(paint1: Paint, paint2: Paint, to: PaintAlpha): ValueAnimator =
+    animateInt(paint1.alpha, to) {
+        paint1.alpha = it
+        paint2.alpha = it
+        invalidate()
+    }.apply { start() }
 
 fun View.animateColor(paint: Paint, toRes: ColorRes) {
     val alpha = paint.alpha

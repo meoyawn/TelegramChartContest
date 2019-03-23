@@ -3,6 +3,7 @@ package lol.adel.graph
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import help.dp
 import lol.adel.graph.widget.BackgroundChartView
@@ -18,7 +19,7 @@ class ViewHolder(
     val scroll: ScrollBarView,
     val background: BackgroundChartView,
     val horizontalLabels: HorizontalLabelsView,
-    val floating: View,
+    val floating: ViewGroup,
     val floatingText: TextView,
     val floatingContainer: ViewGroup,
     val bottom: View

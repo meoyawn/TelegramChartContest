@@ -1,29 +1,18 @@
 package help
 
 import android.graphics.Paint
+import kotlin.math.abs
 
 data class MinMax(
     var min: Float,
     var max: Float
 )
 
-operator fun MinMax.compareTo(other: MinMax): Int =
-    when {
-        this.min == other.min ->
-            this.max.compareTo(other.max)
-
-        this.max == other.max ->
-            this.min.compareTo(other.min)
-
-        else ->
-            0
-    }
-
 fun MinMax.len(): Float =
     max - min
 
-fun MinMax.distanceSq(that: MinMax): Float =
-    (that.min - this.min).sq() + (that.max - this.max).sq()
+fun MinMax.distanceOfMax(that: MinMax): Float =
+    abs(that.max - this.max)
 
 fun MinMax.set(from: MinMax) {
     this.min = from.min

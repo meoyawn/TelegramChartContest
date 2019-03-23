@@ -98,6 +98,10 @@ fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: Set<LineId>, xs: LongArray)
             chartView.setHorizontalBounds(from = start, to = end)
             horizontalLabels.setHorizontalRange(from = start, to = end)
         }
+
+        override fun onTouchStop() {
+            chartView.onTouchStop()
+        }
     }
 
     val fmt = SimpleDateFormat("EEE, MMM d", Locale.US)

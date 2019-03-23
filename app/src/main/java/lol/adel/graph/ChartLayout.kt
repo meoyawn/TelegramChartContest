@@ -1,5 +1,6 @@
 package lol.adel.graph
 
+import android.animation.LayoutTransition
 import android.content.Context
 import android.graphics.Typeface
 import android.view.View
@@ -62,6 +63,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                     addView(chart, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
                     floating = LinearLayout(ctx).apply {
+                        layoutTransition = LayoutTransition()
                         orientation = LinearLayout.VERTICAL
                         setBackgroundResource(R.drawable.floating_bg)
                         elevation = 2.dpF
@@ -75,6 +77,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<Li
                         addView(floatingText)
 
                         floatingContainer = LinearLayout(ctx).apply {
+                            layoutTransition = LayoutTransition()
                             orientation = LinearLayout.HORIZONTAL
                             showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
                             dividerDrawable = ctx.getDrawable(R.drawable.h_space_16)

@@ -33,6 +33,14 @@ class ChartView(
         val OUTER_CIRCLE_RADIUS = 4.dpF
         val INNER_CIRCLE_RADIUS = 3.dpF
         val Y_OFFSET_TO_SEE_CIRCLES = 5.dp
+
+        fun makeLinePaint(clr: ColorInt): Paint =
+            Paint().apply {
+                style = Paint.Style.STROKE
+                isAntiAlias = true
+                strokeWidth = 2.dpF
+                color = clr
+            }
     }
 
     interface Listener {
@@ -197,8 +205,8 @@ class ChartView(
                     || Direction.of(startDiff) != smoothScroll.startDir
                     || Direction.of(endDiff) != smoothScroll.endDir
                 ) {
-                    if (currentLine.empty() || abs(currentLine.max - anticipatedMax.toFloat()) > currentLine.len() / H_LINES) {
-                        if (currentLine.distanceSq(cameraY) < oldLine.distanceSq(cameraY)) {
+                    if (currentLine.empty() || abs(currentLine.max - anticipatedMax.toFloat()) > currentLine.len() / 6) {
+                        if (currentLine.distanceOfMax(cameraY) < oldLine.distanceOfMax(cameraY)) {
                             oldLine.set(currentLine)
                         }
                         currentLine.min = absoluteMin.toFloat()
@@ -231,9 +239,25 @@ class ChartView(
         updateLabelAlphas()
     }
 
+    fun onTouchStop() {
+        val currentDist = currentLine.distanceOfMax(cameraY)
+        val oldDist = oldLine.distanceOfMax(cameraY)
+        if (currentDist > oldDist) {
+            animateAlpha(paint1 = currentLinePaint, paint2 = currentLabelPaint, to = 0)
+            animateAlpha(paint1 = oldLinePaint, paint2 = oldLabelPaint, to = 255).onEnd {
+                currentLine.set(oldLine)
+            }
+        } else if (currentDist < oldDist) {
+            animateAlpha(paint1 = oldLinePaint, paint2 = oldLabelPaint, to = 0)
+            animateAlpha(paint1 = currentLinePaint, paint2 = currentLabelPaint, to = 255).onEnd {
+                oldLine.set(currentLine)
+            }
+        }
+    }
+
     private fun updateLabelAlphas() {
-        val dist1 = currentLine.distanceSq(cameraY)
-        val dist2 = oldLine.distanceSq(cameraY)
+        val dist1 = currentLine.distanceOfMax(cameraY)
+        val dist2 = oldLine.distanceOfMax(cameraY)
         val sum = dist1 + dist2
 
         val oldFrac = when {

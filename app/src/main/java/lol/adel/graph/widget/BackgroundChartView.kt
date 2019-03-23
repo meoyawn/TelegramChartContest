@@ -18,6 +18,17 @@ class BackgroundChartView(
     private val lineBuf: FloatArray
 ) : View(ctx) {
 
+    private companion object {
+
+        fun makeLinePaint(clr: ColorInt): Paint =
+            Paint().apply {
+                style = Paint.Style.STROKE
+                isAntiAlias = true
+                strokeWidth = 1.dpF
+                color = clr
+            }
+    }
+
     private val cameraX = MinMax(0f, 0f)
     private val cameraY = MinMax(0f, 0f)
 

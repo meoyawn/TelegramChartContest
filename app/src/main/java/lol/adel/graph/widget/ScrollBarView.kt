@@ -24,6 +24,7 @@ class ScrollBarView(ctx: Context) : View(ctx) {
 
     interface Listener {
         fun onBoundsChange(left: Float, right: Float)
+        fun onTouchStop()
     }
 
     private val pale = Paint().apply {
@@ -63,7 +64,7 @@ class ScrollBarView(ctx: Context) : View(ctx) {
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        when (event.actionMasked) {
+        when (val a = event.actionMasked) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                 val pointerId = event.downUpPointerId()
                 val evX = event.downUpX()
@@ -160,6 +161,10 @@ class ScrollBarView(ctx: Context) : View(ctx) {
                     wasDragging.put(pointerId, this)
                 }
                 dragging.delete(pointerId)
+
+                if (a == MotionEvent.ACTION_UP || a == MotionEvent.ACTION_CANCEL) {
+                    listener?.onTouchStop()
+                }
             }
         }
 
