@@ -44,7 +44,7 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "androidx.collection:collection:1.1.0-alpha03" // simplearraymap
+    implementation "androidx.collection:collection:1.1.0-alpha03" // simplearraymap + arrayset
 
     testImplementation 'junit:junit:4.12'
 }
