@@ -1,5 +1,7 @@
 package help
 
+import kotlin.math.abs
+
 typealias X = PxF
 typealias Y = PxF
 
@@ -38,13 +40,13 @@ inline fun iterate(from: Float, to: Float, stepSize: Float, f: (Float) -> Unit) 
 }
 
 fun normalize(value: Float, min: Float, max: Float): Float =
-    (value - min) / (max - min)
+    abs((value - min) / (max - min))
 
 fun normalize(value: Int, min: Float, max: Float): Float =
-    (value - min) / (max - min)
+    abs((value - min) / (max - min))
 
 fun normalize(value: Long, min: Float, max: Float): Float =
-    (value - min) / (max - min)
+    abs((value - min) / (max - min))
 
 fun denormalize(value: Float, min: Float, max: Float): Float =
     min + (max - min) * value
