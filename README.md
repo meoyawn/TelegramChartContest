@@ -1,6 +1,6 @@
 # Telegram Chart Contest
 
-Telegram contest March 2019. Android implementation
+Telegram contest March 2019 4th place
 
 [Demo](https://yadi.sk/i/-m528SByuHNyAg)
 
