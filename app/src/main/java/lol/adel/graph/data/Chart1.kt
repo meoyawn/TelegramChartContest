@@ -15,29 +15,61 @@ enum class ColumnType {
 
 typealias LineId = String
 
-data class Columns(val map: SimpleArrayMap<LineId, List<Long>>)
+data class Columns(val map: SimpleArrayMap<LineId, LongArray>)
+
+inline fun JsonReader.loop(until: JsonReader.Token, f: (JsonReader) -> Unit) {
+    while (peek() != until) {
+        f(this)
+    }
+}
+
+inline fun JsonReader.array(f: (JsonReader) -> Unit) {
+    beginArray()
+    f(this)
+    endArray()
+}
+
+/**
+ * iterates over a json object
+ */
+inline fun JsonReader.forEachKey(f: (name: String, reader: JsonReader) -> Unit) {
+    beginObject()
+    loop(until = JsonReader.Token.END_OBJECT) {
+        f(nextName(), this)
+    }
+    endObject()
+}
+
+/**
+ * iterates over a json array
+ */
+inline fun JsonReader.forEach(f: (JsonReader) -> Unit) {
+    beginArray()
+    loop(until = JsonReader.Token.END_ARRAY, f = f)
+    endArray()
+}
 
 private object ColumnsAdapter : JsonAdapter<Columns>() {
 
     override fun fromJson(reader: JsonReader): Columns {
-        val map = SimpleArrayMap<LineId, List<Long>>()
-        reader.beginArray()
+        val map = SimpleArrayMap<LineId, LongArray>()
 
-        while (reader.peek() != JsonReader.Token.END_ARRAY) {
-            val buf = ArrayList<Long>()
+        val buf = LongBuffer()
 
-            reader.beginArray()
+        reader.forEach {
+            it.array {
+                buf.reset()
 
-            val name = reader.nextString()
-            while (reader.peek() != JsonReader.Token.END_ARRAY) {
-                buf += reader.nextLong()
+                val name = it.nextString()
+
+                it.loop(JsonReader.Token.END_ARRAY) {
+                    buf += it.nextLong()
+                }
+
+                map[name] = buf.toArray()
             }
-            map[name] = buf
-
-            reader.endArray()
         }
 
-        reader.endArray()
         return Columns(map)
     }
 
@@ -50,17 +82,40 @@ private class SimpleArrayMapAdapter<V>(private val values: JsonAdapter<V>) : Jso
     override fun fromJson(reader: JsonReader): SimpleArrayMap<String, V?> {
         val map = SimpleArrayMap<String, V?>()
 
-        reader.beginObject()
-        while (reader.peek() != JsonReader.Token.END_OBJECT) {
-            map[reader.nextName()] = values.fromJson(reader)
+        reader.forEachKey { key, r ->
+            map[key] = values.fromJson(r)
         }
-        reader.endObject()
 
         return map
     }
 
     override fun toJson(writer: JsonWriter, value: SimpleArrayMap<String, V?>?): Unit =
         error("not implemented")
+}
+
+class LongBuffer {
+
+    private var buf = LongArray(size = 12)
+    private var size: Int = 0
+
+    operator fun plusAssign(l: Long) {
+        if (buf.size == size) {
+            val new = LongArray(size = buf.size * 2)
+            buf.copyInto(new)
+            buf = new
+        }
+        buf[size] = l
+        size++
+    }
+
+    fun reset() {
+        size = 0
+    }
+
+    fun toArray(): LongArray =
+        LongArray(size).also {
+            buf.copyInto(it, endIndex = size)
+        }
 }
 
 object Chart1AdapterFactory : JsonAdapter.Factory {
