@@ -18,7 +18,7 @@ import lol.adel.graph.widget.ChartView
 import lol.adel.graph.widget.HorizontalLabelsView
 import lol.adel.graph.widget.ScrollBarView
 
-fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: Set<LineId>, xs: LongArray): ViewHolder {
+fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<LineId>, xs: LongArray): ViewHolder {
     lateinit var linear: LinearLayout
     lateinit var name: TextView
     lateinit var chart: ChartView

@@ -68,11 +68,12 @@ object Typefaces {
     val medium: Typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
 }
 
-fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: Set<LineId>, xs: LongArray) {
+fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: List<LineId>, xs: LongArray) {
     name.text = chartName(idx)
 
     val lineTexts = SimpleArrayMap<LineId, ViewGroup>()
-    for (id in lineIds) {
+
+    lineIds.forEachByIndex { id ->
         linear.addView(makeCheckbox(data, id, this, lineTexts))
         linear.addView(
             View(ctx).apply { setBackgroundResource(R.color.divider) },
@@ -86,6 +87,7 @@ fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: Set<LineId>, xs: LongArray)
         floatingContainer.addView(text)
         lineTexts[id] = text
     }
+
     linear.removeViewAt(linear.childCount - 1)
 
     val size = data.size()

@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.View
-import androidx.collection.ArraySet
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.data.*
@@ -14,7 +13,7 @@ import lol.adel.graph.data.*
 class BackgroundChartView(
     ctx: Context,
     private val data: Chart,
-    lineIds: Set<LineId>,
+    lineIds: List<LineId>,
     private val lineBuf: FloatArray
 ) : View(ctx) {
 
@@ -32,13 +31,13 @@ class BackgroundChartView(
     private val cameraX = MinMax(0f, 0f)
     private val cameraY = MinMax(0f, 0f)
 
-    private val enabledLines: MutableSet<LineId> = ArraySet()
+    private val enabledLines: MutableList<LineId> = ArrayList()
     private val linePaints: SimpleArrayMap<LineId, Paint> = SimpleArrayMap()
 
     init {
         enabledLines.addAll(lineIds)
 
-        for (id in lineIds) {
+        lineIds.forEachByIndex { id ->
             linePaints[id] = makeLinePaint(data.color(id))
         }
 

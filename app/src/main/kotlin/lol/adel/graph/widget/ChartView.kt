@@ -6,7 +6,6 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.MotionEvent
 import android.view.View
-import androidx.collection.ArraySet
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.*
@@ -19,7 +18,7 @@ import kotlin.math.roundToInt
 class ChartView(
     ctx: Context,
     private val data: Chart,
-    lineIds: Set<LineId>,
+    lineIds: List<LineId>,
     private val lineBuf: FloatArray
 ) : View(ctx) {
 
@@ -56,7 +55,7 @@ class ChartView(
     private var absoluteMin: Long = 0
     private var absoluteMax: Long = 0
 
-    private val enabledLines: MutableSet<LineId> = ArraySet()
+    private val enabledLines: MutableList<LineId> = ArrayList()
     private val linePaints: SimpleArrayMap<LineId, Paint> = SimpleArrayMap()
 
     private val smoothScroll = SmoothScroll()
@@ -124,7 +123,7 @@ class ChartView(
     init {
         enabledLines.addAll(lineIds)
 
-        for (id in lineIds) {
+        lineIds.forEachByIndex { id ->
             linePaints[id] = makeLinePaint(data.color(id))
         }
 

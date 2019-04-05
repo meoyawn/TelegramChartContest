@@ -35,17 +35,17 @@ fun Chart.size(): Int =
 operator fun Chart.get(id: LineId): LongArray =
     columns[id] ?: error("data not found for $id")
 
-fun Chart.lineIds(): Set<LineId> =
+fun Chart.lineIds(): List<LineId> =
     types.filterKeys { _, type -> type == ColumnType.line }
 
 fun Chart.xs(): LongArray =
     columns[types.findKey { _, type -> type == ColumnType.x }] ?: error("x not found $types")
 
-inline fun absolutes(chart: Chart, enabled: Set<LineId>, result: (Long, Long) -> Unit) {
+inline fun absolutes(chart: Chart, enabled: List<LineId>, result: (Long, Long) -> Unit) {
     var min = Long.MAX_VALUE
     var max = Long.MIN_VALUE
 
-    for (id in enabled) {
+    enabled.forEachByIndex { id ->
         val points = chart[id]
         chart.forEachIndex {
             val p = points[it]
@@ -57,11 +57,11 @@ inline fun absolutes(chart: Chart, enabled: Set<LineId>, result: (Long, Long) ->
     result(min, max)
 }
 
-inline fun minMax(chart: Chart, enabled: Set<LineId>, result: (Long, Long) -> Unit) {
+inline fun minMax(chart: Chart, enabled: List<LineId>, result: (Long, Long) -> Unit) {
     var min = Long.MAX_VALUE
     var max = Long.MIN_VALUE
 
-    for (id in enabled) {
+    enabled.forEachByIndex { id ->
         val points = chart[id]
         chart.forEachIndex {
             val p = points[it]
@@ -75,7 +75,7 @@ inline fun minMax(chart: Chart, enabled: Set<LineId>, result: (Long, Long) -> Un
 
 inline fun <T> findMax(
     cameraX: MinMax,
-    enabled: Set<LineId>,
+    enabled: List<LineId>,
     chart: Chart,
     startDiff: PxF = 0f,
     endDiff: PxF = 0f,
@@ -97,7 +97,7 @@ inline fun <T> findMax(
     val begin = clamp((start + startMult).ceil(), minX, maxX)
     val finish = clamp((end + endMult).floor(), minX, maxX)
 
-    for (id in enabled) {
+    enabled.forEachByIndex { id ->
         val points = chart[id]
         for (i in begin..finish) {
             val point = points[i]
