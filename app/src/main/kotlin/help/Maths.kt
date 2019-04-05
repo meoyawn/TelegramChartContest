@@ -2,9 +2,6 @@ package help
 
 import kotlin.math.abs
 
-typealias X = PxF
-typealias Y = PxF
-
 typealias Idx = Int
 typealias IdxF = Float
 

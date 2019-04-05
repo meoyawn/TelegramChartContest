@@ -11,7 +11,6 @@ typealias Dp = Int
 typealias DpF = Float
 
 typealias Px = Int
-typealias PxF = Float
 
 val Context.ctx: Context
     get() = this
@@ -23,15 +22,15 @@ private fun dpToPx(dp: DpF): PxF =
     dp * Resources.getSystem().displayMetrics.density
 
 val DpF.dp: PxF
-    get() = dpToPx(this)
+    get() = dpToPx(dp = this)
 
 val Dp.dpF: PxF
-    get() = dpToPx(toFloat())
+    get() = dpToPx(dp = toFloat())
 
 val Dp.dp: Px
     get() = dpF.toInt()
 
-val Int.px: Px
+val Px.px: Px
     get() = this
 
 val View.widthF: PxF
@@ -43,7 +42,7 @@ val View.heightF: PxF
 const val MATCH_PARENT = ViewGroup.MarginLayoutParams.MATCH_PARENT
 const val WRAP_CONTENT = ViewGroup.MarginLayoutParams.WRAP_CONTENT
 
-val TV = TypedValue()
+private val TV = TypedValue()
 
 fun Context.attr(id: Int): Int {
     theme.resolveAttribute(id, TV, true)

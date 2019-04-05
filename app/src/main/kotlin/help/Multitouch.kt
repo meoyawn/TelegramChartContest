@@ -2,13 +2,33 @@ package help
 
 import android.view.MotionEvent
 
+typealias PxF = Float
+
+typealias X = PxF
+typealias Y = PxF
+
 typealias PointerId = Int
 
-fun MotionEvent.downUpPointerId(): PointerId =
-    getPointerId(actionIndex)
+inline fun MotionEvent.multiTouch(
+    down: (PointerId, X, Y) -> Unit,
+    move: (PointerId, X, Y) -> Unit,
+    up: (PointerId, X, Y) -> Unit
+) {
+    val action = actionMasked
+    for (i in 0 until pointerCount) {
+        val pointer = getPointerId(i)
+        val x = getX(i)
+        val y = getY(i)
 
-fun MotionEvent.downUpX(): Float =
-    getX(actionIndex)
+        when (action) {
+            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN ->
+                down(pointer, x, y)
 
-fun MotionEvent.downUpY(): Float =
-    getY(actionIndex)
+            MotionEvent.ACTION_MOVE ->
+                move(pointer, x, y)
+
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_POINTER_UP ->
+                up(pointer, x, y)
+        }
+    }
+}
