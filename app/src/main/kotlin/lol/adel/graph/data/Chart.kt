@@ -23,6 +23,12 @@ data class Chart(
 fun Chart.color(id: LineId): ColorInt =
     parseColor(colors[id] ?: error("color not found for $id"))
 
+inline fun Chart.forEachIndex(f: (Idx) -> Unit) {
+    for (i in 0 until size()) {
+        f(i)
+    }
+}
+
 fun Chart.size(): Int =
     columns.first().size
 
@@ -41,8 +47,24 @@ inline fun absolutes(chart: Chart, enabled: Set<LineId>, result: (Long, Long) ->
 
     for (id in enabled) {
         val points = chart[id]
-        for (i in 0 until chart.size()) {
-            val p = points[i]
+        chart.forEachIndex {
+            val p = points[it]
+            min = Math.min(min, p)
+            max = Math.max(max, p)
+        }
+    }
+
+    result(min, max)
+}
+
+inline fun minMax(chart: Chart, enabled: Set<LineId>, result: (Long, Long) -> Unit) {
+    var min = Long.MAX_VALUE
+    var max = Long.MIN_VALUE
+
+    for (id in enabled) {
+        val points = chart[id]
+        chart.forEachIndex {
+            val p = points[it]
             min = Math.min(min, p)
             max = Math.max(max, p)
         }
