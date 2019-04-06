@@ -111,7 +111,7 @@ class ChartView(
 
     fun setHorizontalBounds(from: IdxF, to: IdxF) {
         cameraX.set(from, to)
-        calculateMinMax()
+        calculateCameraY()
         invalidate()
     }
 
@@ -123,7 +123,7 @@ class ChartView(
         }
 
         animateAlpha(linePaints[id]!!, if (enabled) 255 else 0)
-        calculateMinMax()
+        calculateCameraY()
     }
 
     private val cameraMinAnim = ValueAnimator().apply {
@@ -146,7 +146,7 @@ class ChartView(
 
     private val tempY: MinMax = MinMax(0f, 0f)
 
-    private fun calculateMinMax() {
+    private fun calculateCameraY() {
         if (enabledLines.isEmpty()) return
 
         fillMinMax(data, enabledLines, cameraX, tempY)
@@ -160,7 +160,6 @@ class ChartView(
                 // appear
                 yLabels.first().run {
                     set(tempY)
-                    setAlpha(0f)
                     animator.restart()
                 }
 
@@ -176,7 +175,6 @@ class ChartView(
                 if (!anticipatedY.empty()) {
                     yLabels += YLabel.obtain(context, yLabels).apply {
                         set(anticipatedY)
-                        setAlpha(1f)
                         animator.start()
                     }
                 }
