@@ -98,6 +98,8 @@ class ScrollBarView(ctx: Context) : View(ctx) {
                         self
                     }
                     dragging.put(pointerId, d)
+
+                    parent.requestDisallowInterceptTouchEvent(true)
                 }
             },
             move = { pointerId, evX, _ ->
@@ -144,6 +146,8 @@ class ScrollBarView(ctx: Context) : View(ctx) {
                     wasDragging.put(pointerId, this)
                 }
                 dragging.delete(pointerId)
+
+                parent.requestDisallowInterceptTouchEvent(false)
             }
         )
 

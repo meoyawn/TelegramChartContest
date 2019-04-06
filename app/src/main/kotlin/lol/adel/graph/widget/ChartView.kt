@@ -12,6 +12,7 @@ import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.*
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
@@ -82,11 +83,13 @@ class ChartView(
     }
 
     //region Touch Feedback
-    private var touching: PxF = -1f
+    private var touchingX: X = -1f
         set(value) {
             field = value
             invalidate()
         }
+    private var touchingY: Y = -1f
+
     private val innerCirclePaint = Paint().apply {
         style = Paint.Style.FILL
         color = ctx.color(R.color.background)
@@ -187,17 +190,30 @@ class ChartView(
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
-                touching = event.x
 
-                val idx = cameraX.denormalize(touching / widthF).roundToInt()
+                val evX = event.x
+                val evY = event.y
+
+                if (touchingX != -1f && abs(touchingX - evX) > abs(touchingY - evY)) {
+                    parent.requestDisallowInterceptTouchEvent(true)
+                }
+
+                touchingX = evX
+                touchingY = evY
+
+                val idx = cameraX.denormalize(value = touchingX / widthF).roundToInt()
                 val mappedX = mapX(idx, widthF)
 
                 listener?.onTouch(idx = idx, x = mappedX, maxY = cameraY.max)
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                touching = -1f
+                touchingX = -1f
+                touchingY = -1f
+
                 listener?.onTouch(idx = -1, x = -1f, maxY = cameraY.max)
+
+                parent.requestDisallowInterceptTouchEvent(false)
             }
         }
         return true
@@ -217,8 +233,8 @@ class ChartView(
         val width = widthF
         val height = heightF
 
-        val touchingIdx = if (touching in 0f..width) {
-            val idx = cameraX.denormalize(touching / width).roundToInt()
+        val touchingIdx = if (touchingX in 0f..width) {
+            val idx = cameraX.denormalize(touchingX / width).roundToInt()
             val mappedX = mapX(idx, width)
             canvas.drawLine(mappedX, 0f, mappedX, height, verticalLinePaint)
             idx
