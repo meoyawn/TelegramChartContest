@@ -15,7 +15,8 @@ import lol.adel.graph.data.xs
 class MainActivity : Activity() {
 
     private companion object {
-        const val ID = 100500
+        const val ID_NIGHT = 100500
+        const val ID_SCROLL = 100501
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,11 +37,14 @@ class MainActivity : Activity() {
             root.addView(vh.root)
         }
 
-        setContentView(ScrollView(ctx).apply { addView(root) })
+        setContentView(ScrollView(ctx).apply {
+            id = ID_SCROLL
+            addView(root)
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menu.add(R.string.night_mode, ID, 0, R.string.night_mode).apply {
+        menu.add(R.string.night_mode, ID_NIGHT, 0, R.string.night_mode).apply {
             setIcon(R.drawable.ic_moon)
             setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         }
@@ -55,7 +59,7 @@ class MainActivity : Activity() {
                 true
             }
 
-            ID -> {
+            ID_NIGHT -> {
                 val oldBg = color(R.color.background)
                 val oldToolbar = color(R.color.colorPrimary)
                 setNightMode(night = !resources.configuration.isNight())

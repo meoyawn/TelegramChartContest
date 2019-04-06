@@ -6,6 +6,7 @@ import android.graphics.Typeface
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.CycleInterpolator
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -16,6 +17,8 @@ import lol.adel.graph.widget.ChartView
 import lol.adel.graph.widget.ScrollBarView
 import java.text.SimpleDateFormat
 import java.util.*
+
+private val TWO_TIMES = CycleInterpolator(2f)
 
 private fun makeCheckbox(
     chart: Chart,
@@ -36,9 +39,19 @@ private fun makeCheckbox(
         setTextColor(ctx.color(R.color.floating_text))
 
         setOnCheckedChangeListener { _, isChecked ->
-            viewHolder.chartView.selectLine(id, isChecked)
-            viewHolder.background.selectLine(id, isChecked)
-            texts[id]?.visibility = visibleOrGone(isChecked)
+            if (!isChecked && viewHolder.chartView.enabledLines.size == 1) {
+                setChecked(true)
+
+                translationX = 0f
+                animate()
+                    .translationXBy(8.dpF)
+                    .setInterpolator(TWO_TIMES)
+                    .start()
+            } else {
+                viewHolder.chartView.selectLine(id, isChecked)
+                viewHolder.background.selectLine(id, isChecked)
+                texts[id]?.visibility = visibleOrGone(isChecked)
+            }
         }
 
         updatePadding(left = 10.dp)
@@ -93,7 +106,6 @@ fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: List<LineId>, xs: LongArray
 
     val size = data.size()
     val lastIndex = size - 1
-    background.setHorizontalBounds(from = 0f, to = lastIndex.toFloat())
 
     scroll.listener = object : ScrollBarView.Listener {
         override fun onBoundsChange(left: Float, right: Float) {
@@ -101,10 +113,6 @@ fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: List<LineId>, xs: LongArray
             val end = right * lastIndex
             chartView.setHorizontalBounds(from = start, to = end)
             horizontalLabels.setHorizontalRange(from = start, to = end)
-        }
-
-        override fun onTouchStop() {
-
         }
     }
 

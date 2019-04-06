@@ -6,6 +6,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.os.Bundle
+import android.os.Parcelable
 import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
@@ -15,11 +17,10 @@ import lol.adel.graph.Handle
 import lol.adel.graph.R
 import kotlin.math.max
 
-class ScrollBarView(ctx: Context) : View(ctx) {
+class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
 
     interface Listener {
         fun onBoundsChange(left: Float, right: Float)
-        fun onTouchStop()
     }
 
     private val pale = Paint().apply {
@@ -35,8 +36,8 @@ class ScrollBarView(ctx: Context) : View(ctx) {
 
     var listener: Listener? = null
 
-    private var left: Float = -1f
-    private var right: Float = -1f
+    private var left: Float = 0f
+    private var right: Float = 100f
 
     private val dragging: SparseArray<Dragging> = SparseArray()
     private val wasDragging: SparseArray<Dragging> = SparseArray()
@@ -51,11 +52,21 @@ class ScrollBarView(ctx: Context) : View(ctx) {
         invalidate()
     }
 
-    fun toggleNight() {
-        animateColor(pale, R.color.scroll_overlay_pale)
-        animateColor(bright, R.color.scroll_overlay_bright)
-        animateColor(touch, R.color.scroll_overlay_touch)
-    }
+    override fun onSaveInstanceState(): Parcelable? =
+        Bundle().apply {
+            putParcelable("super", super.onSaveInstanceState())
+            putFloat("left", left)
+            putFloat("right", right)
+        }
+
+    override fun onRestoreInstanceState(state: Parcelable?): Unit =
+        if (state is Bundle) {
+            super.onRestoreInstanceState(state.getParcelable("super"))
+            left = state.getFloat("left")
+            right = state.getFloat("right")
+        } else {
+            super.onRestoreInstanceState(state)
+        }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -152,16 +163,6 @@ class ScrollBarView(ctx: Context) : View(ctx) {
         )
 
         return true
-    }
-
-    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        super.onLayout(changed, left, top, right, bottom)
-        if (this.left < 0) {
-            val quarter = width / 4f
-            set(quarter * 3, quarter * 4)
-        } else {
-            set(this.left, this.right)
-        }
     }
 
     private fun draw(d: Dragging?, canvas: Canvas, halfHeight: Float): Unit =

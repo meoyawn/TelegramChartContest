@@ -18,6 +18,8 @@ import lol.adel.graph.widget.ChartView
 import lol.adel.graph.widget.HorizontalLabelsView
 import lol.adel.graph.widget.ScrollBarView
 
+private val ID_SCROLL = View.generateViewId()
+
 fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<LineId>, xs: LongArray): ViewHolder {
     lateinit var linear: LinearLayout
     lateinit var name: TextView
@@ -54,7 +56,12 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<L
                 }
                 addView(name)
 
-                val lineBuffer = FloatArray(size = data.size().inc() * 4)
+                val dataSize = data.size()
+                val lineBuffer = FloatArray(size = dataSize.inc() * 4)
+
+                val configuration = ctx.resources.configuration
+                val height = if (configuration.screenHeightDp > configuration.screenWidthDp) 270.dp else 130.dp
+
                 addView(FrameLayout(ctx).apply {
                     layoutTransition = LayoutTransition()
                     clipChildren = true
@@ -86,7 +93,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<L
                     addView(floating, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
                         topMargin = 16.dp
                     })
-                }, ViewGroup.LayoutParams(MATCH_PARENT, 270.dp))
+                }, ViewGroup.LayoutParams(MATCH_PARENT, height))
 
                 addView(FrameLayout(ctx).apply {
                     horizintal = HorizontalLabelsView(ctx, xs)
@@ -101,7 +108,9 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<L
                         addView(background, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
                     }, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
-                    scroll = ScrollBarView(ctx)
+                    scroll = ScrollBarView(ctx, dataSize).apply {
+                        id = ID_SCROLL
+                    }
                     addView(scroll, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
                 }, LinearLayout.LayoutParams(MATCH_PARENT, 48.dp).apply {
                     bottomMargin = 10.dp

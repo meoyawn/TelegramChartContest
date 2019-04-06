@@ -10,7 +10,6 @@ import help.*
 import lol.adel.graph.MinMax
 import lol.adel.graph.data.*
 import lol.adel.graph.normalize
-import lol.adel.graph.set
 
 @SuppressLint("ViewConstructor")
 class BackgroundChartView(
@@ -25,8 +24,9 @@ class BackgroundChartView(
         fun makeLinePaint(clr: ColorInt): Paint =
             Paint().apply {
                 style = Paint.Style.STROKE
-                isAntiAlias = true
                 strokeWidth = 1.dpF
+                strokeCap = Paint.Cap.ROUND
+                isAntiAlias = true
                 color = clr
             }
     }
@@ -44,9 +44,9 @@ class BackgroundChartView(
             linePaints[id] = makeLinePaint(data.color(id))
         }
 
-        absolutes(data, lineIds) { min, max ->
-            cameraY.set(min.toFloat(), max.toFloat())
-        }
+        cameraX.min = 0f
+        cameraX.max = data.size() - 1f
+        fillMinMax(data, enabledLines, cameraX, cameraY)
     }
 
     private fun mapX(idx: Idx, width: PxF): X =
@@ -60,11 +60,6 @@ class BackgroundChartView(
             mapX(idx = idx, width = width),
             mapY(value = points[idx], height = height)
         )
-
-    fun setHorizontalBounds(from: IdxF, to: IdxF) {
-        cameraX.set(from, to)
-        invalidate()
-    }
 
     private fun animateCameraY(absoluteMin: Long): Unit =
         minMax(data, enabledLines, cameraX) { _, max ->

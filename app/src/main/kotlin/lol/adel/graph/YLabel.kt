@@ -3,12 +3,9 @@ package lol.adel.graph
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Paint
+import android.text.TextPaint
 import android.view.animation.AccelerateInterpolator
-import androidx.core.util.Pools
-import help.alphaF
-import help.color
-import help.dpF
-import help.onEnd
+import help.*
 import lol.adel.graph.widget.HorizontalLabelsView
 
 data class YLabel(
@@ -21,7 +18,7 @@ data class YLabel(
     companion object {
 
         private val H_LINE_THICKNESS = 2.dpF
-        private val POOL = Pools.SimplePool<YLabel>(100)
+        private val POOL = SimplePool<YLabel>(maxPoolSize = 100)
         private val START_FAST = AccelerateInterpolator()
 
         fun create(ctx: Context): YLabel {
@@ -30,10 +27,9 @@ data class YLabel(
                 strokeWidth = H_LINE_THICKNESS
             }
 
-            val labelPaint = Paint().apply {
+            val labelPaint = TextPaint().apply {
                 color = ctx.color(R.color.label_text)
                 textSize = HorizontalLabelsView.TEXT_SIZE_PX
-                isAntiAlias = true
             }
 
             return YLabel(
@@ -49,6 +45,7 @@ data class YLabel(
             POOL.acquire() ?: create(ctx).also { label ->
                 label.animator.run {
                     interpolator = START_FAST
+
                     addUpdateListener {
                         label.setAlpha(1 - it.animatedFraction)
                     }

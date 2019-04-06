@@ -3,7 +3,7 @@ package lol.adel.graph.widget
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Paint
+import android.text.TextPaint
 import android.view.View
 import help.*
 import lol.adel.graph.R
@@ -21,22 +21,22 @@ class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) 
         private val FMT = SimpleDateFormat("MMM d", Locale.US)
     }
 
-    private val opaque = Paint().apply {
+    private val opaque = TextPaint().apply {
         color = ctx.color(R.color.label_text)
         textSize = TEXT_SIZE_PX
-        isAntiAlias = true
     }
-    private val transparent = Paint().apply {
+    private val transparent = TextPaint().apply {
         color = ctx.color(R.color.label_text)
         textSize = TEXT_SIZE_PX
-        isAntiAlias = true
     }
-
-    fun toggleNight(): Unit =
-        animateColor(opaque, transparent, R.color.label_text)
 
     private var start: IdxF = 0f
     private var end: IdxF = 0f
+
+    init {
+        start = xs.size * 0.75f
+        end = xs.size - 1f
+    }
 
     fun setHorizontalRange(from: IdxF, to: IdxF) {
         start = from

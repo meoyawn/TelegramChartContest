@@ -38,8 +38,9 @@ class ChartView(
         fun makeLinePaint(clr: ColorInt): Paint =
             Paint().apply {
                 style = Paint.Style.STROKE
-                isAntiAlias = true
                 strokeWidth = 2.dpF
+                strokeCap = Paint.Cap.ROUND
+                isAntiAlias = true
                 color = clr
             }
     }
@@ -52,7 +53,7 @@ class ChartView(
 
     private val cameraX = MinMax(0f, 0f)
 
-    private val enabledLines = ArrayList<LineId>()
+    val enabledLines = ArrayList<LineId>()
     private val linePaints = SimpleArrayMap<LineId, Paint>()
 
     //region Camera Y
@@ -76,11 +77,6 @@ class ChartView(
             mapX(idx = idx, width = width),
             mapY(value = points[idx], height = height)
         )
-
-    fun toggleNight() {
-        innerCirclePaint.color = color(R.color.background)
-        verticalLinePaint.color = color(R.color.vertical_line)
-    }
 
     //region Touch Feedback
     private var touchingX: X = -1f
@@ -114,6 +110,15 @@ class ChartView(
                 setAlpha(it.animatedFraction)
             }
         }
+
+        val dataSize = data.size()
+        cameraX.min = dataSize * 0.75f
+        cameraX.max = dataSize - 1f
+        fillMinMax(data, enabledLines, cameraX, cameraY)
+        yLabels.first().set(cameraY)
+
+        check(!cameraX.empty())
+        check(!cameraY.empty())
     }
 
     fun setHorizontalBounds(from: IdxF, to: IdxF) {
