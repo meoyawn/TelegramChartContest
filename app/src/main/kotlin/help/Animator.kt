@@ -2,13 +2,14 @@ package help
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 
 inline fun animateFloat(from: Float, to: Float, crossinline f: (Float) -> Unit): ValueAnimator =
     ValueAnimator.ofFloat(from, to)
         .apply {
             addUpdateListener {
-                f(it.animatedValue as Float)
+                f(denormalize(it.animatedFraction, from, to))
             }
         }
 
@@ -16,7 +17,7 @@ inline fun animateInt(from: Int, to: Int, crossinline f: (Int) -> Unit): ValueAn
     ValueAnimator.ofInt(from, to)
         .apply {
             addUpdateListener {
-                f(it.animatedValue as Int)
+                f(denormalize(it.animatedFraction, from, to))
             }
         }
 
@@ -34,3 +35,6 @@ inline fun Animator.onEnd(crossinline f: () -> Unit) =
             f()
         }
     })
+
+fun playTogether(a1: Animator, a2: Animator): AnimatorSet =
+    AnimatorSet().apply { playTogether(a1, a2) }

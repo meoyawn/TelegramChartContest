@@ -3,8 +3,9 @@ package lol.adel.graph.data
 import androidx.collection.SimpleArrayMap
 import help.*
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.round
-import kotlin.math.sign
 
 enum class ColumnType {
     line,
@@ -57,60 +58,54 @@ inline fun absolutes(chart: Chart, enabled: List<LineId>, result: (Long, Long) -
     result(min, max)
 }
 
-inline fun minMax(chart: Chart, enabled: List<LineId>, result: (Long, Long) -> Unit) {
-    var min = Long.MAX_VALUE
-    var max = Long.MIN_VALUE
+inline fun minMax(chart: Chart, lines: List<LineId>, cameraX: MinMax, result: (Long, Long) -> Unit) {
+    var minY = Long.MAX_VALUE
+    var maxY = Long.MIN_VALUE
 
-    enabled.forEachByIndex { id ->
-        val points = chart[id]
-        chart.forEachIndex {
-            val p = points[it]
-            min = Math.min(min, p)
-            max = Math.max(max, p)
-        }
-    }
-
-    result(min, max)
-}
-
-inline fun <T> findMax(
-    cameraX: MinMax,
-    enabled: List<LineId>,
-    chart: Chart,
-    startDiff: PxF = 0f,
-    endDiff: PxF = 0f,
-    result: (Idx, Long) -> T
-) {
     val minX = 0
     val maxX = chart.size() - 1
-
-    var maxY = Long.MIN_VALUE
-    var maxIdx = -1
 
     val start = cameraX.min
     val end = cameraX.max
 
-    val halfRange = (end - start) / 2
-    val startMult = sign(startDiff) * halfRange
-    val endMult = sign(endDiff) * halfRange
+    val begin = clamp(start.ceil(), minX, maxX)
+    val finish = clamp(end.floor(), minX, maxX)
 
-    val begin = clamp((start + startMult).ceil(), minX, maxX)
-    val finish = clamp((end + endMult).floor(), minX, maxX)
-
-    enabled.forEachByIndex { id ->
+    lines.forEachByIndex { id ->
         val points = chart[id]
         for (i in begin..finish) {
-            val point = points[i]
-            if (point > maxY) {
-                maxY = point
-                maxIdx = i
-            }
+            val p = points[i]
+            minY = min(minY, p)
+            maxY = max(maxY, p)
         }
     }
 
-    if (maxIdx != -1) {
-        result(maxIdx, maxY)
+    result(minY, maxY)
+}
+
+fun minMax(chart: Chart, lines: List<LineId>, cameraX: MinMax, result: MinMax) {
+    var minY = Long.MAX_VALUE
+    var maxY = Long.MIN_VALUE
+
+    val minX = 0
+    val maxX = chart.size() - 1
+
+    val start = cameraX.min
+    val end = cameraX.max
+
+    val begin = clamp(start.ceil(), minX, maxX)
+    val finish = clamp(end.floor(), minX, maxX)
+
+    lines.forEachByIndex { id ->
+        val points = chart[id]
+        for (i in begin..finish) {
+            val p = points[i]
+            minY = min(minY, p)
+            maxY = max(maxY, p)
+        }
     }
+
+    result.set(min = minY.toFloat(), max = maxY.toFloat())
 }
 
 fun chartName(idx: Idx): String =

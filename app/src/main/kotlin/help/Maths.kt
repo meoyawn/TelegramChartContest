@@ -1,6 +1,8 @@
 package help
 
 import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 
 typealias Idx = Int
 typealias IdxF = Float
@@ -9,10 +11,10 @@ fun Float.sq(): Float =
     this * this
 
 fun Float.floor(): Int =
-    Math.floor(toDouble()).toInt()
+    floor(this).toInt()
 
 fun Float.ceil(): Int =
-    Math.ceil(toDouble()).toInt()
+    ceil(this).toInt()
 
 fun Float.log2(): Float =
     (Math.log(toDouble()) / Math.log(2.0)).toFloat()
@@ -47,6 +49,9 @@ fun normalize(value: Long, min: Float, max: Float): Float =
 
 fun denormalize(value: Float, min: Float, max: Float): Float =
     min + (max - min) * value
+
+fun denormalize(value: Float, min: Int, max: Int): Int =
+    (min + (max - min) * value).toInt()
 
 fun clamp(value: Float, min: Float, max: Float): Float =
     when {

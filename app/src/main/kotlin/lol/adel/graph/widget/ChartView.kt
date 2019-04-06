@@ -1,5 +1,6 @@
 package lol.adel.graph.widget
 
+import android.animation.Animator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
@@ -8,10 +9,8 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.collection.SimpleArrayMap
 import help.*
-import lol.adel.graph.*
+import lol.adel.graph.R
 import lol.adel.graph.data.*
-import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
@@ -57,8 +56,6 @@ class ChartView(
 
     private val enabledLines: MutableList<LineId> = ArrayList()
     private val linePaints: SimpleArrayMap<LineId, Paint> = SimpleArrayMap()
-
-    private val smoothScroll = SmoothScroll()
 
     //region Vertical Labels
     private val oldLabelPaint = Paint().apply {
@@ -160,7 +157,7 @@ class ChartView(
     }
 
     private fun animateCameraY(): Unit =
-        findMax(cameraX, enabledLines, data) { _, max ->
+        minMax(data, enabledLines, cameraX) { _, max ->
             val visibleMin = absoluteMin.toFloat()
             val visibleMax = max.toFloat()
 
@@ -180,59 +177,33 @@ class ChartView(
             }.start()
         }
 
+    private var anim: Animator? = null
+    private val currentY: MinMax = MinMax(0f, 0f)
+
     private fun calculateMinMax(startDiff: PxF, endDiff: PxF) {
         if (enabledLines.isEmpty() || (startDiff == 0f && endDiff == 0f)) return
 
-        findMax(cameraX, enabledLines, data) { currentMaxIdx, maybeCurrentMax ->
-            val currentIdx = when {
-                maybeCurrentMax.toFloat() >= cameraY.max ->
-                    currentMaxIdx.toFloat()
+        minMax(data, enabledLines, cameraX, currentY)
 
-                else ->
-                    when (startEnd(startDiff, endDiff, goingUp = smoothScroll.anticipatedMax > cameraY.max)) {
-                        StartEnd.START ->
-                            cameraX.min
-
-                        StartEnd.END ->
-                            cameraX.max
-                    }
+        if (currentY != cameraY) {
+            anim?.cancel()
+            animateFloat(1f, 2f) {}.apply {
+                end()
+                setFloatValues(2f, 1f)
+                start()
             }
-            val currentMax = max(maybeCurrentMax.toFloat(), cameraY.max)
-
-            findMax(cameraX, enabledLines, data, startDiff, endDiff) { anticipatedIdx, anticipatedMax ->
-                if (
-                    anticipatedMax != smoothScroll.anticipatedMax
-                    || Direction.of(startDiff) != smoothScroll.startDir
-                    || Direction.of(endDiff) != smoothScroll.endDir
-                ) {
-                    smoothScroll.visible.set(from = cameraX)
-                    smoothScroll.anticipated.set(cameraX.min + startDiff, cameraX.max + endDiff)
-
-                    smoothScroll.currentMax = currentMax
-                    smoothScroll.currentMaxIdx = currentIdx
-
-                    smoothScroll.anticipatedMax = anticipatedMax
-                    smoothScroll.anticipatedMaxIdx = anticipatedIdx
-
-                    smoothScroll.startDir = Direction.of(startDiff)
-                    smoothScroll.endDir = Direction.of(endDiff)
+            anim = playTogether(
+                animateFloat(cameraY.min, currentY.min) {
+                    cameraY.min = it
+                    invalidate()
+                }, animateFloat(cameraY.max, currentY.max) {
+                    cameraY.max = it
+                    invalidate()
                 }
-
-                val anticipatedMaxF = anticipatedMax.toFloat()
-                if (currentLine.empty() || abs(currentLine.max - anticipatedMaxF) > currentLine.len() / H_LINE_COUNT) {
-                    if (currentLine.distanceOfMax(cameraY) < oldLine.distanceOfMax(cameraY)) {
-                        oldLine.set(currentLine)
-                    }
-                    currentLine.min = absoluteMin.toFloat()
-                    currentLine.max = anticipatedMaxF
-                }
-            }
+            )
+            anim?.duration = 200
+            anim?.start()
         }
-
-        cameraY.min = absoluteMin.toFloat()
-        cameraY.max = smoothScroll.cameraYMax(cameraX)
-
-        updateLabelAlphas()
     }
 
     fun onTouchStop() {

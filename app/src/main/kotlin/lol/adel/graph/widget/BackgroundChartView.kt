@@ -64,7 +64,7 @@ class BackgroundChartView(
     }
 
     private fun animateCameraY(absoluteMin: Long): Unit =
-        findMax(cameraX, enabledLines, data) { _, max ->
+        minMax(data, enabledLines, cameraX) { _, max ->
             animateFloat(cameraY.min, absoluteMin.toFloat()) {
                 cameraY.min = it
                 invalidate()
