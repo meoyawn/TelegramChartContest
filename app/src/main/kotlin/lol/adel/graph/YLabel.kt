@@ -31,7 +31,6 @@ data class YLabel(
             }
 
             val labelPaint = Paint().apply {
-                //                typeface = Typefaces.serif
                 color = ctx.color(R.color.label_text)
                 textSize = HorizontalLabelsView.TEXT_SIZE_PX
                 isAntiAlias = true
@@ -47,15 +46,15 @@ data class YLabel(
         }
 
         fun obtain(ctx: Context, list: MutableList<YLabel>): YLabel =
-            POOL.acquire() ?: create(ctx).apply {
-                animator.interpolator = START_FAST
-
-                animator.addUpdateListener {
-                    setAlpha(1 - it.animatedFraction)
-                }
-
-                animator.onEnd {
-                    release(label = this, list = list)
+            POOL.acquire() ?: create(ctx).also { label ->
+                label.animator.run {
+                    interpolator = START_FAST
+                    addUpdateListener {
+                        label.setAlpha(1 - it.animatedFraction)
+                    }
+                    onEnd {
+                        release(label, list)
+                    }
                 }
             }
 

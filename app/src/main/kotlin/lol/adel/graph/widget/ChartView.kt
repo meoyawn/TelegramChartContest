@@ -50,14 +50,18 @@ class ChartView(
     var listener: Listener? = null
 
     private val cameraX = MinMax(0f, 0f)
-    private val cameraY = MinMax(0f, 0f)
 
     private val enabledLines = ArrayList<LineId>()
     private val linePaints = SimpleArrayMap<LineId, Paint>()
 
+    //region Camera Y
+    private val cameraY = MinMax(0f, 0f)
+    private val tempY = MinMax(0f, 0f)
+    private val anticipatedY = MinMax(0f, 0f)
+    //endregion
+
     //region Vertical Labels
     private val yLabels = ArrayList<YLabel>()
-    private val anticipatedY = MinMax(0f, 0f)
     //endregion
 
     private fun mapX(idx: Idx, width: PxF): X =
@@ -144,44 +148,39 @@ class ChartView(
         }
     }
 
-    private val tempY: MinMax = MinMax(0f, 0f)
-
     private fun calculateCameraY() {
         if (enabledLines.isEmpty()) return
 
         fillMinMax(data, enabledLines, cameraX, tempY)
 
-        if (tempY != anticipatedY) {
-            cameraMinAnim.restartWith(cameraY.min, tempY.min)
-            cameraMaxAnim.restartWith(cameraY.max, tempY.max)
+        if (tempY == anticipatedY) return
 
-            if (tempY.distanceSq(anticipatedY) > (anticipatedY.len() / 10).sq()) {
+        cameraMinAnim.restartWith(cameraY.min, tempY.min)
+        cameraMaxAnim.restartWith(cameraY.max, tempY.max)
 
-                // appear
-                yLabels.first().run {
-                    set(tempY)
-                    animator.restart()
-                }
+        if (tempY.distanceSq(anticipatedY) > (anticipatedY.len() / 10).sq()) {
 
-                // prune
-                val maxlen = 2
-                if (yLabels.size > maxlen) {
-                    repeat(yLabels.size - maxlen) {
-                        YLabel.release(yLabels[1], yLabels)
-                    }
-                }
-
-                // fade
-                if (!anticipatedY.empty()) {
-                    yLabels += YLabel.obtain(context, yLabels).apply {
-                        set(anticipatedY)
-                        animator.start()
-                    }
-                }
+            // appear
+            yLabels.first().run {
+                set(tempY)
+                animator.restart()
             }
 
-            anticipatedY.set(tempY)
+            // prune
+            repeat(times = yLabels.size - 2) {
+                YLabel.release(yLabels[1], yLabels)
+            }
+
+            // fade
+            if (!anticipatedY.empty()) {
+                yLabels += YLabel.obtain(context, yLabels).apply {
+                    set(anticipatedY)
+                    animator.start()
+                }
+            }
         }
+
+        anticipatedY.set(tempY)
     }
 
     @SuppressLint("ClickableViewAccessibility")

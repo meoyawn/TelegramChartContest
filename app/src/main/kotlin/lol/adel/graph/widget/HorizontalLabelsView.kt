@@ -14,7 +14,7 @@ import java.util.*
 class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) {
 
     companion object {
-        val TEXT_SIZE_PX: PxF = 14.dpF
+        val TEXT_SIZE_PX: PxF = 12.dpF
         private val GAP: PxF = 80.dpF
         private val PX_PER_CHAR: PxF = TEXT_SIZE_PX / 3.8f
 

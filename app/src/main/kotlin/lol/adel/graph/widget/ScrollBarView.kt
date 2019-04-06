@@ -154,7 +154,7 @@ class ScrollBarView(ctx: Context) : View(ctx) {
         super.onLayout(changed, left, top, right, bottom)
         if (this.left < 0) {
             val quarter = width / 4f
-            set(quarter, quarter * 3)
+            set(quarter * 3, quarter * 4)
         } else {
             set(this.left, this.right)
         }
