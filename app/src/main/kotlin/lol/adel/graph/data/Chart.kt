@@ -2,6 +2,8 @@ package lol.adel.graph.data
 
 import androidx.collection.SimpleArrayMap
 import help.*
+import lol.adel.graph.MinMax
+import lol.adel.graph.set
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -83,7 +85,7 @@ inline fun minMax(chart: Chart, lines: List<LineId>, cameraX: MinMax, result: (L
     result(minY, maxY)
 }
 
-fun minMax(chart: Chart, lines: List<LineId>, cameraX: MinMax, result: MinMax) {
+fun fillMinMax(chart: Chart, lines: List<LineId>, cameraX: MinMax, result: MinMax) {
     var minY = Long.MAX_VALUE
     var maxY = Long.MIN_VALUE
 

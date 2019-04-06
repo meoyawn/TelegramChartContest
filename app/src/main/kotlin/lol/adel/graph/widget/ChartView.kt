@@ -1,15 +1,16 @@
 package lol.adel.graph.widget
 
-import android.animation.Animator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import androidx.collection.SimpleArrayMap
 import help.*
-import lol.adel.graph.R
+import lol.adel.graph.*
 import lol.adel.graph.data.*
 import kotlin.math.roundToInt
 
@@ -25,7 +26,7 @@ class ChartView(
 
         // labels
         const val H_LINE_COUNT = 5
-        val H_LINE_THICKNESS = 2.dpF
+
         val LINE_LABEL_DIST = 5.dp
 
         // circles
@@ -51,33 +52,12 @@ class ChartView(
     private val cameraX = MinMax(0f, 0f)
     private val cameraY = MinMax(0f, 0f)
 
-    private var absoluteMin: Long = 0
-    private var absoluteMax: Long = 0
-
-    private val enabledLines: MutableList<LineId> = ArrayList()
-    private val linePaints: SimpleArrayMap<LineId, Paint> = SimpleArrayMap()
+    private val enabledLines = ArrayList<LineId>()
+    private val linePaints = SimpleArrayMap<LineId, Paint>()
 
     //region Vertical Labels
-    private val oldLabelPaint = Paint().apply {
-        color = ctx.color(R.color.label_text)
-        textSize = HorizontalLabelsView.TEXT_SIZE_PX
-        isAntiAlias = true
-    }
-    private val currentLabelPaint = Paint().apply {
-        color = ctx.color(R.color.label_text)
-        textSize = HorizontalLabelsView.TEXT_SIZE_PX
-        isAntiAlias = true
-    }
-    private val oldLinePaint = Paint().apply {
-        color = ctx.color(R.color.divider)
-        strokeWidth = H_LINE_THICKNESS
-    }
-    private val currentLinePaint = Paint().apply {
-        color = ctx.color(R.color.divider)
-        strokeWidth = H_LINE_THICKNESS
-    }
-    private val currentLine = MinMax(0f, 0f)
-    private val oldLine = MinMax(0f, 0f)
+    private val yLabels = ArrayList<YLabel>()
+    private val anticipatedY = MinMax(0f, 0f)
     //endregion
 
     private fun mapX(idx: Idx, width: PxF): X =
@@ -93,9 +73,6 @@ class ChartView(
         )
 
     fun toggleNight() {
-        animateColor(oldLabelPaint, currentLabelPaint, R.color.label_text)
-        animateColor(oldLinePaint, currentLinePaint, R.color.divider)
-
         innerCirclePaint.color = color(R.color.background)
         verticalLinePaint.color = color(R.color.vertical_line)
     }
@@ -124,19 +101,17 @@ class ChartView(
             linePaints[id] = makeLinePaint(data.color(id))
         }
 
-        absolutes(data, lineIds) { min, max ->
-            absoluteMin = min
-            absoluteMax = max
+        yLabels += YLabel.create(ctx).apply {
+            animator.interpolator = DecelerateInterpolator()
+            animator.addUpdateListener {
+                setAlpha(it.animatedFraction)
+            }
         }
     }
 
     fun setHorizontalBounds(from: IdxF, to: IdxF) {
-        val oldStart = cameraX.min
-        val oldEnd = cameraX.max
-
         cameraX.set(from, to)
-
-        calculateMinMax(startDiff = cameraX.min - oldStart, endDiff = cameraX.max - oldEnd)
+        calculateMinMax()
         invalidate()
     }
 
@@ -147,103 +122,68 @@ class ChartView(
             enabledLines -= id
         }
 
-        absolutes(data, enabledLines) { min, max ->
-            absoluteMin = min
-            absoluteMax = max
-        }
-
         animateAlpha(linePaints[id]!!, if (enabled) 255 else 0)
-        animateCameraY()
+        calculateMinMax()
     }
 
-    private fun animateCameraY(): Unit =
-        minMax(data, enabledLines, cameraX) { _, max ->
-            val visibleMin = absoluteMin.toFloat()
-            val visibleMax = max.toFloat()
+    private val cameraMinAnim = ValueAnimator().apply {
+        interpolator = DecelerateInterpolator()
 
-            oldLine.set(from = currentLine)
-            currentLine.set(min = visibleMin, max = visibleMax)
-
-            animateFloat(cameraY.min, visibleMin) {
-                cameraY.min = it
-                updateLabelAlphas()
-                invalidate()
-            }.start()
-
-            animateFloat(cameraY.max, visibleMax) {
-                cameraY.max = it
-                updateLabelAlphas()
-                invalidate()
-            }.start()
+        addUpdateListener {
+            cameraY.min = it.animatedFloat()
+            invalidate()
         }
+    }
 
-    private var anim: Animator? = null
-    private val currentY: MinMax = MinMax(0f, 0f)
+    private val cameraMaxAnim = ValueAnimator().apply {
+        interpolator = DecelerateInterpolator()
 
-    private fun calculateMinMax(startDiff: PxF, endDiff: PxF) {
-        if (enabledLines.isEmpty() || (startDiff == 0f && endDiff == 0f)) return
+        addUpdateListener {
+            cameraY.max = it.animatedFloat()
+            invalidate()
+        }
+    }
 
-        minMax(data, enabledLines, cameraX, currentY)
+    private val tempY: MinMax = MinMax(0f, 0f)
 
-        if (currentY != cameraY) {
-            anim?.cancel()
-            animateFloat(1f, 2f) {}.apply {
-                end()
-                setFloatValues(2f, 1f)
-                start()
-            }
-            anim = playTogether(
-                animateFloat(cameraY.min, currentY.min) {
-                    cameraY.min = it
-                    invalidate()
-                }, animateFloat(cameraY.max, currentY.max) {
-                    cameraY.max = it
-                    invalidate()
+    private fun calculateMinMax() {
+        if (enabledLines.isEmpty()) return
+
+        fillMinMax(data, enabledLines, cameraX, tempY)
+
+        if (tempY != anticipatedY) {
+            cameraMinAnim.restartWith(cameraY.min, tempY.min)
+            cameraMaxAnim.restartWith(cameraY.max, tempY.max)
+
+            if (tempY.distanceSq(anticipatedY) > (anticipatedY.len() / 10).sq()) {
+
+                // appear
+                yLabels.first().run {
+                    set(tempY)
+                    setAlpha(0f)
+                    animator.restart()
                 }
-            )
-            anim?.duration = 200
-            anim?.start()
-        }
-    }
 
-    fun onTouchStop() {
-        val currentDist = currentLine.distanceOfMax(cameraY)
-        val oldDist = oldLine.distanceOfMax(cameraY)
-        if (currentDist > oldDist) {
-            animateAlpha(paint1 = currentLinePaint, paint2 = currentLabelPaint, to = 0)
-            animateAlpha(paint1 = oldLinePaint, paint2 = oldLabelPaint, to = 255).onEnd {
-                currentLine.set(oldLine)
+                // prune
+                val maxlen = 2
+                if (yLabels.size > maxlen) {
+                    repeat(yLabels.size - maxlen) {
+                        YLabel.release(yLabels[1], yLabels)
+                    }
+                }
+
+                // fade
+                if (!anticipatedY.empty()) {
+                    yLabels += YLabel.obtain(context, yLabels).apply {
+                        set(anticipatedY)
+                        setAlpha(1f)
+                        animator.start()
+                    }
+                }
             }
-        } else if (currentDist < oldDist) {
-            animateAlpha(paint1 = oldLinePaint, paint2 = oldLabelPaint, to = 0)
-            animateAlpha(paint1 = currentLinePaint, paint2 = currentLabelPaint, to = 255).onEnd {
-                oldLine.set(currentLine)
-            }
+
+            anticipatedY.set(tempY)
         }
-    }
-
-    private fun updateLabelAlphas() {
-        val dist1 = currentLine.distanceSq(cameraY)
-        val dist2 = oldLine.distanceSq(cameraY)
-        val sum = dist1 + dist2
-
-        val oldFrac = when {
-            oldLine.empty() ->
-                0f
-
-            sum == 0f ->
-                0f
-
-            else ->
-                dist1 / sum
-        }
-
-        oldLinePaint.alphaF = oldFrac
-        oldLabelPaint.alphaF = oldFrac
-
-        val currentFrac = 1 - oldFrac
-        currentLinePaint.alphaF = currentFrac
-        currentLabelPaint.alphaF = currentFrac
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -287,11 +227,10 @@ class ChartView(
             idx
         } else -1
 
-        oldLine.iterate(H_LINE_COUNT, oldLinePaint) { value, paint ->
-            drawLine(value, height, canvas, width, paint)
-        }
-        currentLine.iterate(H_LINE_COUNT, currentLinePaint) { value, paint ->
-            drawLine(value, height, canvas, width, paint)
+        yLabels.forEachByIndex {
+            it.iterate(H_LINE_COUNT, it.linePaint) { value, paint ->
+                drawLine(value, height, canvas, width, paint)
+            }
         }
 
         val start = cameraX.min
@@ -330,11 +269,10 @@ class ChartView(
             }
         }
 
-        oldLine.iterate(H_LINE_COUNT, oldLabelPaint) { value, paint ->
-            drawLabel(canvas, value, height, paint)
-        }
-        currentLine.iterate(H_LINE_COUNT, currentLabelPaint) { value, paint ->
-            drawLabel(canvas, value, height, paint)
+        yLabels.forEachByIndex {
+            it.iterate(H_LINE_COUNT, it.labelPaint) { value, paint ->
+                drawLabel(canvas, value, height, paint)
+            }
         }
     }
 }

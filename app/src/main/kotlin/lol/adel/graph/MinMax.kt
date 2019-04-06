@@ -1,7 +1,8 @@
-package help
+package lol.adel.graph
 
-import android.graphics.Paint
-import kotlin.math.abs
+import help.denormalize
+import help.normalize
+import help.sq
 
 data class MinMax(
     var min: Float,
@@ -10,9 +11,6 @@ data class MinMax(
 
 fun MinMax.len(): Float =
     max - min
-
-fun MinMax.distanceOfMax(that: MinMax): Float =
-    abs(that.max - this.max)
 
 fun MinMax.distanceSq(that: MinMax): Float =
     (that.min - this.min).sq() + (that.max - this.max).sq()
@@ -29,15 +27,6 @@ fun MinMax.set(min: Float, max: Float) {
 
 fun MinMax.empty(): Boolean =
     (min == 0f && max == 0f) || (min == Float.MAX_VALUE && max == Float.MIN_VALUE)
-
-inline fun MinMax.iterate(steps: Int, paint: Paint, f: (Long, Paint) -> Unit): Unit =
-    if (empty() || paint.alpha <= 0) Unit
-    else {
-        val origStepSize = (max - min) / steps
-        val newMax = max - origStepSize / 3
-        val newStepSize = (newMax - min) / steps
-        iterate(from = min, to = newMax, stepSize = newStepSize, f = { f(it.toLong(), paint) })
-    }
 
 fun MinMax.normalize(value: Long): Float =
     normalize(value = value, min = min, max = max)

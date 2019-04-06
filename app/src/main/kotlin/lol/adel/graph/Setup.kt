@@ -66,6 +66,7 @@ private fun makeLineText(ctx: Context, chart: Chart, id: LineId, medium: Typefac
 
 object Typefaces {
     val medium: Typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+    val serif: Typeface = Typeface.create("sans-serif", Typeface.NORMAL)
 }
 
 fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: List<LineId>, xs: LongArray) {
@@ -103,7 +104,7 @@ fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: List<LineId>, xs: LongArray
         }
 
         override fun onTouchStop() {
-            chartView.onTouchStop()
+
         }
     }
 

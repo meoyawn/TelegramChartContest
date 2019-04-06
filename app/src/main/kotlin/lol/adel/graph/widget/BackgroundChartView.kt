@@ -7,7 +7,10 @@ import android.graphics.Paint
 import android.view.View
 import androidx.collection.SimpleArrayMap
 import help.*
+import lol.adel.graph.MinMax
 import lol.adel.graph.data.*
+import lol.adel.graph.normalize
+import lol.adel.graph.set
 
 @SuppressLint("ViewConstructor")
 class BackgroundChartView(

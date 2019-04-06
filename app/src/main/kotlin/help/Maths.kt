@@ -1,6 +1,5 @@
 package help
 
-import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -39,13 +38,13 @@ inline fun iterate(from: Float, to: Float, stepSize: Float, f: (Float) -> Unit) 
 }
 
 fun normalize(value: Float, min: Float, max: Float): Float =
-    abs((value - min) / (max - min))
+    (value - min) / (max - min)
 
 fun normalize(value: Int, min: Float, max: Float): Float =
-    abs((value - min) / (max - min))
+    (value - min) / (max - min)
 
 fun normalize(value: Long, min: Float, max: Float): Float =
-    abs((value - min) / (max - min))
+    (value - min) / (max - min)
 
 fun denormalize(value: Float, min: Float, max: Float): Float =
     min + (max - min) * value
