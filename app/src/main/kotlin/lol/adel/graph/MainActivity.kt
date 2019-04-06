@@ -5,7 +5,12 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.LinearLayout
+import android.widget.ScrollView
 import help.*
+import lol.adel.graph.data.CHARTS
+import lol.adel.graph.data.lineIds
+import lol.adel.graph.data.xs
 
 class MainActivity : Activity() {
 
@@ -15,13 +20,23 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (savedInstanceState == null) {
-            fragmentManager.sync {
-                beginTransaction()
-                    .replace(android.R.id.content, ListFragment())
-                    .commit()
-            }
+
+        val root = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
         }
+
+        for (idx in CHARTS.indices) {
+            val data = CHARTS[idx]
+            val lineIds = data.lineIds()
+            val xs = data.xs()
+
+            val vh = makeChartLayout(ctx = ctx, medium = Typefaces.medium, data = data, lineIds = lineIds, xs = xs)
+            vh.setup(idx, data, lineIds, xs)
+
+            root.addView(vh.root)
+        }
+
+        setContentView(ScrollView(ctx).apply { addView(root) })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -58,8 +73,6 @@ class MainActivity : Activity() {
                 window.setBackgroundDrawable(windowBg)
                 windowBg.animate(color(R.color.background))
 
-                ListFragment.toggleNight(act)
-                ChartFragment.toggleNight(act)
                 true
             }
 

@@ -111,7 +111,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<L
             addView(linear, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
 
             bottom = View(ctx).apply { setBackgroundResource(R.color.bottom) }
-            addView(bottom, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+            addView(bottom, ViewGroup.LayoutParams(MATCH_PARENT, 16.dp))
         })
     }
 
