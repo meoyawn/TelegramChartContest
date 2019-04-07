@@ -3,10 +3,9 @@ package lol.adel.graph
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.TextView
 import help.dp
-import lol.adel.graph.widget.BackgroundChartView
+import lol.adel.graph.widget.PreviewView
 import lol.adel.graph.widget.ChartView
 import lol.adel.graph.widget.HorizontalLabelsView
 import lol.adel.graph.widget.ScrollBarView
@@ -17,7 +16,7 @@ class ViewHolder(
     val name: TextView,
     val chartView: ChartView,
     val scroll: ScrollBarView,
-    val background: BackgroundChartView,
+    val background: PreviewView,
     val horizontalLabels: HorizontalLabelsView,
     val floating: ViewGroup,
     val floatingText: TextView,

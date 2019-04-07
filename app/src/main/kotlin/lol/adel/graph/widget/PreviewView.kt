@@ -1,5 +1,6 @@
 package lol.adel.graph.widget
 
+import android.animation.Animator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
@@ -12,7 +13,7 @@ import lol.adel.graph.data.*
 import lol.adel.graph.normalize
 
 @SuppressLint("ViewConstructor")
-class BackgroundChartView(
+class PreviewView(
     ctx: Context,
     private val data: Chart,
     lineIds: List<LineId>,
@@ -33,9 +34,11 @@ class BackgroundChartView(
 
     private val cameraX = MinMax(0f, 0f)
     private val cameraY = MinMax(0f, 0f)
+    private val tempY = MinMax(0f, 0f)
+    private var cameraAnim: Animator? = null
 
-    private val enabledLines: MutableList<LineId> = ArrayList()
-    private val linePaints: SimpleArrayMap<LineId, Paint> = SimpleArrayMap()
+    private val enabledLines = ArrayList<LineId>()
+    private val linePaints = SimpleArrayMap<LineId, Paint>()
 
     init {
         enabledLines.addAll(lineIds)
@@ -61,18 +64,6 @@ class BackgroundChartView(
             mapY(value = points[idx], height = height)
         )
 
-    private fun animateCameraY(absoluteMin: Long): Unit =
-        minMax(data, enabledLines, cameraX) { _, max ->
-            animateFloat(cameraY.min, absoluteMin.toFloat()) {
-                cameraY.min = it
-                invalidate()
-            }.start()
-            animateFloat(cameraY.max, max.toFloat()) {
-                cameraY.max = it
-                invalidate()
-            }.start()
-        }
-
     fun selectLine(id: LineId, enabled: Boolean) {
         if (enabled) {
             enabledLines += id
@@ -82,7 +73,20 @@ class BackgroundChartView(
 
         animateAlpha(linePaints[id]!!, if (enabled) 255 else 0)
 
-        absolutes(data, enabledLines) { min, _ -> animateCameraY(min) }
+        fillMinMax(data, enabledLines, cameraX, tempY)
+
+        cameraAnim?.cancel()
+        cameraAnim = playTogether(
+            animateFloat(cameraY.min, tempY.min) {
+                cameraY.min = it
+                invalidate()
+            },
+            animateFloat(cameraY.max, tempY.max) {
+                cameraY.max = it
+                invalidate()
+            }
+        )
+        cameraAnim?.start()
     }
 
     override fun onDraw(canvas: Canvas) {

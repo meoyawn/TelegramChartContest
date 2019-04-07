@@ -14,7 +14,3 @@ sealed class Handle {
         val x: X
     ) : Handle()
 }
-
-data class Dragging(
-    val handle: Handle
-)

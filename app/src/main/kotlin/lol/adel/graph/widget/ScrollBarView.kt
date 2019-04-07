@@ -10,7 +10,6 @@ import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
 import help.*
-import lol.adel.graph.Dragging
 import lol.adel.graph.Handle
 import lol.adel.graph.R
 import kotlin.math.max
@@ -34,7 +33,7 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
     private var left: Float = 0f
     private var right: Float = 100f
 
-    private val dragging: SparseArray<Dragging> = SparseArray()
+    private val dragging: SparseArray<Handle> = SparseArray()
 
     private fun around(x: X, view: X): Boolean =
         Math.abs(x - view) <= 24.dp
@@ -67,7 +66,7 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
         event.multiTouch(
             down = { pointerId, evX, _ ->
                 val draggingSize = dragging.size()
-                if (draggingSize == 1 && dragging.valueAt(0)?.handle is Handle.Between) {
+                if (draggingSize == 1 && dragging.valueAt(0) is Handle.Between) {
                     return true
                 }
 
@@ -85,20 +84,13 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
                         else ->
                             null
                     }
-                    val d = handle?.let {
-                        var self: Dragging? = null
-
-                        self = Dragging(handle = it)
-
-                        self
-                    }
-                    dragging.put(pointerId, d)
+                    dragging.put(pointerId, handle)
 
                     parent.requestDisallowInterceptTouchEvent(true)
                 }
             },
             move = { pointerId, evX, _ ->
-                when (val handle = dragging[pointerId]?.handle) {
+                when (val handle = dragging[pointerId]) {
                     Handle.Left ->
                         set(clamp(evX, 0f, right - 48.dp), right)
 

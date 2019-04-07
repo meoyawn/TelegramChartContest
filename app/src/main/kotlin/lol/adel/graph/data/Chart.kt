@@ -55,47 +55,6 @@ fun Chart.lineIds(): List<LineId> =
 fun Chart.xs(): LongArray =
     columns[types.findKey { _, type -> type == ColumnType.x }]
 
-inline fun absolutes(chart: Chart, enabled: List<LineId>, result: (Long, Long) -> Unit) {
-    var min = Long.MAX_VALUE
-    var max = Long.MIN_VALUE
-
-    enabled.forEachByIndex { id ->
-        val points = chart[id]
-        chart.forEachIndex {
-            val p = points[it]
-            min = Math.min(min, p)
-            max = Math.max(max, p)
-        }
-    }
-
-    result(min, max)
-}
-
-inline fun minMax(chart: Chart, lines: List<LineId>, cameraX: MinMax, result: (Long, Long) -> Unit) {
-    var minY = Long.MAX_VALUE
-    var maxY = Long.MIN_VALUE
-
-    val minX = 0
-    val maxX = chart.size() - 1
-
-    val start = cameraX.min
-    val end = cameraX.max
-
-    val begin = clamp(start.ceil(), minX, maxX)
-    val finish = clamp(end.floor(), minX, maxX)
-
-    lines.forEachByIndex { id ->
-        val points = chart[id]
-        for (i in begin..finish) {
-            val p = points[i]
-            minY = min(minY, p)
-            maxY = max(maxY, p)
-        }
-    }
-
-    result(minY, maxY)
-}
-
 fun fillMinMax(chart: Chart, lines: List<LineId>, cameraX: MinMax, result: MinMax) {
     var minY = Long.MAX_VALUE
     var maxY = Long.MIN_VALUE

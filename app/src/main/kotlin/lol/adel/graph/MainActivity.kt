@@ -1,7 +1,6 @@
 package lol.adel.graph
 
 import android.app.Activity
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -25,14 +24,14 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
         }
 
-        App.app.charts.forEachIndexed { idx, data ->
+        App.CHARTS.forEachIndexed { idx, data ->
             val lineIds = data.lineIds()
             val xs = data.xs()
 
             val vh = makeChartLayout(ctx = ctx, medium = Typefaces.medium, data = data, lineIds = lineIds, xs = xs)
             vh.setup(idx, data, lineIds, xs)
 
-            root.addView(vh.root)
+            root += vh.root
         }
 
         setContentView(ScrollView(ctx).apply {
@@ -52,29 +51,9 @@ class MainActivity : Activity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when (item.itemId) {
-            android.R.id.home -> {
-                fragmentManager.popBackStackImmediate()
-                true
-            }
-
             ID_NIGHT -> {
-                val oldBg = color(R.color.background)
-                val oldToolbar = color(R.color.colorPrimary)
                 setNightMode(night = !resources.configuration.isNight())
-                setTheme(R.style.AppTheme)
-
-                animateColor(window.statusBarColor, color(R.color.colorPrimaryDark)) {
-                    window.statusBarColor = it
-                }.start()
-
-                val toolbarBg = ColorDrawable(oldToolbar)
-                actionBar?.setBackgroundDrawable(toolbarBg)
-                toolbarBg.animate(color(R.color.colorPrimary))
-
-                val windowBg = ColorDrawable(oldBg)
-                window.setBackgroundDrawable(windowBg)
-                windowBg.animate(color(R.color.background))
-
+                recreate()
                 true
             }
 

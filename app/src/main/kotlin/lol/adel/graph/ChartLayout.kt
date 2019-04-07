@@ -13,7 +13,7 @@ import help.*
 import lol.adel.graph.data.Chart
 import lol.adel.graph.data.LineId
 import lol.adel.graph.data.size
-import lol.adel.graph.widget.BackgroundChartView
+import lol.adel.graph.widget.PreviewView
 import lol.adel.graph.widget.ChartView
 import lol.adel.graph.widget.HorizontalLabelsView
 import lol.adel.graph.widget.ScrollBarView
@@ -28,7 +28,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<L
     lateinit var floatingText: TextView
     lateinit var floatingContainer: ViewGroup
     lateinit var horizintal: HorizontalLabelsView
-    lateinit var background: BackgroundChartView
+    lateinit var background: PreviewView
     lateinit var scroll: ScrollBarView
     lateinit var bottom: View
 
@@ -99,7 +99,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<L
                 addView(FrameLayout(ctx).apply {
 
                     addView(FrameLayout(ctx).apply {
-                        background = BackgroundChartView(ctx, data, lineIds, lineBuffer)
+                        background = PreviewView(ctx, data, lineIds, lineBuffer)
                         addView(background, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
                     }, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 

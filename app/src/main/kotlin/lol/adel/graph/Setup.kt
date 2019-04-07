@@ -145,8 +145,7 @@ fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: List<LineId>, xs: LongArray
                 floatingText.text = fmt.format(xs[idx])
 
                 lineTexts.forEach { id, view ->
-                    val points = data.columns[id]!!
-                    view.component1().toTextView().text = chartValue(points[idx], maxY)
+                    view.component1().toTextView().text = chartValue(data.columns[id][idx], maxY)
                 }
             }
         }

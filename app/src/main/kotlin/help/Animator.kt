@@ -4,20 +4,14 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ValueAnimator
+import android.graphics.Paint
+import android.view.View
 
 inline fun animateFloat(from: Float, to: Float, crossinline f: (Float) -> Unit): ValueAnimator =
     ValueAnimator.ofFloat(from, to)
         .apply {
             addUpdateListener {
                 f(denormalize(it.animatedFraction, from, to))
-            }
-        }
-
-inline fun animateRaw(from: Float, to: Float, crossinline f: (ValueAnimator) -> Unit): ValueAnimator =
-    ValueAnimator.ofFloat(from, to)
-        .apply {
-            addUpdateListener {
-                f(it)
             }
         }
 
@@ -61,3 +55,12 @@ fun ValueAnimator.restart() {
     cancel()
     start()
 }
+
+// 0 to 255
+typealias PaintAlpha = Int
+
+fun View.animateAlpha(paint: Paint, to: PaintAlpha): Unit =
+    animateInt(paint.alpha, to) {
+        paint.alpha = it
+        invalidate()
+    }.start()

@@ -33,3 +33,6 @@ inline fun ViewGroup.forEach(f: (View) -> Unit): Unit =
     repeat(childCount) {
         f(getChildAt(it))
     }
+
+operator fun ViewGroup.plusAssign(v: View): Unit =
+    addView(v)
