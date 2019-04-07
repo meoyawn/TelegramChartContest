@@ -22,6 +22,8 @@ class MainActivity : Activity() {
 
         val root = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
+            showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
+            dividerDrawable = ctx.getDrawable(R.drawable.charts_divider)
         }
 
         App.CHARTS.forEachIndexed { idx, data ->
