@@ -2,13 +2,7 @@ package help
 
 import com.squareup.moshi.JsonReader
 
-inline fun JsonReader.loop(until: JsonReader.Token, f: (JsonReader) -> Unit) {
-    while (peek() != until) {
-        f(this)
-    }
-}
-
-inline fun JsonReader.array(f: (JsonReader) -> Unit) {
+inline fun JsonReader.array(f: JsonReader.() -> Unit) {
     beginArray()
     f(this)
     endArray()
@@ -19,7 +13,7 @@ inline fun JsonReader.array(f: (JsonReader) -> Unit) {
  */
 inline fun JsonReader.forEachKey(f: (name: String, reader: JsonReader) -> Unit) {
     beginObject()
-    loop(until = JsonReader.Token.END_OBJECT) {
+    while (hasNext()) {
         f(nextName(), this)
     }
     endObject()
@@ -30,6 +24,8 @@ inline fun JsonReader.forEachKey(f: (name: String, reader: JsonReader) -> Unit) 
  */
 inline fun JsonReader.forEach(f: (JsonReader) -> Unit) {
     beginArray()
-    loop(until = JsonReader.Token.END_ARRAY, f = f)
+    while (hasNext()) {
+        f(this)
+    }
     endArray()
 }

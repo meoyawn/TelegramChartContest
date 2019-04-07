@@ -17,10 +17,10 @@ private object ColumnsAdapter : JsonAdapter<Columns>() {
             it.array {
                 buf.reset()
 
-                val name = it.nextString()
+                val name = nextString()
 
-                it.loop(JsonReader.Token.END_ARRAY) {
-                    buf += it.nextLong()
+                while (hasNext()) {
+                    buf += nextLong()
                 }
 
                 map[name] = buf.toArray()
@@ -128,6 +128,7 @@ private class ChartJsonAdapter(moshi: Moshi) : JsonAdapter<Chart>() {
 }
 
 object ChartAdapterFactory : JsonAdapter.Factory {
+
     override fun create(type: Type, annotations: MutableSet<out Annotation>, moshi: Moshi): JsonAdapter<*>? =
         when {
             type == Chart::class.java ->
