@@ -1,6 +1,5 @@
 package lol.adel.graph
 
-import android.animation.Animator
 import help.X
 
 sealed class Handle {
@@ -17,7 +16,5 @@ sealed class Handle {
 }
 
 data class Dragging(
-    var feedbackRadius: Float,
-    val handle: Handle,
-    var radiusAnim: Animator
+    val handle: Handle
 )

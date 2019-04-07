@@ -1,7 +1,5 @@
 package lol.adel.graph.widget
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
@@ -17,6 +15,7 @@ import lol.adel.graph.Handle
 import lol.adel.graph.R
 import kotlin.math.max
 
+@SuppressLint("ViewConstructor")
 class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
 
     interface Listener {
@@ -29,10 +28,6 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
     private val bright = Paint().apply {
         color = ctx.color(R.color.scroll_overlay_bright)
     }
-    private val touch = Paint().apply {
-        color = ctx.color(R.color.scroll_overlay_touch)
-        isAntiAlias = true
-    }
 
     var listener: Listener? = null
 
@@ -40,7 +35,6 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
     private var right: Float = 100f
 
     private val dragging: SparseArray<Dragging> = SparseArray()
-    private val wasDragging: SparseArray<Dragging> = SparseArray()
 
     private fun around(x: X, view: X): Boolean =
         Math.abs(x - view) <= 24.dp
@@ -94,17 +88,7 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
                     val d = handle?.let {
                         var self: Dragging? = null
 
-                        self = Dragging(
-                            feedbackRadius = 0f,
-                            handle = it,
-                            radiusAnim = animateFloat(0f, (heightF + 32.dp) / 2) {
-                                self?.feedbackRadius = it
-                                invalidate()
-                            }.apply {
-                                duration = 100
-                                start()
-                            }
-                        )
+                        self = Dragging(handle = it)
 
                         self
                     }
@@ -141,21 +125,6 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
                 }
             },
             up = { pointerId, _, _ ->
-                dragging[pointerId]?.run {
-                    radiusAnim.cancel()
-                    radiusAnim = animateFloat(feedbackRadius, 0f) {
-                        feedbackRadius = it
-                        invalidate()
-                    }.apply {
-                        addListener(object : AnimatorListenerAdapter() {
-                            override fun onAnimationEnd(animation: Animator?) {
-                                wasDragging.delete(pointerId)
-                            }
-                        })
-                        start()
-                    }
-                    wasDragging.put(pointerId, this)
-                }
                 dragging.delete(pointerId)
 
                 parent.requestDisallowInterceptTouchEvent(false)
@@ -165,27 +134,11 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
         return true
     }
 
-    private fun draw(d: Dragging?, canvas: Canvas, halfHeight: Float): Unit =
-        when (d?.handle) {
-            Handle.Left ->
-                canvas.drawCircle(left, halfHeight, d.feedbackRadius, touch)
-
-            Handle.Right ->
-                canvas.drawCircle(right, halfHeight, d.feedbackRadius, touch)
-
-            is Handle.Between ->
-                canvas.drawCircle((right - left) / 2 + left, halfHeight, d.feedbackRadius, touch)
-
-            else ->
-                Unit
-        }
-
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
         val width = widthF
         val height = heightF
-        val halfHeight = height / 2
 
         val lineWidth = 5.dpF
         val lineHeight = 2.dpF
@@ -198,8 +151,5 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
         canvas.drawRect(left + halfLineWidth, 0f, right - halfLineWidth, lineHeight, bright)
         canvas.drawRect(left + halfLineWidth, height - lineHeight, right - halfLineWidth, height, bright)
         canvas.drawRect(right - halfLineWidth, 0f, right + halfLineWidth, height, bright)
-
-        dragging.forEach { _, d -> draw(d, canvas, halfHeight) }
-        wasDragging.forEach { _, d -> draw(d, canvas, halfHeight) }
     }
 }

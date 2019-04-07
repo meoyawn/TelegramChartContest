@@ -40,10 +40,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<L
             orientation = LinearLayout.VERTICAL
 
             linear = LinearLayout(ctx).apply {
-                updatePadding(left = 20.dp, right = 20.dp)
-                clipToPadding = false
                 orientation = LinearLayout.VERTICAL
-                clipChildren = false
 
                 name = TextView(ctx).apply {
                     layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
@@ -64,7 +61,6 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<L
 
                 addView(FrameLayout(ctx).apply {
                     layoutTransition = LayoutTransition()
-                    clipChildren = true
 
                     chart = ChartView(ctx, data, lineIds, lineBuffer)
                     addView(chart, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
@@ -101,7 +97,6 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<L
                 }, ViewGroup.LayoutParams(MATCH_PARENT, 36.dp))
 
                 addView(FrameLayout(ctx).apply {
-                    clipChildren = false
 
                     addView(FrameLayout(ctx).apply {
                         background = BackgroundChartView(ctx, data, lineIds, lineBuffer)

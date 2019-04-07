@@ -114,11 +114,10 @@ class ChartView(
         val dataSize = data.size()
         cameraX.min = dataSize * 0.75f
         cameraX.max = dataSize - 1f
-        fillMinMax(data, enabledLines, cameraX, cameraY)
-        yLabels.first().set(cameraY)
 
-        check(!cameraX.empty())
-        check(!cameraY.empty())
+        fillMinMax(data, enabledLines, cameraX, cameraY)
+        anticipatedY.set(cameraY)
+        yLabels.first().set(cameraY)
     }
 
     fun setHorizontalBounds(from: IdxF, to: IdxF) {
