@@ -9,13 +9,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
 
-enum class ColumnType {
-    line,
-    x,
-}
-
-typealias LineId = String
-
 data class Chart(
     val columns: SimpleArrayMap<LineId, LongArray>,
     val types: SimpleArrayMap<LineId, ColumnType>,
