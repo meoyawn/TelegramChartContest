@@ -8,7 +8,6 @@ import android.view.MenuItem
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import help.*
-import lol.adel.graph.data.CHARTS
 import lol.adel.graph.data.lineIds
 import lol.adel.graph.data.xs
 
@@ -26,8 +25,7 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
         }
 
-        for (idx in CHARTS.indices) {
-            val data = CHARTS[idx]
+        App.app.charts.forEachIndexed { idx, data ->
             val lineIds = data.lineIds()
             val xs = data.xs()
 

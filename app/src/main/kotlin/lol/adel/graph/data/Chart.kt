@@ -1,6 +1,7 @@
 package lol.adel.graph.data
 
 import androidx.collection.SimpleArrayMap
+import com.squareup.moshi.JsonClass
 import help.*
 import lol.adel.graph.MinMax
 import lol.adel.graph.set
@@ -9,8 +10,25 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
 
+@JsonClass(generateAdapter = false)
+enum class ColumnType {
+    line,
+    x,
+}
+
+typealias LineId = String
+
+data class Columns(val map: SimpleArrayMap<LineId, LongArray>)
+
+fun Columns.first(): LongArray =
+    map.first()
+
+operator fun Columns.get(id: LineId?): LongArray =
+    map[id] ?: error("no column for $id")
+
+@JsonClass(generateAdapter = true)
 data class Chart(
-    val columns: SimpleArrayMap<LineId, LongArray>,
+    val columns: Columns,
     val types: SimpleArrayMap<LineId, ColumnType>,
     val names: SimpleArrayMap<LineId, String>,
     val colors: SimpleArrayMap<LineId, ColorString>
@@ -29,13 +47,13 @@ fun Chart.size(): Int =
     columns.first().size
 
 operator fun Chart.get(id: LineId): LongArray =
-    columns[id] ?: error("data not found for $id")
+    columns[id]
 
 fun Chart.lineIds(): List<LineId> =
     types.filterKeys { _, type -> type == ColumnType.line }
 
 fun Chart.xs(): LongArray =
-    columns[types.findKey { _, type -> type == ColumnType.x }] ?: error("x not found $types")
+    columns[types.findKey { _, type -> type == ColumnType.x }]
 
 inline fun absolutes(chart: Chart, enabled: List<LineId>, result: (Long, Long) -> Unit) {
     var min = Long.MAX_VALUE

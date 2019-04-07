@@ -1,5 +1,6 @@
 package lol.adel.graph.data
 
+import help.LongBuffer
 import org.junit.Test
 import java.util.*
 

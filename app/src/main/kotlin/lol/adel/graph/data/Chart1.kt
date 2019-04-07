@@ -2,52 +2,9 @@ package lol.adel.graph.data
 
 import androidx.collection.SimpleArrayMap
 import com.squareup.moshi.*
-import help.ColorString
-import help.set
+import help.*
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
-
-@JsonClass(generateAdapter = false)
-enum class ColumnType {
-    line,
-    x,
-}
-
-typealias LineId = String
-
-data class Columns(val map: SimpleArrayMap<LineId, LongArray>)
-
-inline fun JsonReader.loop(until: JsonReader.Token, f: (JsonReader) -> Unit) {
-    while (peek() != until) {
-        f(this)
-    }
-}
-
-inline fun JsonReader.array(f: (JsonReader) -> Unit) {
-    beginArray()
-    f(this)
-    endArray()
-}
-
-/**
- * iterates over a json object
- */
-inline fun JsonReader.forEachKey(f: (name: String, reader: JsonReader) -> Unit) {
-    beginObject()
-    loop(until = JsonReader.Token.END_OBJECT) {
-        f(nextName(), this)
-    }
-    endObject()
-}
-
-/**
- * iterates over a json array
- */
-inline fun JsonReader.forEach(f: (JsonReader) -> Unit) {
-    beginArray()
-    loop(until = JsonReader.Token.END_ARRAY, f = f)
-    endArray()
-}
 
 private object ColumnsAdapter : JsonAdapter<Columns>() {
 
@@ -93,52 +50,96 @@ private class SimpleArrayMapAdapter<V>(private val values: JsonAdapter<V>) : Jso
         error("not implemented")
 }
 
-class LongBuffer {
+private class ChartJsonAdapter(moshi: Moshi) : JsonAdapter<Chart>() {
 
-    private var buf = LongArray(size = 12)
-    private var size: Int = 0
+    private val options: JsonReader.Options =
+        JsonReader.Options.of("columns", "types", "names", "colors")
 
-    operator fun plusAssign(l: Long) {
-        if (buf.size == size) {
-            val new = LongArray(size = buf.size * 2)
-            buf.copyInto(new)
-            buf = new
+    private val columnsAdapter: JsonAdapter<Columns> =
+        moshi.adapter<Columns>(Columns::class.java, kotlin.collections.emptySet(), "columns")
+
+    private val simpleArrayMapOfStringColumnTypeAdapter: JsonAdapter<SimpleArrayMap<String, ColumnType>> =
+        moshi.adapter<SimpleArrayMap<String, ColumnType>>(
+            Types.newParameterizedType(
+                SimpleArrayMap::class.java,
+                String::class.java,
+                ColumnType::class.java
+            ), kotlin.collections.emptySet(), "types"
+        )
+
+    private val simpleArrayMapOfStringStringAdapter: JsonAdapter<SimpleArrayMap<String, String>> =
+        moshi.adapter<SimpleArrayMap<String, String>>(
+            Types.newParameterizedType(
+                SimpleArrayMap::class.java,
+                String::class.java,
+                String::class.java
+            ), kotlin.collections.emptySet(), "names"
+        )
+
+    override fun toString(): String = "GeneratedJsonAdapter(Chart)"
+
+    override fun fromJson(reader: JsonReader): Chart {
+        var columns: Columns? = null
+        var types_: SimpleArrayMap<String, ColumnType>? = null
+        var names: SimpleArrayMap<String, String>? = null
+        var colors: SimpleArrayMap<String, String>? = null
+        reader.beginObject()
+        while (reader.hasNext()) {
+            when (reader.selectName(options)) {
+                0 -> columns = columnsAdapter.fromJson(reader)
+                    ?: throw JsonDataException("Non-null value 'columns' was null at ${reader.path}")
+                1 -> types_ = simpleArrayMapOfStringColumnTypeAdapter.fromJson(reader)
+                    ?: throw JsonDataException("Non-null value 'types_' was null at ${reader.path}")
+                2 -> names = simpleArrayMapOfStringStringAdapter.fromJson(reader)
+                    ?: throw JsonDataException("Non-null value 'names' was null at ${reader.path}")
+                3 -> colors = simpleArrayMapOfStringStringAdapter.fromJson(reader)
+                    ?: throw JsonDataException("Non-null value 'colors' was null at ${reader.path}")
+                -1 -> {
+                    // Unknown name, skip it.
+                    reader.skipName()
+                    reader.skipValue()
+                }
+            }
         }
-        buf[size] = l
-        size++
+        reader.endObject()
+        return Chart(
+            columns = columns ?: throw JsonDataException("Required property 'columns' missing at ${reader.path}"),
+            types = types_ ?: throw JsonDataException("Required property 'types_' missing at ${reader.path}"),
+            names = names ?: throw JsonDataException("Required property 'names' missing at ${reader.path}"),
+            colors = colors ?: throw JsonDataException("Required property 'colors' missing at ${reader.path}")
+        )
     }
 
-    fun reset() {
-        size = 0
-    }
-
-    fun toArray(): LongArray =
-        LongArray(size).also {
-            buf.copyInto(it, endIndex = size)
+    override fun toJson(writer: JsonWriter, value: Chart?) {
+        if (value == null) {
+            throw NullPointerException("value was null! Wrap in .nullSafe() to write nullable values.")
         }
+        writer.beginObject()
+        writer.name("columns")
+        columnsAdapter.toJson(writer, value.columns)
+        writer.name("types")
+        simpleArrayMapOfStringColumnTypeAdapter.toJson(writer, value.types)
+        writer.name("names")
+        simpleArrayMapOfStringStringAdapter.toJson(writer, value.names)
+        writer.name("colors")
+        simpleArrayMapOfStringStringAdapter.toJson(writer, value.colors)
+        writer.endObject()
+    }
 }
 
-object Chart1AdapterFactory : JsonAdapter.Factory {
+object ChartAdapterFactory : JsonAdapter.Factory {
     override fun create(type: Type, annotations: MutableSet<out Annotation>, moshi: Moshi): JsonAdapter<*>? =
         when {
-            type == Chart1::class.java ->
-                Chart1JsonAdapter(moshi)
+            type == Chart::class.java ->
+                ChartJsonAdapter(moshi)
 
             type == Columns::class.java ->
                 ColumnsAdapter
 
             type is ParameterizedType && type.rawType == SimpleArrayMap::class.java ->
-                SimpleArrayMapAdapter<Any>(moshi.adapter(type.actualTypeArguments.first()))
+                SimpleArrayMapAdapter<Any>(moshi.adapter(type.actualTypeArguments.last()))
 
             else ->
                 null
         }
 }
-
-@JsonClass(generateAdapter = true)
-data class Chart1(
-    val columns: Columns,
-    val types: SimpleArrayMap<LineId, ColumnType>,
-    val names: SimpleArrayMap<LineId, String>,
-    val colors: SimpleArrayMap<LineId, ColorString>
-)
