@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import androidx.collection.SimpleArrayMap
 import help.*
@@ -59,7 +60,6 @@ class ChartView(
 
     //region Camera Y
     private val cameraY = MinMax(0f, 0f)
-    private val tempY = MinMax(0f, 0f)
     private val anticipatedY = MinMax(0f, 0f)
     //endregion
 
@@ -68,9 +68,6 @@ class ChartView(
     //endregion
 
     private fun mapX(idx: Idx, width: PxF): X =
-        cameraX.normalize(idx) * width
-
-    private fun mapX(idx: IdxF, width: PxF): X =
         cameraX.normalize(idx) * width
 
     private fun mapY(value: Long, height: PxF): Y =
@@ -119,7 +116,7 @@ class ChartView(
         cameraX.min = dataSize * 0.75f
         cameraX.max = dataSize - 1f
 
-        fillMinMax(data, enabledLines, cameraX, cameraY)
+        cameraY.set(data.minMax(cameraX, enabledLines))
         anticipatedY.set(cameraY)
         yLabels.first().set(cameraY)
     }
@@ -142,7 +139,7 @@ class ChartView(
     }
 
     private val cameraMinAnim = ValueAnimator().apply {
-        interpolator = DecelerateInterpolator()
+        interpolator = AccelerateDecelerateInterpolator()
 
         addUpdateListener {
             cameraY.min = it.animatedFloat()
@@ -151,7 +148,7 @@ class ChartView(
     }
 
     private val cameraMaxAnim = ValueAnimator().apply {
-        interpolator = DecelerateInterpolator()
+        interpolator = AccelerateDecelerateInterpolator()
 
         addUpdateListener {
             cameraY.max = it.animatedFloat()
@@ -162,7 +159,7 @@ class ChartView(
     private fun calculateCameraY() {
         if (enabledLines.isEmpty()) return
 
-        fillMinMax(data, enabledLines, cameraX, tempY, stacked = true)
+        val tempY = data.minMax(cameraX, enabledLines)
 
         if (tempY == anticipatedY) return
 

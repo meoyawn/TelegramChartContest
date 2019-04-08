@@ -11,6 +11,7 @@ import help.*
 import lol.adel.graph.MinMax
 import lol.adel.graph.data.*
 import lol.adel.graph.normalize
+import lol.adel.graph.set
 
 @SuppressLint("ViewConstructor")
 class PreviewView(
@@ -34,7 +35,6 @@ class PreviewView(
 
     private val cameraX = MinMax(0f, 0f)
     private val cameraY = MinMax(0f, 0f)
-    private val tempY = MinMax(0f, 0f)
     private var cameraAnim: Animator? = null
 
     private val enabledLines = ArrayList<LineId>()
@@ -49,7 +49,7 @@ class PreviewView(
 
         cameraX.min = 0f
         cameraX.max = data.size() - 1f
-        fillMinMax(data, enabledLines, cameraX, cameraY)
+        cameraY.set(data.minMax(cameraX, enabledLines))
     }
 
     private fun mapX(idx: Idx, width: PxF): X =
@@ -73,7 +73,7 @@ class PreviewView(
 
         animateAlpha(linePaints[id]!!, if (enabled) 255 else 0)
 
-        fillMinMax(data, enabledLines, cameraX, tempY)
+        val tempY = data.minMax(cameraX, enabledLines)
 
         cameraAnim?.cancel()
         cameraAnim = playTogether(

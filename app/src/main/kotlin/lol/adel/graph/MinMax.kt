@@ -5,8 +5,8 @@ import help.normalize
 import help.sq
 
 data class MinMax(
-    var min: Float,
-    var max: Float
+    var min: Float = 0f,
+    var max: Float = 0f
 )
 
 fun MinMax.len(): Float =

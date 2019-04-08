@@ -50,13 +50,10 @@ private class SimpleArrayMapAdapter<V>(private val values: JsonAdapter<V>) : Jso
         error("not implemented")
 }
 
-private class ChartJsonAdapter(moshi: Moshi) : JsonAdapter<Chart>() {
-
-    private val options: JsonReader.Options =
-        JsonReader.Options.of("columns", "types", "names", "colors")
+private class ChartAdapter(moshi: Moshi) : JsonAdapter<Chart>() {
 
     private val columnsAdapter: JsonAdapter<Columns> =
-        moshi.adapter<Columns>(Columns::class.java, kotlin.collections.emptySet(), "columns")
+        moshi.adapter<Columns>(Columns::class.java)
 
     private val simpleArrayMapOfStringColumnTypeAdapter: JsonAdapter<SimpleArrayMap<String, ColumnType>> =
         moshi.adapter<SimpleArrayMap<String, ColumnType>>(
@@ -64,7 +61,7 @@ private class ChartJsonAdapter(moshi: Moshi) : JsonAdapter<Chart>() {
                 SimpleArrayMap::class.java,
                 String::class.java,
                 ColumnType::class.java
-            ), kotlin.collections.emptySet(), "types"
+            )
         )
 
     private val simpleArrayMapOfStringStringAdapter: JsonAdapter<SimpleArrayMap<String, String>> =
@@ -73,58 +70,59 @@ private class ChartJsonAdapter(moshi: Moshi) : JsonAdapter<Chart>() {
                 SimpleArrayMap::class.java,
                 String::class.java,
                 String::class.java
-            ), kotlin.collections.emptySet(), "names"
+            )
         )
-
-    override fun toString(): String = "GeneratedJsonAdapter(Chart)"
 
     override fun fromJson(reader: JsonReader): Chart {
-        var columns: Columns? = null
-        var types_: SimpleArrayMap<String, ColumnType>? = null
-        var names: SimpleArrayMap<String, String>? = null
-        var colors: SimpleArrayMap<String, String>? = null
-        reader.beginObject()
-        while (reader.hasNext()) {
-            when (reader.selectName(options)) {
-                0 -> columns = columnsAdapter.fromJson(reader)
-                    ?: throw JsonDataException("Non-null value 'columns' was null at ${reader.path}")
-                1 -> types_ = simpleArrayMapOfStringColumnTypeAdapter.fromJson(reader)
-                    ?: throw JsonDataException("Non-null value 'types_' was null at ${reader.path}")
-                2 -> names = simpleArrayMapOfStringStringAdapter.fromJson(reader)
-                    ?: throw JsonDataException("Non-null value 'names' was null at ${reader.path}")
-                3 -> colors = simpleArrayMapOfStringStringAdapter.fromJson(reader)
-                    ?: throw JsonDataException("Non-null value 'colors' was null at ${reader.path}")
-                -1 -> {
-                    // Unknown name, skip it.
-                    reader.skipName()
-                    reader.skipValue()
-                }
+        lateinit var columns: Columns
+        lateinit var types: SimpleArrayMap<String, ColumnType>
+        lateinit var names: SimpleArrayMap<String, String>
+        lateinit var colors: SimpleArrayMap<String, String>
+
+        var percentage = false
+        var stacked = false
+        var y_scaled = false
+
+        reader.forEachKey { name, _ ->
+            when (name) {
+                "columns" ->
+                    columns = columnsAdapter.fromJson(reader)!!
+
+                "types" ->
+                    types = simpleArrayMapOfStringColumnTypeAdapter.fromJson(reader)!!
+
+                "names" ->
+                    names =
+                        simpleArrayMapOfStringStringAdapter.fromJson(reader)!!
+
+                "colors" ->
+                    colors =
+                        simpleArrayMapOfStringStringAdapter.fromJson(reader)!!
+
+                "percentage" ->
+                    percentage = reader.nextBoolean()
+
+                "stacked" ->
+                    stacked = reader.nextBoolean()
+
+                "y_scaled" ->
+                    y_scaled = reader.nextBoolean()
             }
         }
-        reader.endObject()
+
         return Chart(
-            columns = columns ?: throw JsonDataException("Required property 'columns' missing at ${reader.path}"),
-            types = types_ ?: throw JsonDataException("Required property 'types_' missing at ${reader.path}"),
-            names = names ?: throw JsonDataException("Required property 'names' missing at ${reader.path}"),
-            colors = colors ?: throw JsonDataException("Required property 'colors' missing at ${reader.path}")
+            columns = columns,
+            types = types,
+            names = names,
+            colors = colors,
+            percentage = percentage,
+            stacked = stacked,
+            y_scaled = y_scaled
         )
     }
 
-    override fun toJson(writer: JsonWriter, value: Chart?) {
-        if (value == null) {
-            throw NullPointerException("value was null! Wrap in .nullSafe() to write nullable values.")
-        }
-        writer.beginObject()
-        writer.name("columns")
-        columnsAdapter.toJson(writer, value.columns)
-        writer.name("types")
-        simpleArrayMapOfStringColumnTypeAdapter.toJson(writer, value.types)
-        writer.name("names")
-        simpleArrayMapOfStringStringAdapter.toJson(writer, value.names)
-        writer.name("colors")
-        simpleArrayMapOfStringStringAdapter.toJson(writer, value.colors)
-        writer.endObject()
-    }
+    override fun toJson(writer: JsonWriter, value: Chart?) =
+        error("not implemented")
 }
 
 object ChartAdapterFactory : JsonAdapter.Factory {
@@ -132,7 +130,7 @@ object ChartAdapterFactory : JsonAdapter.Factory {
     override fun create(type: Type, annotations: MutableSet<out Annotation>, moshi: Moshi): JsonAdapter<*>? =
         when {
             type == Chart::class.java ->
-                ChartJsonAdapter(moshi)
+                ChartAdapter(moshi)
 
             type == Columns::class.java ->
                 ColumnsAdapter

@@ -1,5 +1,6 @@
 package lol.adel.graph.data
 
+import androidx.annotation.MainThread
 import androidx.collection.SimpleArrayMap
 import com.squareup.moshi.JsonClass
 import help.*
@@ -14,6 +15,8 @@ import kotlin.math.round
 enum class ColumnType {
     line,
     x,
+    area,
+    bar,
 }
 
 typealias LineId = String
@@ -31,7 +34,10 @@ data class Chart(
     val columns: Columns,
     val types: SimpleArrayMap<LineId, ColumnType>,
     val names: SimpleArrayMap<LineId, String>,
-    val colors: SimpleArrayMap<LineId, ColorString>
+    val colors: SimpleArrayMap<LineId, ColorString>,
+    val percentage: Boolean,
+    val stacked: Boolean,
+    val y_scaled: Boolean // two y axes
 )
 
 fun Chart.color(id: LineId): ColorInt =
@@ -50,33 +56,34 @@ operator fun Chart.get(id: LineId): LongArray =
     columns[id]
 
 fun Chart.lineIds(): List<LineId> =
-    types.filterKeys { _, type -> type == ColumnType.line }
+    types.filterKeys { _, type -> type != ColumnType.x }
 
 fun Chart.xs(): LongArray =
     columns[types.findKey { _, type -> type == ColumnType.x }]
 
-fun fillMinMax(chart: Chart, lines: List<LineId>, cameraX: MinMax, result: MinMax, stacked: Boolean = false) {
+private val MM = MinMax()
+
+@MainThread
+fun Chart.minMax(cameraX: MinMax, lines: List<LineId>): MinMax {
+
+    val minX = 0
+    val maxX = size() - 1
+
+    val begin = clamp(cameraX.min.ceil(), minX, maxX)
+    val end = clamp(cameraX.max.floor(), minX, maxX)
+
     var minY = Long.MAX_VALUE
     var maxY = Long.MIN_VALUE
 
-    val minX = 0
-    val maxX = chart.size() - 1
-
-    val start = cameraX.min
-    val end = cameraX.max
-
-    val begin = clamp(start.ceil(), minX, maxX)
-    val finish = clamp(end.floor(), minX, maxX)
-
     if (stacked) {
         minY = 0L
-        for (i in begin..finish) {
-            maxY = max(maxY, lines.sumByIndex { chart[it][i] })
+        for (i in begin..end) {
+            maxY = max(maxY, lines.sumByIndex { this[it][i] })
         }
     } else {
         lines.forEachByIndex { id ->
-            val points = chart[id]
-            for (i in begin..finish) {
+            val points = this[id]
+            for (i in begin..end) {
                 val p = points[i]
                 minY = min(minY, p)
                 maxY = max(maxY, p)
@@ -84,7 +91,8 @@ fun fillMinMax(chart: Chart, lines: List<LineId>, cameraX: MinMax, result: MinMa
         }
     }
 
-    result.set(min = minY.toFloat(), max = maxY.toFloat())
+    MM.set(min = minY.toFloat(), max = maxY.toFloat())
+    return MM
 }
 
 fun chartName(idx: Idx): String =
