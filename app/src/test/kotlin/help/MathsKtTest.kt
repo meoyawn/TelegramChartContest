@@ -7,25 +7,25 @@ class MathsKtTest {
 
     @Test
     fun fwd() {
-        assertEquals(0f, normalize(10f, 10f, 100f))
-        assertEquals(0f, normalize(100f, 100f, 10f))
+        assertEquals(0f, norm(10f, 10f, 100f))
+        assertEquals(0f, norm(100f, 100f, 10f))
 
-        assertEquals(1f, normalize(100f, 10f, 100f))
-        assertEquals(1f, normalize(10f, 100f, 10f))
+        assertEquals(1f, norm(100f, 10f, 100f))
+        assertEquals(1f, norm(10f, 100f, 10f))
 
-        assertEquals(0.5f, normalize(55f, 10f, 100f))
-        assertEquals(0.5f, normalize(55f, 100f, 10f))
+        assertEquals(0.5f, norm(55f, 10f, 100f))
+        assertEquals(0.5f, norm(55f, 100f, 10f))
     }
 
     @Test
     fun back() {
-        assertEquals(10f, denormalize(0f, 10f, 100f))
-        assertEquals(100f, denormalize(0f, 100f, 10f))
+        assertEquals(10f, denorm(0f, 10f, 100f))
+        assertEquals(100f, denorm(0f, 100f, 10f))
 
-        assertEquals(100f, denormalize(1f, 10f, 100f))
-        assertEquals(10f, denormalize(1f, 100f, 10f))
+        assertEquals(100f, denorm(1f, 10f, 100f))
+        assertEquals(10f, denorm(1f, 100f, 10f))
 
-        assertEquals(55f, denormalize(0.5f, 10f, 100f))
-        assertEquals(55f, denormalize(0.5f, 100f, 10f))
+        assertEquals(55f, denorm(0.5f, 10f, 100f))
+        assertEquals(55f, denorm(0.5f, 100f, 10f))
     }
 }

@@ -68,10 +68,10 @@ class ChartView(
     //endregion
 
     private fun mapX(idx: Idx, width: PxF): X =
-        cameraX.normalize(idx) * width
+        cameraX.norm(idx) * width
 
     private fun mapY(value: Long, height: PxF): Y =
-        (1 - cameraY.normalize(value)) * (height - Y_OFFSET_TO_SEE_CIRCLES * 2) + Y_OFFSET_TO_SEE_CIRCLES
+        (1 - cameraY.norm(value)) * (height - Y_OFFSET_TO_SEE_CIRCLES * 2) + Y_OFFSET_TO_SEE_CIRCLES
 
     private inline fun mapped(width: PxF, height: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
         f(
@@ -221,7 +221,7 @@ class ChartView(
                     touchingX = evX
                     touchingY = evY
 
-                    val idx = cameraX.denormalize(value = touchingX / widthF).roundToInt()
+                    val idx = cameraX.denorm(value = touchingX / widthF).roundToInt()
                     val mappedX = mapX(idx, widthF)
 
                     listener?.onTouch(idx = idx, x = mappedX, maxY = cameraY.max)
@@ -256,7 +256,7 @@ class ChartView(
         val height = heightF
 
         val touchingIdx = if (touchingX in 0f..width) {
-            val idx = cameraX.denormalize(touchingX / width).roundToInt()
+            val idx = cameraX.denorm(touchingX / width).roundToInt()
             val mappedX = mapX(idx, width)
             canvas.drawLine(mappedX, 0f, mappedX, height, verticalLinePaint)
             idx

@@ -2,6 +2,7 @@ package help
 
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.log
 
 typealias Idx = Int
 typealias IdxF = Float
@@ -10,13 +11,13 @@ fun Float.sq(): Float =
     this * this
 
 fun Float.floor(): Int =
-    floor(this).toInt()
+    floor(x = this).toInt()
 
 fun Float.ceil(): Int =
-    ceil(this).toInt()
+    ceil(x = this).toInt()
 
 fun Float.log2(): Float =
-    (Math.log(toDouble()) / Math.log(2.0)).toFloat()
+    log(x = this, base = 2f)
 
 fun Int.pow2(): Int =
     Math.pow(2.0, toDouble()).toInt()
@@ -37,19 +38,19 @@ inline fun iterate(from: Float, to: Float, stepSize: Float, f: (Float) -> Unit) 
     }
 }
 
-fun normalize(value: Float, min: Float, max: Float): Float =
+fun norm(value: Float, min: Float, max: Float): Float =
     (value - min) / (max - min)
 
-fun normalize(value: Int, min: Float, max: Float): Float =
+fun norm(value: Int, min: Float, max: Float): Float =
     (value - min) / (max - min)
 
-fun normalize(value: Long, min: Float, max: Float): Float =
+fun norm(value: Long, min: Float, max: Float): Float =
     (value - min) / (max - min)
 
-fun denormalize(value: Float, min: Float, max: Float): Float =
+fun denorm(value: Float, min: Float, max: Float): Float =
     min + (max - min) * value
 
-fun denormalize(value: Float, min: Int, max: Int): Int =
+fun denorm(value: Float, min: Int, max: Int): Int =
     (min + (max - min) * value).toInt()
 
 fun clamp(value: Float, min: Float, max: Float): Float =

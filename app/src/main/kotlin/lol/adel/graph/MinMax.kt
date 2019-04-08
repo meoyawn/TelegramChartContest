@@ -1,7 +1,7 @@
 package lol.adel.graph
 
-import help.denormalize
-import help.normalize
+import help.denorm
+import help.norm
 import help.sq
 
 data class MinMax(
@@ -28,14 +28,14 @@ fun MinMax.set(min: Float, max: Float) {
 fun MinMax.empty(): Boolean =
     (min == 0f && max == 0f) || (min == Float.MAX_VALUE && max == Float.MIN_VALUE)
 
-fun MinMax.normalize(value: Long): Float =
-    normalize(value = value, min = min, max = max)
+fun MinMax.norm(value: Long): Float =
+    norm(value = value, min = min, max = max)
 
-fun MinMax.normalize(value: Int): Float =
-    normalize(value = value, min = min, max = max)
+fun MinMax.norm(value: Int): Float =
+    norm(value = value, min = min, max = max)
 
-fun MinMax.normalize(value: Float): Float =
-    normalize(value = value, min = min, max = max)
+fun MinMax.norm(value: Float): Float =
+    norm(value = value, min = min, max = max)
 
-fun MinMax.denormalize(value: Float): Float =
-    denormalize(value = value, min = min, max = max)
+fun MinMax.denorm(value: Float): Float =
+    denorm(value = value, min = min, max = max)

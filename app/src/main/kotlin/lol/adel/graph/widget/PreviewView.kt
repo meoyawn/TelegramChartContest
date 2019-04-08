@@ -10,7 +10,7 @@ import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.MinMax
 import lol.adel.graph.data.*
-import lol.adel.graph.normalize
+import lol.adel.graph.norm
 import lol.adel.graph.set
 
 @SuppressLint("ViewConstructor")
@@ -53,10 +53,10 @@ class PreviewView(
     }
 
     private fun mapX(idx: Idx, width: PxF): X =
-        cameraX.normalize(idx) * width
+        cameraX.norm(idx) * width
 
     private fun mapY(value: Long, height: PxF): Y =
-        (1 - cameraY.normalize(value)) * height
+        (1 - cameraY.norm(value)) * height
 
     private inline fun mapped(width: PxF, height: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
         f(

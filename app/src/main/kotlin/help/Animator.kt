@@ -11,7 +11,7 @@ inline fun animateFloat(from: Float, to: Float, crossinline f: (Float) -> Unit):
     ValueAnimator.ofFloat(from, to)
         .apply {
             addUpdateListener {
-                f(denormalize(it.animatedFraction, from, to))
+                f(denorm(it.animatedFraction, from, to))
             }
         }
 
@@ -19,7 +19,7 @@ inline fun animateInt(from: Int, to: Int, crossinline f: (Int) -> Unit): ValueAn
     ValueAnimator.ofInt(from, to)
         .apply {
             addUpdateListener {
-                f(denormalize(it.animatedFraction, from, to))
+                f(denorm(it.animatedFraction, from, to))
             }
         }
 
