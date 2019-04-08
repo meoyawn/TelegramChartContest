@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Paint
 import android.text.TextPaint
 import android.view.animation.AccelerateInterpolator
-import android.view.animation.LinearInterpolator
 import help.*
 import lol.adel.graph.widget.HorizontalLabelsView
 

@@ -10,12 +10,24 @@ import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
 import help.*
-import lol.adel.graph.Handle
 import lol.adel.graph.R
 import kotlin.math.max
 
 @SuppressLint("ViewConstructor")
 class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
+
+    private sealed class Handle {
+
+        object Left : Handle()
+
+        object Right : Handle()
+
+        data class Between(
+            val left: X,
+            val right: X,
+            val x: X
+        ) : Handle()
+    }
 
     interface Listener {
         fun onBoundsChange(left: Float, right: Float)

@@ -13,18 +13,17 @@ private object ColumnsAdapter : JsonAdapter<Columns>() {
 
         val buf = LongBuffer()
 
-        reader.forEach {
-            it.array {
-                buf.reset()
+        reader.forArray {
+            beginArray() // nested
 
-                val name = nextString()
-
-                while (hasNext()) {
-                    buf += nextLong()
-                }
-
-                map[name] = buf.toArray()
+            buf.reset()
+            val name = nextString()
+            while (hasNext()) {
+                buf += nextLong()
             }
+            map[name] = buf.toArray()
+
+            endArray()
         }
 
         return Columns(map)
@@ -39,8 +38,8 @@ private class SimpleArrayMapAdapter<V>(val values: JsonAdapter<V>) : JsonAdapter
     override fun fromJson(reader: JsonReader): SimpleArrayMap<String, V?> {
         val map = SimpleArrayMap<String, V?>()
 
-        reader.forEachKey { key, r ->
-            map[key] = values.fromJson(r)
+        reader.forObject { name ->
+            map[name] = values.fromJson(reader)
         }
 
         return map
@@ -83,28 +82,28 @@ private class ChartAdapter(moshi: Moshi) : JsonAdapter<Chart>() {
         var stacked = false
         var yScaled = false
 
-        reader.forEachKey { name, r ->
+        reader.forObject { name ->
             when (name) {
                 "columns" ->
-                    columns = columnsAdapter.fromJson(r)!!
+                    columns = columnsAdapter.fromJson(reader)!!
 
                 "types" ->
-                    types = stringColumnType.fromJson(r)!!
+                    types = stringColumnType.fromJson(reader)!!
 
                 "names" ->
-                    names = stringString.fromJson(r)!!
+                    names = stringString.fromJson(reader)!!
 
                 "colors" ->
-                    colors = stringString.fromJson(r)!!
+                    colors = stringString.fromJson(reader)!!
 
                 "percentage" ->
-                    percentage = r.nextBoolean()
+                    percentage = nextBoolean()
 
                 "stacked" ->
-                    stacked = r.nextBoolean()
+                    stacked = nextBoolean()
 
                 "y_scaled" ->
-                    yScaled = r.nextBoolean()
+                    yScaled = nextBoolean()
             }
         }
 
