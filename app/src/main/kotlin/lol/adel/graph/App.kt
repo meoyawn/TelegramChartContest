@@ -1,9 +1,11 @@
 package lol.adel.graph
 
 import android.app.Application
+import android.content.res.AssetManager
 import com.squareup.moshi.Moshi
 import lol.adel.graph.data.Chart
 import lol.adel.graph.data.ChartAdapterFactory
+import okio.BufferedSource
 import okio.Okio
 
 class App : Application() {
@@ -12,6 +14,9 @@ class App : Application() {
 
         lateinit var CHARTS: List<Chart>
             private set
+
+        fun AssetManager.openOkio(fileName: String): BufferedSource =
+            Okio.buffer(Okio.source(open(fileName)))
     }
 
     private val moshi = Moshi.Builder()
@@ -21,10 +26,11 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        CHARTS = assets.list("")!!.filter { it.toIntOrNull() != null }.map { folder ->
-            val src = Okio.buffer(Okio.source(assets.open("$folder/overview.json")))
-            moshi.adapter(Chart::class.java).fromJson(src)!!.apply {
-                println(this)
+        val adapter = moshi.adapter(Chart::class.java)
+
+        CHARTS = assets.list("")!!.mapNotNull { dir ->
+            dir.toIntOrNull()?.let {
+                adapter.fromJson(assets.openOkio(fileName = "$dir/overview.json"))
             }
         }
     }

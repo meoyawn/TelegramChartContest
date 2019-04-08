@@ -1,8 +1,7 @@
 package lol.adel.graph.data
 
+import android.graphics.Color
 import androidx.annotation.MainThread
-import androidx.collection.SimpleArrayMap
-import com.squareup.moshi.JsonClass
 import help.*
 import lol.adel.graph.MinMax
 import lol.adel.graph.set
@@ -11,37 +10,17 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
 
-@JsonClass(generateAdapter = false)
-enum class ColumnType {
-    line,
-    x,
-    area,
-    bar,
-}
-
-typealias LineId = String
-
-data class Columns(val map: SimpleArrayMap<LineId, LongArray>)
-
 fun Columns.first(): LongArray =
     map.first()
 
 operator fun Columns.get(id: LineId?): LongArray =
     map[id] ?: error("no column for $id")
 
-@JsonClass(generateAdapter = true)
-data class Chart(
-    val columns: Columns,
-    val types: SimpleArrayMap<LineId, ColumnType>,
-    val names: SimpleArrayMap<LineId, String>,
-    val colors: SimpleArrayMap<LineId, ColorString>,
-    val percentage: Boolean,
-    val stacked: Boolean,
-    val y_scaled: Boolean // two y axes
-)
+private val PARSE_COLOR: (ColorString) -> ColorInt =
+    memoize { Color.parseColor(it) }
 
 fun Chart.color(id: LineId): ColorInt =
-    parseColor(colors[id] ?: error("color not found for $id"))
+    PARSE_COLOR(colors[id] ?: error("color not found for $id"))
 
 inline fun Chart.forEachIndex(f: (Idx) -> Unit) {
     for (i in 0 until size()) {

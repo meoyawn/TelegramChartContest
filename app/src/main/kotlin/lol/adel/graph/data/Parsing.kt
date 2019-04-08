@@ -34,7 +34,7 @@ private object ColumnsAdapter : JsonAdapter<Columns>() {
         error("not implemented")
 }
 
-private class SimpleArrayMapAdapter<V>(private val values: JsonAdapter<V>) : JsonAdapter<SimpleArrayMap<String, V?>>() {
+private class SimpleArrayMapAdapter<V>(val values: JsonAdapter<V>) : JsonAdapter<SimpleArrayMap<String, V?>>() {
 
     override fun fromJson(reader: JsonReader): SimpleArrayMap<String, V?> {
         val map = SimpleArrayMap<String, V?>()
@@ -52,10 +52,10 @@ private class SimpleArrayMapAdapter<V>(private val values: JsonAdapter<V>) : Jso
 
 private class ChartAdapter(moshi: Moshi) : JsonAdapter<Chart>() {
 
-    private val columnsAdapter: JsonAdapter<Columns> =
+    val columnsAdapter: JsonAdapter<Columns> =
         moshi.adapter<Columns>(Columns::class.java)
 
-    private val simpleArrayMapOfStringColumnTypeAdapter: JsonAdapter<SimpleArrayMap<String, ColumnType>> =
+    val stringColumnType: JsonAdapter<SimpleArrayMap<String, ColumnType>> =
         moshi.adapter<SimpleArrayMap<String, ColumnType>>(
             Types.newParameterizedType(
                 SimpleArrayMap::class.java,
@@ -64,7 +64,7 @@ private class ChartAdapter(moshi: Moshi) : JsonAdapter<Chart>() {
             )
         )
 
-    private val simpleArrayMapOfStringStringAdapter: JsonAdapter<SimpleArrayMap<String, String>> =
+    val stringString: JsonAdapter<SimpleArrayMap<String, String>> =
         moshi.adapter<SimpleArrayMap<String, String>>(
             Types.newParameterizedType(
                 SimpleArrayMap::class.java,
@@ -81,32 +81,30 @@ private class ChartAdapter(moshi: Moshi) : JsonAdapter<Chart>() {
 
         var percentage = false
         var stacked = false
-        var y_scaled = false
+        var yScaled = false
 
-        reader.forEachKey { name, _ ->
+        reader.forEachKey { name, r ->
             when (name) {
                 "columns" ->
-                    columns = columnsAdapter.fromJson(reader)!!
+                    columns = columnsAdapter.fromJson(r)!!
 
                 "types" ->
-                    types = simpleArrayMapOfStringColumnTypeAdapter.fromJson(reader)!!
+                    types = stringColumnType.fromJson(r)!!
 
                 "names" ->
-                    names =
-                        simpleArrayMapOfStringStringAdapter.fromJson(reader)!!
+                    names = stringString.fromJson(r)!!
 
                 "colors" ->
-                    colors =
-                        simpleArrayMapOfStringStringAdapter.fromJson(reader)!!
+                    colors = stringString.fromJson(r)!!
 
                 "percentage" ->
-                    percentage = reader.nextBoolean()
+                    percentage = r.nextBoolean()
 
                 "stacked" ->
-                    stacked = reader.nextBoolean()
+                    stacked = r.nextBoolean()
 
                 "y_scaled" ->
-                    y_scaled = reader.nextBoolean()
+                    yScaled = r.nextBoolean()
             }
         }
 
@@ -117,7 +115,7 @@ private class ChartAdapter(moshi: Moshi) : JsonAdapter<Chart>() {
             colors = colors,
             percentage = percentage,
             stacked = stacked,
-            y_scaled = y_scaled
+            y_scaled = yScaled
         )
     }
 
