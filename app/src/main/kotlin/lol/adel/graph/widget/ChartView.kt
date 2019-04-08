@@ -21,8 +21,10 @@ import kotlin.math.roundToInt
 class ChartView(
     ctx: Context,
     private val data: Chart,
-    lineIds: List<LineId>,
-    private val lineBuf: FloatArray
+    private val allLines: List<LineId>,
+    private val lineBuf: FloatArray,
+    private val cameraX: MinMax,
+    private val enabledLines: List<LineId>
 ) : View(ctx) {
 
     private companion object {
@@ -53,10 +55,11 @@ class ChartView(
 
     var listener: Listener? = null
 
-    private val cameraX = MinMax(0f, 0f)
-
-    val enabledLines = ArrayList<LineId>()
-    private val linePaints = SimpleArrayMap<LineId, Paint>()
+    private val linePaints = SimpleArrayMap<LineId, Paint>().apply {
+        allLines.forEachByIndex { id ->
+            this[id] = makeLinePaint(data.color(id))
+        }
+    }
 
     //region Camera Y
     private val cameraY = MinMax(0f, 0f)
@@ -98,44 +101,36 @@ class ChartView(
     }
     //endregion
 
-    init {
-        enabledLines.addAll(lineIds)
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        if (yLabels.isNotEmpty()) return
 
-        lineIds.forEachByIndex { id ->
-            linePaints[id] = makeLinePaint(data.color(id))
-        }
+        cameraY.set(data.minMax(cameraX, enabledLines))
+        anticipatedY.set(cameraY)
 
-        yLabels += YLabel.create(ctx).apply {
+        yLabels += YLabel.create(context).apply {
             animator.interpolator = DecelerateInterpolator()
             animator.addUpdateListener {
                 setAlpha(it.animatedFraction)
             }
+            set(cameraY)
         }
 
-        val dataSize = data.size()
-        cameraX.min = dataSize * 0.75f
-        cameraX.max = dataSize - 1f
-
-        cameraY.set(data.minMax(cameraX, enabledLines))
-        anticipatedY.set(cameraY)
-        yLabels.first().set(cameraY)
-    }
-
-    fun setHorizontalBounds(from: IdxF, to: IdxF) {
-        cameraX.set(from, to)
-        calculateCameraY()
-        invalidate()
-    }
-
-    fun selectLine(id: LineId, enabled: Boolean) {
-        if (enabled) {
-            enabledLines += id
-        } else {
-            enabledLines -= id
+        allLines.forEachByIndex {
+            if (it !in enabledLines) {
+                linePaints[it]?.alpha = 0
+            }
         }
+    }
 
+    fun cameraXChanged() {
+        animateCameraY()
+        invalidate() // x changed
+    }
+
+    fun lineSelected(id: LineId, enabled: Boolean) {
         animateAlpha(linePaints[id]!!, if (enabled) 255 else 0)
-        calculateCameraY()
+        animateCameraY()
     }
 
     private val cameraMinAnim = ValueAnimator().apply {
@@ -156,7 +151,7 @@ class ChartView(
         }
     }
 
-    private fun calculateCameraY() {
+    private fun animateCameraY() {
         if (enabledLines.isEmpty()) return
 
         val tempY = data.minMax(cameraX, enabledLines)
@@ -166,7 +161,7 @@ class ChartView(
         cameraMinAnim.restartWith(cameraY.min, tempY.min)
         cameraMaxAnim.restartWith(cameraY.max, tempY.max)
 
-        if (tempY.distanceSq(anticipatedY) > (anticipatedY.len() / 10).sq()) {
+        if (tempY.distanceSq(anticipatedY) > (anticipatedY.len() / 20).sq()) {
 
             // appear
             yLabels.first().run {
@@ -180,11 +175,9 @@ class ChartView(
             }
 
             // fade
-            if (!anticipatedY.empty()) {
-                yLabels += YLabel.obtain(context, yLabels).apply {
-                    set(anticipatedY)
-                    animator.start()
-                }
+            yLabels += YLabel.obtain(context, yLabels).apply {
+                set(anticipatedY)
+                animator.start()
             }
         }
 
@@ -271,35 +264,44 @@ class ChartView(
         val start = cameraX.min
         val end = cameraX.max
 
-        linePaints.forEach { id, paint ->
-            if (paint.alpha > 0) {
-                val points = data[id]
-
-                mapped(width, height, points, start.floor()) { x, y ->
-                    // start of first line
-                    lineBuf[0] = x
-                    lineBuf[1] = y
-                }
-
-                var bufIdx = 2
-                for (i in start.ceil()..end.ceil()) {
-                    mapped(width, height, points, i) { x, y ->
-                        bufIdx = fill(lineBuf, bufIdx, x, y)
+        if (data.types.any { _, columnType -> columnType == ColumnType.bar }) {
+            var x = cameraX.norm(start - start.floor())
+            val bw = width / cameraX.len()
+            for (i in start.floor()..end.ceil()) {
+                var y: PxF = height
+                linePaints.forEach { id, paint ->
+                    val point = data[id][i]
+                    if (point > 0) {
+                        val bh = cameraY.norm(point) * height
+                        canvas.drawRect(x, y - bh, x + bw, y, paint)
+                        y -= bh
                     }
                 }
-                bufIdx -= 2
+                x += bw
+            }
+        } else {
+            linePaints.forEach { id, paint ->
+                if (paint.alpha > 0) {
+                    val points = data[id]
 
-                canvas.drawLines(lineBuf, 0, bufIdx, paint)
+                    mapped(width, height, points, start.floor()) { x, y ->
+                        // start of first line
+                        lineBuf[0] = x
+                        lineBuf[1] = y
+                    }
+
+                    var bufIdx = 2
+                    for (i in start.ceil()..end.ceil()) {
+                        mapped(width, height, points, i) { x, y ->
+                            bufIdx = fill(lineBuf, bufIdx, x, y)
+                        }
+                    }
+                    bufIdx -= 2
+
+                    canvas.drawLines(lineBuf, 0, bufIdx, paint)
+                }
             }
         }
-
-//        for (i in start.floor()..end.ceil()) {
-//            linePaints.forEach { id, paint ->
-//                if (paint.alpha > 0) {
-//                    val point = data[id][i]
-//                }
-//            }
-//        }
 
         if (touchingIdx != -1) {
             linePaints.forEach { line, paint ->

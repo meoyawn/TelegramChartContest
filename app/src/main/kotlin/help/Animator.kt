@@ -15,6 +15,14 @@ inline fun animateFloat(from: Float, to: Float, crossinline f: (Float) -> Unit):
             }
         }
 
+inline fun animateRaw(from: Float, to: Float, crossinline f: (ValueAnimator) -> Unit): ValueAnimator =
+    ValueAnimator.ofFloat(from, to)
+        .apply {
+            addUpdateListener {
+                f(it)
+            }
+        }
+
 inline fun animateInt(from: Int, to: Int, crossinline f: (Int) -> Unit): ValueAnimator =
     ValueAnimator.ofInt(from, to)
         .apply {
@@ -41,6 +49,9 @@ inline fun <T : Animator> T.onEnd(crossinline f: (T) -> Unit): Unit =
 
 fun playTogether(a1: Animator, a2: Animator): AnimatorSet =
     AnimatorSet().apply { playTogether(a1, a2) }
+
+fun playTogether(a1: Animator, a2: Animator, a3: Animator): AnimatorSet =
+    AnimatorSet().apply { playTogether(a1, a2, a3) }
 
 fun ValueAnimator.animatedFloat(): Float =
     animatedValue as Float

@@ -6,9 +6,10 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.LinearLayout
 import android.widget.ScrollView
-import help.*
-import lol.adel.graph.data.lineIds
-import lol.adel.graph.data.xs
+import help.ctx
+import help.isNight
+import help.setNightMode
+import lol.adel.graph.widget.ChartParent
 
 class MainActivity : Activity() {
 
@@ -20,25 +21,18 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val root = LinearLayout(ctx).apply {
-            orientation = LinearLayout.VERTICAL
-            showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
-            dividerDrawable = ctx.getDrawable(R.drawable.charts_divider)
-        }
-
-        App.CHARTS.forEachIndexed { idx, data ->
-            val lineIds = data.lineIds()
-            val xs = data.xs()
-
-            val vh = makeChartLayout(ctx = ctx, medium = Typefaces.medium, data = data, lineIds = lineIds, xs = xs)
-            vh.setup(idx, data, lineIds, xs)
-
-            root += vh.root
-        }
-
         setContentView(ScrollView(ctx).apply {
             id = ID_SCROLL
-            addView(root)
+
+            addView(LinearLayout(ctx).apply {
+                orientation = LinearLayout.VERTICAL
+                showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
+                dividerDrawable = ctx.getDrawable(R.drawable.charts_divider)
+
+                App.CHARTS.forEachIndexed { idx, data ->
+                    addView(ChartParent(ctx, data, idx))
+                }
+            })
         })
     }
 

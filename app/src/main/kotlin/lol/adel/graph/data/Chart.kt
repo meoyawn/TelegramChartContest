@@ -54,7 +54,7 @@ fun Chart.minMax(cameraX: MinMax, lines: List<LineId>): MinMax {
     var minY = Long.MAX_VALUE
     var maxY = Long.MIN_VALUE
 
-    if (stacked) {
+    if (types.any { _, v -> v == ColumnType.bar }) {
         minY = 0L
         for (i in begin..end) {
             maxY = max(maxY, lines.sumByIndex { this[it][i] })
@@ -73,9 +73,6 @@ fun Chart.minMax(cameraX: MinMax, lines: List<LineId>): MinMax {
     MM.set(min = minY.toFloat(), max = maxY.toFloat())
     return MM
 }
-
-fun chartName(idx: Idx): String =
-    "Chart ${idx + 1}"
 
 private fun rnd(value: Double): Double =
     round(value * 100) / 100

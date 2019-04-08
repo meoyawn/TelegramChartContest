@@ -10,6 +10,7 @@ import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.MinMax
 import lol.adel.graph.data.*
+import lol.adel.graph.empty
 import lol.adel.graph.norm
 import lol.adel.graph.set
 
@@ -17,8 +18,9 @@ import lol.adel.graph.set
 class PreviewView(
     ctx: Context,
     private val data: Chart,
-    lineIds: List<LineId>,
-    private val lineBuf: FloatArray
+    private val allLines: List<LineId>,
+    private val lineBuf: FloatArray,
+    private val enabledLines: List<LineId>
 ) : View(ctx) {
 
     private companion object {
@@ -33,24 +35,16 @@ class PreviewView(
             }
     }
 
-    private val cameraX = MinMax(0f, 0f)
-    private val cameraY = MinMax(0f, 0f)
-    private var cameraAnim: Animator? = null
+    private val cameraX = MinMax(min = 0f, max = data.size() - 1f)
+    private val cameraY = MinMax()
 
-    private val enabledLines = ArrayList<LineId>()
-    private val linePaints = SimpleArrayMap<LineId, Paint>()
-
-    init {
-        enabledLines.addAll(lineIds)
-
-        lineIds.forEachByIndex { id ->
-            linePaints[id] = makeLinePaint(data.color(id))
+    private val linePaints = SimpleArrayMap<LineId, Paint>().apply {
+        allLines.forEachByIndex { id ->
+            this[id] = makeLinePaint(data.color(id))
         }
-
-        cameraX.min = 0f
-        cameraX.max = data.size() - 1f
-        cameraY.set(data.minMax(cameraX, enabledLines))
     }
+
+    private var cameraAnim: Animator? = null
 
     private fun mapX(idx: Idx, width: PxF): X =
         cameraX.norm(idx) * width
@@ -64,29 +58,39 @@ class PreviewView(
             mapY(value = points[idx], height = height)
         )
 
-    fun selectLine(id: LineId, enabled: Boolean) {
-        if (enabled) {
-            enabledLines += id
-        } else {
-            enabledLines -= id
-        }
-
-        animateAlpha(linePaints[id]!!, if (enabled) 255 else 0)
-
-        val tempY = data.minMax(cameraX, enabledLines)
+    fun lineSelected(id: LineId, enabled: Boolean) {
+        val paint = linePaints[id]!!
+        val toAlpha = if (enabled) 255 else 0
+        val toY = data.minMax(cameraX, enabledLines)
 
         cameraAnim?.cancel()
         cameraAnim = playTogether(
-            animateFloat(cameraY.min, tempY.min) {
+            animateInt(paint.alpha, toAlpha) {
+                paint.alpha = it
+                invalidate()
+            },
+            animateFloat(cameraY.min, toY.min) {
                 cameraY.min = it
                 invalidate()
             },
-            animateFloat(cameraY.max, tempY.max) {
+            animateFloat(cameraY.max, toY.max) {
                 cameraY.max = it
                 invalidate()
             }
         )
         cameraAnim?.start()
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        if (!cameraY.empty()) return
+
+        cameraY.set(data.minMax(cameraX, enabledLines))
+        allLines.forEachByIndex {
+            if (it !in enabledLines) {
+                linePaints[it]?.alpha = 0
+            }
+        }
     }
 
     override fun onDraw(canvas: Canvas) {

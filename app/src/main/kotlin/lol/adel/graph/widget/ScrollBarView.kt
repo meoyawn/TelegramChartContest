@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.os.Bundle
-import android.os.Parcelable
 import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
@@ -42,8 +40,14 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
 
     var listener: Listener? = null
 
-    private var left: Float = 0f
-    private var right: Float = 100f
+    var left: PxF = -1f
+        set(value) {
+            field = value
+        }
+    var right: PxF = -1f
+        set(value) {
+            field = value
+        }
 
     private val dragging: SparseArray<Handle> = SparseArray()
 
@@ -56,22 +60,6 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
         listener?.onBoundsChange(left = left / width, right = right / width)
         invalidate()
     }
-
-    override fun onSaveInstanceState(): Parcelable? =
-        Bundle().apply {
-            putParcelable("super", super.onSaveInstanceState())
-            putFloat("left", left)
-            putFloat("right", right)
-        }
-
-    override fun onRestoreInstanceState(state: Parcelable?): Unit =
-        if (state is Bundle) {
-            super.onRestoreInstanceState(state.getParcelable("super"))
-            left = state.getFloat("left")
-            right = state.getFloat("right")
-        } else {
-            super.onRestoreInstanceState(state)
-        }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {

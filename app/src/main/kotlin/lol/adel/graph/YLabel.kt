@@ -6,7 +6,7 @@ import android.graphics.Paint
 import android.text.TextPaint
 import android.view.animation.AccelerateInterpolator
 import help.*
-import lol.adel.graph.widget.HorizontalLabelsView
+import lol.adel.graph.widget.XLabelsView
 
 data class YLabel(
     var min: Float,
@@ -32,7 +32,7 @@ data class YLabel(
 
             val labelPaint = TextPaint().apply {
                 color = ctx.color(R.color.label_text)
-                textSize = HorizontalLabelsView.TEXT_SIZE_PX
+                textSize = XLabelsView.TEXT_SIZE_PX
             }
 
             return YLabel(

@@ -7,10 +7,12 @@ import android.text.TextPaint
 import android.view.View
 import help.*
 import lol.adel.graph.Dates
+import lol.adel.graph.MinMax
 import lol.adel.graph.R
+import lol.adel.graph.len
 
 @SuppressLint("ViewConstructor")
-class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) {
+class XLabelsView(ctx: Context, private val xs: LongArray, val cameraX: MinMax) : View(ctx) {
 
     companion object {
         val TEXT_SIZE_PX: PxF = 12.dpF
@@ -27,17 +29,7 @@ class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) 
         textSize = TEXT_SIZE_PX
     }
 
-    private var start: IdxF = 0f
-    private var end: IdxF = 0f
-
-    init {
-        start = xs.size * 0.75f
-        end = xs.size - 1f
-    }
-
-    fun setHorizontalRange(from: IdxF, to: IdxF) {
-        start = from
-        end = to
+    fun cameraXChanged() {
         invalidate()
     }
 
@@ -46,7 +38,7 @@ class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) 
         val width = widthF
         val halfHeight = heightF / 2
 
-        val visibleIdxRange = end - start
+        val visibleIdxRange = cameraX.len()
         val daysToShow = width / GAP
         val pxPerIdx = width / visibleIdxRange
 
@@ -58,6 +50,7 @@ class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) 
         val fraction = if (stepCeil == stepFloor) 1f
         else (rawStep - stepFloor) / (stepCeil - stepFloor)
 
+        val (start, end) = cameraX
         val startFromIdx = (start - start % stepCeil).toInt()
         val hiddenEnd = end.ceil()
 

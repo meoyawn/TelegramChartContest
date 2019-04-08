@@ -44,6 +44,9 @@ fun norm(value: Float, min: Float, max: Float): Float =
 fun norm(value: Int, min: Float, max: Float): Float =
     (value - min) / (max - min)
 
+fun norm(value: Float, min: Int, max: Int): Float =
+    (value - min) / (max - min)
+
 fun norm(value: Long, min: Float, max: Float): Float =
     (value - min) / (max - min)
 

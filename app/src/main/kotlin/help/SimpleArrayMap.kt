@@ -3,13 +3,6 @@ package help
 import android.util.SparseArray
 import androidx.collection.SimpleArrayMap
 
-fun <K, V> simpleArrayMapOf(vararg items: Pair<K, V>): SimpleArrayMap<K, V> =
-    SimpleArrayMap<K, V>().apply {
-        items.forEach { (k, v) ->
-            put(k, v)
-        }
-    }
-
 fun <K, V> SimpleArrayMap<K, V>.first(): V =
     valueAt(0)
 
@@ -61,5 +54,19 @@ inline fun <K, V> SimpleArrayMap<K, V>.findKey(f: (K, V) -> Boolean): K? {
     return null
 }
 
+inline fun <K, V> SimpleArrayMap<K, V>.any(f: (K, V) -> Boolean): Boolean =
+    findKey(f) != null
+
 operator fun <K, V> SimpleArrayMap<K, V>.set(k: K, v: V): V? =
     put(k, v)
+
+operator fun <K, V> SimpleArrayMap<K, V>.minusAssign(k: K) {
+    remove(k)
+}
+
+fun <K> SimpleArrayMap<K, LongArray>.deepCopy(): SimpleArrayMap<K, LongArray> =
+    SimpleArrayMap<K, LongArray>(size()).also { copy ->
+        forEach { k, v ->
+            copy.put(k, v.clone())
+        }
+    }
