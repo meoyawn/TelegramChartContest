@@ -19,6 +19,7 @@ import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.*
+import org.apmem.tools.layouts.FlowLayout
 
 @SuppressLint("ViewConstructor")
 class ChartParent(ctx: Context, val data: Chart, idx: Idx) : LinearLayout(ctx) {
@@ -101,7 +102,7 @@ class ChartParent(ctx: Context, val data: Chart, idx: Idx) : LinearLayout(ctx) {
         val lineBuffer = FloatArray(size = dataSize.inc() * 4)
 
         val configuration = ctx.resources.configuration
-        val height = if (configuration.screenHeightDp > configuration.screenWidthDp) 270.dp else 130.dp
+        val height = if (configuration.screenHeightDp > configuration.screenWidthDp) 260.dp else 130.dp
 
         addView(FrameLayout(ctx).apply {
             layoutTransition = LayoutTransition()
@@ -156,23 +157,18 @@ class ChartParent(ctx: Context, val data: Chart, idx: Idx) : LinearLayout(ctx) {
 
         val root = this
 
+        val flow = FlowLayout(ctx)
+
         allLines.forEachByIndex { id ->
             val checkBox = makeCheckBox(id)
-            root.addView(checkBox)
+            flow.addView(checkBox, FlowLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = 8.dp })
             lineCheckboxes[id] = checkBox
-
-            root.addView(
-                View(ctx).apply { setBackgroundResource(R.color.divider) },
-                LinearLayout.LayoutParams(MATCH_PARENT, 1.dp).apply {
-                    marginStart = 40.dp
-                }
-            )
 
             val text = makeLineText(ctx, data, id, Typefaces.medium)
             floatingContainer.addView(text)
             lineTexts[id] = text
         }
-        root.removeViewAt(root.childCount - 1)
+        root.addView(flow)
 
         scroll.listener = object : ScrollBarView.Listener {
             override fun onBoundsChange(left: Float, right: Float) {

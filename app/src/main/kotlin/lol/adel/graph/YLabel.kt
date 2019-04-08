@@ -13,7 +13,9 @@ data class YLabel(
     var max: Float,
     val linePaint: Paint,
     val labelPaint: TextPaint,
-    val animator: ValueAnimator
+    val animator: ValueAnimator,
+    var maxLineAlpha: Float = 1f,
+    var maxLabelAlpha: Float = 1f
 ) {
     companion object {
 
@@ -24,32 +26,23 @@ data class YLabel(
         /**
          * created independently
          */
-        fun create(ctx: Context): YLabel {
-            val linePaint = Paint().apply {
-                color = ctx.color(R.color.divider)
-                strokeWidth = H_LINE_THICKNESS
-            }
-
-            val labelPaint = TextPaint().apply {
-                color = ctx.color(R.color.label_text)
-                textSize = XLabelsView.TEXT_SIZE_PX
-            }
-
-            return YLabel(
+        fun create(ctx: Context): YLabel =
+            YLabel(
                 min = 0f,
                 max = 0f,
-                linePaint = linePaint,
+                linePaint = Paint().apply {
+                    color = ctx.color(R.color.divider)
+                    strokeWidth = H_LINE_THICKNESS
+                },
                 animator = ValueAnimator.ofFloat(1f, 0f),
-                labelPaint = labelPaint
+                labelPaint = TextPaint().apply {
+                    color = ctx.color(R.color.label_text)
+                    textSize = XLabelsView.TEXT_SIZE_PX
+                }
             )
-        }
 
-        fun obtain(ctx: Context, list: MutableList<YLabel>): YLabel =
-            POOL.acquire()?.apply {
-                // theme changing
-                linePaint.color = ctx.color(R.color.divider)
-                labelPaint.color = ctx.color(R.color.label_text)
-            } ?: create(ctx).also { yLabel ->
+        fun obtain(ctx: Context, list: MutableList<YLabel>, bar: Boolean): YLabel =
+            POOL.acquire()?.apply { tune(ctx = ctx, label = this, bar = bar) } ?: create(ctx).also { yLabel ->
                 // created for pool
                 yLabel.animator.run {
                     interpolator = START_FAST
@@ -61,6 +54,15 @@ data class YLabel(
                     }
                 }
             }
+
+        fun tune(ctx: Context, label: YLabel, bar: Boolean) {
+            // theme changing
+            label.linePaint.color = ctx.color(R.color.divider)
+            label.labelPaint.color = if (bar) ctx.color(R.color.label_text_bars) else ctx.color(R.color.label_text)
+            // anim reuse
+            label.maxLineAlpha = 0.1f
+            label.maxLabelAlpha = if (bar) 0.5f else 1f
+        }
 
         fun release(label: YLabel, list: MutableList<YLabel>) {
             label.animator.removeAllListeners()
@@ -84,6 +86,6 @@ fun YLabel.set(from: MinMax) {
 }
 
 fun YLabel.setAlpha(alpha: Float) {
-    labelPaint.alphaF = alpha
-    linePaint.alphaF = alpha
+    linePaint.alphaF = alpha * maxLineAlpha
+    labelPaint.alphaF = alpha * maxLabelAlpha
 }

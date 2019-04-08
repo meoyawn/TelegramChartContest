@@ -10,7 +10,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.*
@@ -31,22 +30,13 @@ class ChartView(
 
         // labels
         const val H_LINE_COUNT = 5
-
         val LINE_LABEL_DIST = 5.dp
+        val LINE_PADDING = 16.dpF
 
         // circles
         val OUTER_CIRCLE_RADIUS = 4.dpF
         val INNER_CIRCLE_RADIUS = 3.dpF
         val Y_OFFSET_TO_SEE_CIRCLES = 5.dp
-
-        fun makeLinePaint(clr: ColorInt): Paint =
-            Paint().apply {
-                style = Paint.Style.STROKE
-                strokeWidth = 2.dpF
-                strokeCap = Paint.Cap.ROUND
-                isAntiAlias = true
-                color = clr
-            }
     }
 
     interface Listener {
@@ -55,9 +45,31 @@ class ChartView(
 
     var listener: Listener? = null
 
-    private val linePaints = SimpleArrayMap<LineId, Paint>().apply {
-        allLines.forEachByIndex { id ->
-            this[id] = makeLinePaint(data.color(id))
+    private fun makeLinePaint(clr: ColorInt): Paint =
+        Paint().apply {
+            if (isBar()) {
+                style = Paint.Style.FILL
+                strokeWidth = 1.pxF
+            } else {
+                style = Paint.Style.STROKE
+                strokeWidth = 2.dpF
+                strokeCap = Paint.Cap.ROUND
+                isAntiAlias = true
+            }
+            color = clr
+        }
+
+    private val animatedColumns = allLines.toSimpleArrayMap { id ->
+        AnimatedColumn(
+            points = data.columns[id],
+            frac = 1f,
+            animator = ValueAnimator(),
+            paint = makeLinePaint(data.color(id))
+        ).apply {
+            animator.addUpdateListener {
+                frac = it.animatedFloat()
+                invalidate()
+            }
         }
     }
 
@@ -109,6 +121,7 @@ class ChartView(
         anticipatedY.set(cameraY)
 
         yLabels += YLabel.create(context).apply {
+            YLabel.tune(context, this, isBar())
             animator.interpolator = DecelerateInterpolator()
             animator.addUpdateListener {
                 setAlpha(it.animatedFraction)
@@ -118,7 +131,7 @@ class ChartView(
 
         allLines.forEachByIndex {
             if (it !in enabledLines) {
-                linePaints[it]?.alpha = 0
+                animatedColumns[it]?.frac = 0f
             }
         }
     }
@@ -129,7 +142,9 @@ class ChartView(
     }
 
     fun lineSelected(id: LineId, enabled: Boolean) {
-        animateAlpha(linePaints[id]!!, if (enabled) 255 else 0)
+        val column = animatedColumns[id]!!
+        column.animator.restartWith(column.frac, if (enabled) 1f else 0f)
+
         animateCameraY()
     }
 
@@ -161,10 +176,11 @@ class ChartView(
         cameraMinAnim.restartWith(cameraY.min, tempY.min)
         cameraMaxAnim.restartWith(cameraY.max, tempY.max)
 
-        if (tempY.distanceSq(anticipatedY) > (anticipatedY.len() / 20).sq()) {
+        val currentYLabel = yLabels.first()
+        if (tempY.distanceSq(currentYLabel) > (currentYLabel.len() * 0.1f).sq()) {
 
             // appear
-            yLabels.first().run {
+            currentYLabel.run {
                 set(tempY)
                 animator.restart()
             }
@@ -175,7 +191,7 @@ class ChartView(
             }
 
             // fade
-            yLabels += YLabel.obtain(context, yLabels).apply {
+            yLabels += YLabel.obtain(ctx = context, list = yLabels, bar = isBar()).apply {
                 set(anticipatedY)
                 animator.start()
             }
@@ -234,14 +250,6 @@ class ChartView(
         listener?.onTouch(idx = -1, x = -1f, maxY = cameraY.max)
     }
 
-    private fun drawLine(value: Long, height: PxF, canvas: Canvas, width: PxF, paint: Paint) {
-        val y = mapY(value, height)
-        canvas.drawLine(0f, y, width, y, paint)
-    }
-
-    private fun drawLabel(canvas: Canvas, value: Long, height: PxF, paint: Paint): Unit =
-        canvas.drawText(chartValue(value, cameraY.max), 0f, mapY(value, height) - LINE_LABEL_DIST, paint)
-
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
@@ -255,34 +263,32 @@ class ChartView(
             idx
         } else -1
 
-        yLabels.forEachByIndex {
-            it.iterate(H_LINE_COUNT, it.linePaint) { value, paint ->
-                drawLine(value, height, canvas, width, paint)
-            }
-        }
-
         val start = cameraX.min
         val end = cameraX.max
 
-        if (data.types.any { _, columnType -> columnType == ColumnType.bar }) {
+        if (isBar()) {
             var x = cameraX.norm(start - start.floor())
             val bw = width / cameraX.len()
             for (i in start.floor()..end.ceil()) {
                 var y: PxF = height
-                linePaints.forEach { id, paint ->
-                    val point = data[id][i]
+                animatedColumns.forEach { id, column ->
+                    val point = column[i]
                     if (point > 0) {
                         val bh = cameraY.norm(point) * height
-                        canvas.drawRect(x, y - bh, x + bw, y, paint)
+                        canvas.drawRect(x, y - bh, x + bw, y, column.paint)
                         y -= bh
                     }
                 }
                 x += bw
             }
+
+            drawYLines(height, canvas, width)
         } else {
-            linePaints.forEach { id, paint ->
-                if (paint.alpha > 0) {
-                    val points = data[id]
+            drawYLines(height, canvas, width)
+
+            animatedColumns.forEach { id, column ->
+                if (column.frac > 0) {
+                    val points = column.points
 
                     mapped(width, height, points, start.floor()) { x, y ->
                         // start of first line
@@ -298,17 +304,18 @@ class ChartView(
                     }
                     bufIdx -= 2
 
-                    canvas.drawLines(lineBuf, 0, bufIdx, paint)
+                    column.paint.alphaF = column.frac
+                    canvas.drawLines(lineBuf, 0, bufIdx, column.paint)
                 }
             }
-        }
 
-        if (touchingIdx != -1) {
-            linePaints.forEach { line, paint ->
-                if (paint.alpha > 0) {
-                    mapped(width, height, data[line], touchingIdx) { x, y ->
-                        canvas.drawCircle(x, y, OUTER_CIRCLE_RADIUS, paint)
-                        canvas.drawCircle(x, y, INNER_CIRCLE_RADIUS, innerCirclePaint)
+            if (touchingIdx != -1) {
+                animatedColumns.forEach { line, column ->
+                    if (column.frac > 0) {
+                        mapped(width, height, data[line], touchingIdx) { x, y ->
+                            canvas.drawCircle(x, y, OUTER_CIRCLE_RADIUS, column.paint)
+                            canvas.drawCircle(x, y, INNER_CIRCLE_RADIUS, innerCirclePaint)
+                        }
                     }
                 }
             }
@@ -320,4 +327,18 @@ class ChartView(
             }
         }
     }
+
+    private fun drawLabel(canvas: Canvas, value: Long, height: PxF, paint: Paint): Unit =
+        canvas.drawText(chartValue(value, cameraY.max), LINE_PADDING, mapY(value, height) - LINE_LABEL_DIST, paint)
+
+    private fun drawYLines(height: PxF, canvas: Canvas, width: PxF): Unit =
+        yLabels.forEachByIndex {
+            it.iterate(H_LINE_COUNT, it.linePaint) { value, paint ->
+                val y = mapY(value, height)
+                canvas.drawLine(LINE_PADDING, y, width - LINE_PADDING, y, paint)
+            }
+        }
+
+    private fun isBar(): Boolean =
+        data.types.any { _, type -> type == ColumnType.bar }
 }

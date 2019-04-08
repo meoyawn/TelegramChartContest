@@ -5,10 +5,7 @@ import androidx.annotation.MainThread
 import help.*
 import lol.adel.graph.MinMax
 import lol.adel.graph.set
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.round
+import kotlin.math.*
 
 fun Columns.first(): LongArray =
     map.first()
@@ -74,17 +71,25 @@ fun Chart.minMax(cameraX: MinMax, lines: List<LineId>): MinMax {
     return MM
 }
 
-private fun rnd(value: Double): Double =
-    round(value * 100) / 100
+private fun rnd(value: Double): String {
+    val prettyRound = round(value * 10) / 10
+    val floor = floor(prettyRound).toLong()
+    val point = prettyRound - floor
+
+    return if (point == 0.0) {
+        "$floor"
+    } else {
+        "$floor.${(point * 10).toInt()}"
+    }
+}
 
 fun chartValue(value: Long, max: Float): String =
     when (abs(value)) {
         in 0..1_000 ->
             "$value"
 
-        in 0..1_000_000 ->
-            if (max < 1_000_000) "$value"
-            else "${value / 1_000}K"
+        in 1000..1_000_000 ->
+            "${rnd(value = value / 1_000.0)}K"
 
         else ->
             "${rnd(value = value / 1_000_000.0)}M"

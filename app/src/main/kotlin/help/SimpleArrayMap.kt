@@ -70,3 +70,10 @@ fun <K> SimpleArrayMap<K, LongArray>.deepCopy(): SimpleArrayMap<K, LongArray> =
             copy.put(k, v.clone())
         }
     }
+
+inline fun <K, V> List<K>.toSimpleArrayMap(f: (K) -> V): SimpleArrayMap<K, V> =
+    SimpleArrayMap<K, V>(size).also { new ->
+        forEachByIndex { k ->
+            new[k] = f(k)
+        }
+    }

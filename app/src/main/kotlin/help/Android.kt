@@ -33,6 +33,9 @@ val Dp.dp: Px
 val Px.px: Px
     get() = this
 
+val Px.pxF: PxF
+    get() = toFloat()
+
 val View.widthF: PxF
     get() = width.toFloat()
 

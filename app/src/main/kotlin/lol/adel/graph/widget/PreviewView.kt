@@ -38,9 +38,9 @@ class PreviewView(
     private val cameraX = MinMax(min = 0f, max = data.size() - 1f)
     private val cameraY = MinMax()
 
-    private val linePaints = SimpleArrayMap<LineId, Paint>().apply {
+    private val linePaints = SimpleArrayMap<LineId, Paint>(allLines.size).apply {
         allLines.forEachByIndex { id ->
-            this[id] = makeLinePaint(data.color(id))
+            put(id, makeLinePaint(data.color(id)))
         }
     }
 

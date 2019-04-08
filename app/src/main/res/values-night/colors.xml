@@ -6,6 +6,7 @@
     <color name="background">#1D2733</color>
 
     <color name="label_text">#96A2AA</color>
+    <color name="label_text_bars">#80252529</color>
     <color name="divider">#293544</color>
     <color name="vertical_line">#3b4a5a</color>
     <color name="bottom">#151E27</color>
