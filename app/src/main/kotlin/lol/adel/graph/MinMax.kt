@@ -34,5 +34,8 @@ fun MinMax.normalize(value: Long): Float =
 fun MinMax.normalize(value: Int): Float =
     normalize(value = value, min = min, max = max)
 
+fun MinMax.normalize(value: Float): Float =
+    normalize(value = value, min = min, max = max)
+
 fun MinMax.denormalize(value: Float): Float =
     denormalize(value = value, min = min, max = max)

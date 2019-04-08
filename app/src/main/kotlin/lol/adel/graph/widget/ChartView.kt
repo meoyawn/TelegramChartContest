@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
@@ -67,6 +68,9 @@ class ChartView(
     //endregion
 
     private fun mapX(idx: Idx, width: PxF): X =
+        cameraX.normalize(idx) * width
+
+    private fun mapX(idx: IdxF, width: PxF): X =
         cameraX.normalize(idx) * width
 
     private fun mapY(value: Long, height: PxF): Y =
@@ -158,7 +162,7 @@ class ChartView(
     private fun calculateCameraY() {
         if (enabledLines.isEmpty()) return
 
-        fillMinMax(data, enabledLines, cameraX, tempY)
+        fillMinMax(data, enabledLines, cameraX, tempY, stacked = true)
 
         if (tempY == anticipatedY) return
 
@@ -190,37 +194,54 @@ class ChartView(
         anticipatedY.set(tempY)
     }
 
+    private val gd = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+
+        override fun onSingleTapUp(e: MotionEvent): Boolean {
+            return super.onSingleTapUp(e)
+        }
+
+        override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
+            return super.onScroll(e1, e2, distanceX, distanceY)
+        }
+    })
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        gd.onTouchEvent(event)
+
         when (event.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
-
                 val evX = event.x
                 val evY = event.y
 
-                if (touchingX != -1f && abs(touchingX - evX) > abs(touchingY - evY)) {
-                    parent.requestDisallowInterceptTouchEvent(true)
+                if (touchingX != -1f && event.action == MotionEvent.ACTION_DOWN) {
+                    resetTouch()
+                } else {
+                    if (touchingX != -1f && abs(touchingX - evX) > abs(touchingY - evY)) {
+                        parent.requestDisallowInterceptTouchEvent(true)
+                    }
+
+                    touchingX = evX
+                    touchingY = evY
+
+                    val idx = cameraX.denormalize(value = touchingX / widthF).roundToInt()
+                    val mappedX = mapX(idx, widthF)
+
+                    listener?.onTouch(idx = idx, x = mappedX, maxY = cameraY.max)
                 }
-
-                touchingX = evX
-                touchingY = evY
-
-                val idx = cameraX.denormalize(value = touchingX / widthF).roundToInt()
-                val mappedX = mapX(idx, widthF)
-
-                listener?.onTouch(idx = idx, x = mappedX, maxY = cameraY.max)
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                touchingX = -1f
-                touchingY = -1f
-
-                listener?.onTouch(idx = -1, x = -1f, maxY = cameraY.max)
-
                 parent.requestDisallowInterceptTouchEvent(false)
             }
         }
         return true
+    }
+
+    private fun resetTouch() {
+        touchingX = -1f
+        touchingY = -1f
+        listener?.onTouch(idx = -1, x = -1f, maxY = cameraY.max)
     }
 
     private fun drawLine(value: Long, height: PxF, canvas: Canvas, width: PxF, paint: Paint) {
@@ -253,9 +274,9 @@ class ChartView(
         val start = cameraX.min
         val end = cameraX.max
 
-        linePaints.forEach { line, paint ->
+        linePaints.forEach { id, paint ->
             if (paint.alpha > 0) {
-                val points = data[line]
+                val points = data[id]
 
                 mapped(width, height, points, start.floor()) { x, y ->
                     // start of first line
@@ -274,6 +295,14 @@ class ChartView(
                 canvas.drawLines(lineBuf, 0, bufIdx, paint)
             }
         }
+
+//        for (i in start.floor()..end.ceil()) {
+//            linePaints.forEach { id, paint ->
+//                if (paint.alpha > 0) {
+//                    val point = data[id][i]
+//                }
+//            }
+//        }
 
         if (touchingIdx != -1) {
             linePaints.forEach { line, paint ->

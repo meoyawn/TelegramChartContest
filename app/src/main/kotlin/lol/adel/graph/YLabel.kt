@@ -12,7 +12,7 @@ data class YLabel(
     var min: Float,
     var max: Float,
     val linePaint: Paint,
-    val labelPaint: Paint,
+    val labelPaint: TextPaint,
     val animator: ValueAnimator
 ) {
     companion object {
@@ -21,6 +21,9 @@ data class YLabel(
         private val POOL = SimplePool<YLabel>(maxPoolSize = 100)
         private val START_FAST = AccelerateInterpolator()
 
+        /**
+         * created independently
+         */
         fun create(ctx: Context): YLabel {
             val linePaint = Paint().apply {
                 color = ctx.color(R.color.divider)
@@ -42,15 +45,19 @@ data class YLabel(
         }
 
         fun obtain(ctx: Context, list: MutableList<YLabel>): YLabel =
-            POOL.acquire() ?: create(ctx).also { label ->
-                label.animator.run {
+            POOL.acquire()?.apply {
+                // theme changing
+                linePaint.color = ctx.color(R.color.divider)
+                labelPaint.color = ctx.color(R.color.label_text)
+            } ?: create(ctx).also { yLabel ->
+                // created for pool
+                yLabel.animator.run {
                     interpolator = START_FAST
-
                     addUpdateListener {
-                        label.setAlpha(1 - it.animatedFraction)
+                        yLabel.setAlpha(1 - it.animatedFraction)
                     }
                     onEnd {
-                        release(label, list)
+                        release(yLabel, list)
                     }
                 }
             }

@@ -6,9 +6,8 @@ import android.graphics.Canvas
 import android.text.TextPaint
 import android.view.View
 import help.*
+import lol.adel.graph.Dates
 import lol.adel.graph.R
-import java.text.SimpleDateFormat
-import java.util.*
 
 @SuppressLint("ViewConstructor")
 class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) {
@@ -17,8 +16,6 @@ class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) 
         val TEXT_SIZE_PX: PxF = 12.dpF
         private val GAP: PxF = 80.dpF
         private val PX_PER_CHAR: PxF = TEXT_SIZE_PX / 3.8f
-
-        private val FMT = SimpleDateFormat("MMM d", Locale.US)
     }
 
     private val opaque = TextPaint().apply {
@@ -64,13 +61,14 @@ class HorizontalLabelsView(ctx: Context, private val xs: LongArray) : View(ctx) 
         val startFromIdx = (start - start % stepCeil).toInt()
         val hiddenEnd = end.ceil()
 
+        val format = Dates.HORIZONTAL
         iterate(from = startFromIdx, to = hiddenEnd, step = stepCeil) { idx ->
-            val text = FMT.format(xs[idx])
+            val text = format.format(xs[idx])
             canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * PX_PER_CHAR), halfHeight, opaque)
         }
         transparent.alphaF = 1 - fraction
         iterate(from = startFromIdx + stepFloor, to = hiddenEnd, step = stepCeil) { idx ->
-            val text = FMT.format(xs[idx])
+            val text = format.format(xs[idx])
             canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * PX_PER_CHAR), halfHeight, transparent)
         }
     }

@@ -55,7 +55,7 @@ fun Chart.lineIds(): List<LineId> =
 fun Chart.xs(): LongArray =
     columns[types.findKey { _, type -> type == ColumnType.x }]
 
-fun fillMinMax(chart: Chart, lines: List<LineId>, cameraX: MinMax, result: MinMax) {
+fun fillMinMax(chart: Chart, lines: List<LineId>, cameraX: MinMax, result: MinMax, stacked: Boolean = false) {
     var minY = Long.MAX_VALUE
     var maxY = Long.MIN_VALUE
 
@@ -68,12 +68,19 @@ fun fillMinMax(chart: Chart, lines: List<LineId>, cameraX: MinMax, result: MinMa
     val begin = clamp(start.ceil(), minX, maxX)
     val finish = clamp(end.floor(), minX, maxX)
 
-    lines.forEachByIndex { id ->
-        val points = chart[id]
+    if (stacked) {
+        minY = 0L
         for (i in begin..finish) {
-            val p = points[i]
-            minY = min(minY, p)
-            maxY = max(maxY, p)
+            maxY = max(maxY, lines.sumByIndex { chart[it][i] })
+        }
+    } else {
+        lines.forEachByIndex { id ->
+            val points = chart[id]
+            for (i in begin..finish) {
+                val p = points[i]
+                minY = min(minY, p)
+                maxY = max(maxY, p)
+            }
         }
     }
 

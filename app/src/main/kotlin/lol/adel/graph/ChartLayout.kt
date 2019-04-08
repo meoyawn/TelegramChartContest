@@ -19,6 +19,22 @@ import lol.adel.graph.widget.ScrollBarView
 
 private val ID_SCROLL = View.generateViewId()
 
+class ViewHolder(
+    val root: ViewGroup,
+    val name: TextView,
+    val chartView: ChartView,
+    val scroll: ScrollBarView,
+    val background: PreviewView,
+    val horizontalLabels: HorizontalLabelsView,
+    val floating: ViewGroup,
+    val floatingText: TextView,
+    val floatingContainer: ViewGroup,
+    val dates: TextView
+)
+
+val ViewHolder.ctx: Context
+    get() = root.context
+
 fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<LineId>, xs: LongArray): ViewHolder {
     lateinit var name: TextView
     lateinit var chart: ChartView
@@ -28,6 +44,7 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<L
     lateinit var horizintal: HorizontalLabelsView
     lateinit var background: PreviewView
     lateinit var scroll: ScrollBarView
+    lateinit var dates: TextView
 
     val root = LinearLayout(ctx).apply {
         orientation = LinearLayout.VERTICAL
@@ -42,6 +59,11 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<L
             textSize = 18f
         }
         addView(name)
+
+        dates = TextView(ctx).apply {
+            typeface = medium
+        }
+        addView(dates)
 
         val dataSize = data.size()
         val lineBuffer = FloatArray(size = dataSize.inc() * 4)
@@ -104,14 +126,14 @@ fun makeChartLayout(ctx: Context, medium: Typeface, data: Chart, lineIds: List<L
 
     return ViewHolder(
         root = root,
-        linear = root,
         name = name,
         chartView = chart,
-        floatingText = floatingText,
-        floating = floating,
-        floatingContainer = floatingContainer,
-        horizontalLabels = horizintal,
+        scroll = scroll,
         background = background,
-        scroll = scroll
+        horizontalLabels = horizintal,
+        floating = floating,
+        floatingText = floatingText,
+        floatingContainer = floatingContainer,
+        dates = dates
     )
 }

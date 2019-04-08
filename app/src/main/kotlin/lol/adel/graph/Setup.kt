@@ -15,8 +15,6 @@ import help.*
 import lol.adel.graph.data.*
 import lol.adel.graph.widget.ChartView
 import lol.adel.graph.widget.ScrollBarView
-import java.text.SimpleDateFormat
-import java.util.*
 
 private val TWO_TIMES = CycleInterpolator(2f)
 
@@ -88,12 +86,11 @@ fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: List<LineId>, xs: LongArray
     val lineTexts = SimpleArrayMap<LineId, ViewGroup>()
 
     lineIds.forEachByIndex { id ->
-        linear.addView(makeCheckbox(data, id, this, lineTexts))
-        linear.addView(
+        root.addView(makeCheckbox(data, id, this, lineTexts))
+        root.addView(
             View(ctx).apply { setBackgroundResource(R.color.divider) },
             LinearLayout.LayoutParams(MATCH_PARENT, 1.dp).apply {
                 marginStart = 40.dp
-                marginEnd = (-20).dp
             }
         )
 
@@ -102,7 +99,7 @@ fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: List<LineId>, xs: LongArray
         lineTexts[id] = text
     }
 
-    linear.removeViewAt(linear.childCount - 1)
+    root.removeViewAt(root.childCount - 1)
 
     val size = data.size()
     val lastIndex = size - 1
@@ -113,10 +110,11 @@ fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: List<LineId>, xs: LongArray
             val end = right * lastIndex
             chartView.setHorizontalBounds(from = start, to = end)
             horizontalLabels.setHorizontalRange(from = start, to = end)
+
+            val range = Dates.HEADER_RANGE
+            dates.text = "${range.format(xs[start.toInt()])} - ${range.format(xs[end.toInt()])}"
         }
     }
-
-    val fmt = SimpleDateFormat("EEE, MMM d", Locale.US)
 
     floating.visibility = View.INVISIBLE
     chartView.listener = object : ChartView.Listener {
@@ -142,7 +140,7 @@ fun ViewHolder.setup(idx: Idx, data: Chart, lineIds: List<LineId>, xs: LongArray
                         0f
                 }
 
-                floatingText.text = fmt.format(xs[idx])
+                floatingText.text = Dates.PANEL.format(xs[idx])
 
                 lineTexts.forEach { id, view ->
                     view.component1().toTextView().text = chartValue(data.columns[id][idx], maxY)
