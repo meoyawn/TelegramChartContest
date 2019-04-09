@@ -56,4 +56,6 @@ data class Chart(
         else ->
             ChartType.LINE
     }
+
+    val line: Boolean = type == ChartType.LINE || type == ChartType.TWO_Y
 }

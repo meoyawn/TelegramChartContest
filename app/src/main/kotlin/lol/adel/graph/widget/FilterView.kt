@@ -38,17 +38,16 @@ class FilterView(ctx: Context, private val data: Chart, private val enabledLines
     }
 
     private fun onChange(select: List<LineId> = emptyList(), deselect: List<LineId> = emptyList()) {
-        listener?.onChange(select, deselect)
-
         deselect.forEachByIndex {
-            checkboxes[it]!!.isChecked = false
+            checkboxes[it]?.isChecked = false
         }
         select.forEachByIndex {
-            checkboxes[it]!!.isChecked = true
+            checkboxes[it]?.isChecked = true
         }
+        listener?.onChange(select, deselect)
     }
 
-    private fun CheckBox.lol() {
+    private fun CheckBox.shake() {
         translationX = 0f
         animate()
             .translationXBy(8.dpF)
@@ -72,7 +71,7 @@ class FilterView(ctx: Context, private val data: Chart, private val enabledLines
             setOnClickListener {
                 val idAsList = listOf(lineId)
                 if (enabledLines == idAsList) {
-                    lol()
+                    shake()
                 } else {
                     if (lineId in enabledLines) {
                         onChange(deselect = listOf(lineId))
@@ -85,12 +84,12 @@ class FilterView(ctx: Context, private val data: Chart, private val enabledLines
             setOnLongClickListener {
                 val idAsList = listOf(lineId)
                 if (enabledLines == idAsList) {
-                    lol()
+                    shake()
                 } else {
                     if (lineId in enabledLines) {
                         onChange(deselect = enabledLines - lineId)
                     } else {
-                        onChange(select = idAsList, deselect = ArrayList(enabledLines))
+                        onChange(select = idAsList, deselect = enabledLines.toList())
                     }
                 }
                 true

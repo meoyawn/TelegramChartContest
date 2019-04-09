@@ -13,7 +13,6 @@ import android.view.animation.DecelerateInterpolator
 import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.*
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
@@ -39,7 +38,7 @@ class ChartView(
     }
 
     interface Listener {
-        fun onTouch(idx: Idx, x: PxF, maxY: Float)
+        fun onTouch(idx: Idx, x: PxF)
     }
 
     var listener: Listener? = null
@@ -100,12 +99,20 @@ class ChartView(
         )
 
     //region Touch Feedback
-    private var touchingX: X = -1f
-        set(value) {
-            field = value
+    private var touchingIdx: Idx = -1
+    private var touchingFade: Norm = 1f
+    private val touchingFadeAnim = ValueAnimator().apply {
+        addUpdateListener {
+            touchingFade = it.animatedFloat()
             invalidate()
         }
-    private var touchingY: Y = -1f
+
+        onEnd {
+            if (touchingFade == 1f) {
+                touchingIdx = -1
+            }
+        }
+    }
 
     private val innerCirclePaint = Paint().apply {
         style = Paint.Style.FILL
@@ -139,6 +146,7 @@ class ChartView(
     }
 
     fun cameraXChanged() {
+        resetTouch()
         animateCameraY()
         invalidate() // x changed
     }
@@ -208,16 +216,52 @@ class ChartView(
         anticipatedY.set(tempY)
     }
 
+    fun touch(idx: Idx) {
+        if (touchingIdx == idx) return
+
+        touchingIdx = idx
+        if (isBar()) {
+            if (!touchingFadeAnim.isRunning) {
+                touchingFadeAnim.restartWith(touchingFade, if (idx == -1) 1f else 0.5f)
+            }
+        } else {
+            invalidate()
+        }
+    }
+
     private val gd = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
 
         override fun onSingleTapUp(e: MotionEvent): Boolean {
-            return super.onSingleTapUp(e)
+            touch(cameraX.denorm(value = e.x / widthF).roundToInt())
+            val mappedX = mapX(touchingIdx, widthF)
+            listener?.onTouch(idx = touchingIdx, x = mappedX)
+            return true
         }
 
-        override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
-            return super.onScroll(e1, e2, distanceX, distanceY)
+        override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
+            touch(cameraX.denorm(value = e2.x / widthF).roundToInt())
+            val mappedX = mapX(touchingIdx, widthF)
+            listener?.onTouch(idx = touchingIdx, x = mappedX)
+
+            if (distanceX > distanceY) {
+                parent.requestDisallowInterceptTouchEvent(false)
+            }
+
+            return true
         }
     })
+
+    private fun resetTouch() {
+        if (touchingFadeAnim.isRunning || touchingIdx == -1) return
+
+        if (isBar()) {
+            touchingFadeAnim.restartWith(touchingFade, 1f)
+        } else {
+            touch(-1)
+        }
+
+        listener?.onTouch(idx = -1, x = -1f)
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -226,38 +270,11 @@ class ChartView(
         gd.onTouchEvent(event)
 
         when (event.action) {
-            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
-                val evX = event.x
-                val evY = event.y
-
-                if (touchingX != -1f && event.action == MotionEvent.ACTION_DOWN) {
-                    resetTouch()
-                } else {
-                    if (touchingX != -1f && abs(touchingX - evX) > abs(touchingY - evY)) {
-                        parent.requestDisallowInterceptTouchEvent(true)
-                    }
-
-                    touchingX = evX
-                    touchingY = evY
-
-                    val idx = cameraX.denorm(value = touchingX / widthF).roundToInt()
-                    val mappedX = mapX(idx, widthF)
-
-                    listener?.onTouch(idx = idx, x = mappedX, maxY = cameraY.max)
-                }
-            }
-
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 parent.requestDisallowInterceptTouchEvent(false)
             }
         }
         return true
-    }
-
-    private fun resetTouch() {
-        touchingX = -1f
-        touchingY = -1f
-        listener?.onTouch(idx = -1, x = -1f, maxY = cameraY.max)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -266,12 +283,10 @@ class ChartView(
         val width = widthF
         val height = heightF
 
-        val touchingIdx = if (!preview && touchingX in 0f..width) {
-            val idx = cameraX.denorm(touchingX / width).roundToInt()
-            val mappedX = mapX(idx, width)
+        if (data.line && touchingIdx != -1) {
+            val mappedX = mapX(touchingIdx, width)
             canvas.drawLine(mappedX, 0f, mappedX, height, verticalLinePaint)
-            idx
-        } else -1
+        }
 
         val start = cameraX.min
         val end = cameraX.max
@@ -284,7 +299,18 @@ class ChartView(
                 animatedColumns.forEach { _, column ->
                     if (column.frac > 0) {
                         val bh = cameraY.norm(column[i]) * effectiveHeight()
-                        canvas.drawRect(x, y - bh, x + bw, y, column.paint)
+
+                        val paint = column.paint
+
+                        if (touchingFade < 1) {
+                            if (i != touchingIdx) {
+                                paint.alphaF = touchingFade
+                            } else {
+                                paint.alphaF = 1f
+                            }
+                        }
+
+                        canvas.drawRect(x, y - bh, x + bw, y, paint)
                         y -= bh
                     }
                 }
@@ -318,7 +344,7 @@ class ChartView(
                 }
             }
 
-            if (!preview && touchingIdx != -1) {
+            if (!preview && data.line && touchingIdx != -1) {
                 animatedColumns.forEach { _, column ->
                     if (column.frac > 0) {
                         mapped(width, height, column.points, touchingIdx) { x, y ->
@@ -354,5 +380,5 @@ class ChartView(
     }
 
     private fun isBar(): Boolean =
-        data.types.any { _, type -> type == ColumnType.bar }
+        data.type == ChartType.BAR
 }

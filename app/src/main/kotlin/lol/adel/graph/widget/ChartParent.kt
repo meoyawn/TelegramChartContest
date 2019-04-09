@@ -94,7 +94,7 @@ class ChartParent(ctx: Context, val data: Chart, val idx: Idx) : LinearLayout(ct
             addView(chartView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
             details = DetailsView(ctx, data, enabledLines)
-            addView(details, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { topMargin = 16.dp })
+            addView(details, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { topMargin = 28.dp })
         }, LinearLayout.LayoutParams(MATCH_PARENT, height))
 
         addView(FrameLayout(ctx).apply {
@@ -143,7 +143,7 @@ class ChartParent(ctx: Context, val data: Chart, val idx: Idx) : LinearLayout(ct
 
         details.visibility = View.INVISIBLE
         chartView.listener = object : ChartView.Listener {
-            override fun onTouch(idx: Idx, x: PxF, maxY: Float) {
+            override fun onTouch(idx: Idx, x: PxF) {
                 details.visibility = visibleOrInvisible(idx != -1)
 
                 if (idx in 0..lastIndex) {
