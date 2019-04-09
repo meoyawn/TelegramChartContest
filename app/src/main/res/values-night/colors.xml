@@ -5,9 +5,9 @@
     <color name="colorAccent">#7EC5F9</color>
     <color name="background">#1D2733</color>
 
-    <color name="label_text">#96A2AA</color>
-    <color name="label_text_bars">#80252529</color>
-    <color name="divider">#293544</color>
+    <color name="label_text">#99A3B1C2</color>
+    <color name="label_text_bars">#80ECF2F8</color>
+    <color name="divider">#1AFFFFFF</color>
     <color name="vertical_line">#3b4a5a</color>
     <color name="bottom">#151E27</color>
 

@@ -20,10 +20,10 @@ import kotlin.math.roundToInt
 class ChartView(
     ctx: Context,
     private val data: Chart,
-    private val allLines: List<LineId>,
     private val lineBuf: FloatArray,
     private val cameraX: MinMax,
-    private val enabledLines: List<LineId>
+    private val enabledLines: List<LineId>,
+    private val preview: Boolean
 ) : View(ctx) {
 
     private companion object {
@@ -36,7 +36,6 @@ class ChartView(
         // circles
         val OUTER_CIRCLE_RADIUS = 4.dpF
         val INNER_CIRCLE_RADIUS = 3.dpF
-        val Y_OFFSET_TO_SEE_CIRCLES = 5.dp
     }
 
     interface Listener {
@@ -52,14 +51,14 @@ class ChartView(
                 strokeWidth = 1.pxF
             } else {
                 style = Paint.Style.STROKE
-                strokeWidth = 2.dpF
+                strokeWidth = if (preview) 1.dpF else 2.dpF
                 strokeCap = Paint.Cap.ROUND
                 isAntiAlias = true
             }
             color = clr
         }
 
-    private val animatedColumns = allLines.toSimpleArrayMap { id ->
+    private val animatedColumns = data.lineIds.toSimpleArrayMap { id ->
         AnimatedColumn(
             points = data.columns[id],
             frac = 1f,
@@ -85,8 +84,14 @@ class ChartView(
     private fun mapX(idx: Idx, width: PxF): X =
         cameraX.norm(idx) * width
 
+    private val offsetToSeeBottomCircle: Px = if (preview || isBar()) 0 else 5.dp
+    private val offsetToSeeTopLabel: Px = if (preview) 0 else 20.dp
+
+    private fun effectiveHeight(): PxF =
+        heightF - offsetToSeeBottomCircle - offsetToSeeTopLabel
+
     private fun mapY(value: Long, height: PxF): Y =
-        (1 - cameraY.norm(value)) * (height - Y_OFFSET_TO_SEE_CIRCLES * 2) + Y_OFFSET_TO_SEE_CIRCLES
+        (1 - cameraY.norm(value)) * effectiveHeight() + offsetToSeeTopLabel
 
     private inline fun mapped(width: PxF, height: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
         f(
@@ -113,10 +118,7 @@ class ChartView(
     }
     //endregion
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        if (yLabels.isNotEmpty()) return
-
+    init {
         cameraY.set(data.minMax(cameraX, enabledLines))
         anticipatedY.set(cameraY)
 
@@ -129,7 +131,7 @@ class ChartView(
             set(cameraY)
         }
 
-        allLines.forEachByIndex {
+        data.lineIds.forEachByIndex {
             if (it !in enabledLines) {
                 animatedColumns[it]?.frac = 0f
             }
@@ -141,10 +143,15 @@ class ChartView(
         invalidate() // x changed
     }
 
-    fun lineSelected(id: LineId, enabled: Boolean) {
-        val column = animatedColumns[id]!!
-        column.animator.restartWith(column.frac, if (enabled) 1f else 0f)
-
+    fun lineSelected(select: List<LineId>, deselect: List<LineId>) {
+        deselect.forEachByIndex {
+            val column = animatedColumns[it]!!
+            column.animator.restartWith(column.frac, 0f)
+        }
+        select.forEachByIndex {
+            val column = animatedColumns[it]!!
+            column.animator.restartWith(column.frac, 1f)
+        }
         animateCameraY()
     }
 
@@ -170,30 +177,31 @@ class ChartView(
         if (enabledLines.isEmpty()) return
 
         val tempY = data.minMax(cameraX, enabledLines)
-
         if (tempY == anticipatedY) return
 
         cameraMinAnim.restartWith(cameraY.min, tempY.min)
         cameraMaxAnim.restartWith(cameraY.max, tempY.max)
 
-        val currentYLabel = yLabels.first()
-        if (tempY.distanceSq(currentYLabel) > (currentYLabel.len() * 0.1f).sq()) {
+        if (!preview) {
+            val currentYLabel = yLabels.first()
+            if (tempY.distanceSq(currentYLabel) > (currentYLabel.len() * 0.1f).sq()) {
 
-            // appear
-            currentYLabel.run {
-                set(tempY)
-                animator.restart()
-            }
+                // appear
+                currentYLabel.run {
+                    set(tempY)
+                    animator.restart()
+                }
 
-            // prune
-            repeat(times = yLabels.size - 2) {
-                YLabel.release(yLabels[1], yLabels)
-            }
+                // prune
+                repeat(times = yLabels.size - 3) {
+                    YLabel.release(yLabels[1], yLabels)
+                }
 
-            // fade
-            yLabels += YLabel.obtain(ctx = context, list = yLabels, bar = isBar()).apply {
-                set(anticipatedY)
-                animator.start()
+                // fade
+                yLabels += YLabel.obtain(ctx = context, list = yLabels, bar = isBar()).apply {
+                    set(anticipatedY)
+                    animator.start()
+                }
             }
         }
 
@@ -213,6 +221,8 @@ class ChartView(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (preview) return false
+
         gd.onTouchEvent(event)
 
         when (event.action) {
@@ -256,7 +266,7 @@ class ChartView(
         val width = widthF
         val height = heightF
 
-        val touchingIdx = if (touchingX in 0f..width) {
+        val touchingIdx = if (!preview && touchingX in 0f..width) {
             val idx = cameraX.denorm(touchingX / width).roundToInt()
             val mappedX = mapX(idx, width)
             canvas.drawLine(mappedX, 0f, mappedX, height, verticalLinePaint)
@@ -271,10 +281,9 @@ class ChartView(
             val bw = width / cameraX.len()
             for (i in start.floor()..end.ceil()) {
                 var y: PxF = height
-                animatedColumns.forEach { id, column ->
-                    val point = column[i]
-                    if (point > 0) {
-                        val bh = cameraY.norm(point) * height
+                animatedColumns.forEach { _, column ->
+                    if (column.frac > 0) {
+                        val bh = cameraY.norm(column[i]) * effectiveHeight()
                         canvas.drawRect(x, y - bh, x + bw, y, column.paint)
                         y -= bh
                     }
@@ -286,7 +295,7 @@ class ChartView(
         } else {
             drawYLines(height, canvas, width)
 
-            animatedColumns.forEach { id, column ->
+            animatedColumns.forEach { _, column ->
                 if (column.frac > 0) {
                     val points = column.points
 
@@ -309,10 +318,10 @@ class ChartView(
                 }
             }
 
-            if (touchingIdx != -1) {
-                animatedColumns.forEach { line, column ->
+            if (!preview && touchingIdx != -1) {
+                animatedColumns.forEach { _, column ->
                     if (column.frac > 0) {
-                        mapped(width, height, data[line], touchingIdx) { x, y ->
+                        mapped(width, height, column.points, touchingIdx) { x, y ->
                             canvas.drawCircle(x, y, OUTER_CIRCLE_RADIUS, column.paint)
                             canvas.drawCircle(x, y, INNER_CIRCLE_RADIUS, innerCirclePaint)
                         }
@@ -321,9 +330,11 @@ class ChartView(
             }
         }
 
-        yLabels.forEachByIndex {
-            it.iterate(H_LINE_COUNT, it.labelPaint) { value, paint ->
-                drawLabel(canvas, value, height, paint)
+        if (!preview) {
+            yLabels.forEachByIndex {
+                it.iterate(H_LINE_COUNT, it.labelPaint) { value, paint ->
+                    drawLabel(canvas, value, height, paint)
+                }
             }
         }
     }
@@ -331,13 +342,16 @@ class ChartView(
     private fun drawLabel(canvas: Canvas, value: Long, height: PxF, paint: Paint): Unit =
         canvas.drawText(chartValue(value, cameraY.max), LINE_PADDING, mapY(value, height) - LINE_LABEL_DIST, paint)
 
-    private fun drawYLines(height: PxF, canvas: Canvas, width: PxF): Unit =
+    private fun drawYLines(height: PxF, canvas: Canvas, width: PxF) {
+        if (preview) return
+
         yLabels.forEachByIndex {
             it.iterate(H_LINE_COUNT, it.linePaint) { value, paint ->
                 val y = mapY(value, height)
                 canvas.drawLine(LINE_PADDING, y, width - LINE_PADDING, y, paint)
             }
         }
+    }
 
     private fun isBar(): Boolean =
         data.types.any { _, type -> type == ColumnType.bar }

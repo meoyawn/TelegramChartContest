@@ -8,11 +8,12 @@ import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
 import help.*
+import lol.adel.graph.MinMax
 import lol.adel.graph.R
 import kotlin.math.max
 
 @SuppressLint("ViewConstructor")
-class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
+class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size: Int) : View(ctx) {
 
     private sealed class Handle {
 
@@ -40,14 +41,8 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
 
     var listener: Listener? = null
 
-    var left: PxF = -1f
-        set(value) {
-            field = value
-        }
-    var right: PxF = -1f
-        set(value) {
-            field = value
-        }
+    private var left: PxF = -1f
+    private var right: PxF = -1f
 
     private val dragging: SparseArray<Handle> = SparseArray()
 
@@ -59,6 +54,15 @@ class ScrollBarView(ctx: Context, size: Int) : View(ctx) {
         this.right = right
         listener?.onBoundsChange(left = left / width, right = right / width)
         invalidate()
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (w == oldw) return
+
+        val lastIndex = size - 1
+        left = norm(cameraX.min, 0, lastIndex) * w
+        right = norm(cameraX.max, 0, lastIndex) * w
     }
 
     @SuppressLint("ClickableViewAccessibility")

@@ -19,23 +19,8 @@ private val PARSE_COLOR: (ColorString) -> ColorInt =
 fun Chart.color(id: LineId): ColorInt =
     PARSE_COLOR(colors[id] ?: error("color not found for $id"))
 
-inline fun Chart.forEachIndex(f: (Idx) -> Unit) {
-    for (i in 0 until size()) {
-        f(i)
-    }
-}
-
-fun Chart.size(): Int =
-    columns.first().size
-
 operator fun Chart.get(id: LineId): LongArray =
     columns[id]
-
-fun Chart.lineIds(): List<LineId> =
-    types.filterKeys { _, type -> type != ColumnType.x }
-
-fun Chart.xs(): LongArray =
-    columns[types.findKey { _, type -> type == ColumnType.x }]
 
 private val MM = MinMax()
 
@@ -43,7 +28,7 @@ private val MM = MinMax()
 fun Chart.minMax(cameraX: MinMax, lines: List<LineId>): MinMax {
 
     val minX = 0
-    val maxX = size() - 1
+    val maxX = size - 1
 
     val begin = clamp(cameraX.min.ceil(), minX, maxX)
     val end = clamp(cameraX.max.floor(), minX, maxX)

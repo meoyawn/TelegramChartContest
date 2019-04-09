@@ -74,10 +74,7 @@ data class YLabel(
 }
 
 inline fun YLabel.iterate(steps: Int, paint: Paint, f: (Long, Paint) -> Unit) {
-    val origStepSize = (max - min) / steps
-    val newMax = max - origStepSize / 3
-    val newStepSize = (newMax - min) / steps
-    help.iterate(from = min, to = newMax, stepSize = newStepSize, f = { f(it.toLong(), paint) })
+    help.iterate(from = min, to = max, stepSize = (max - min) / steps, f = { f(it.toLong(), paint) })
 }
 
 fun YLabel.set(from: MinMax) {
