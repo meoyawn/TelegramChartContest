@@ -19,14 +19,13 @@ class App : Application() {
             Okio.buffer(Okio.source(open(fileName)))
     }
 
-    private val moshi = Moshi.Builder()
-        .add(ChartAdapterFactory)
-        .build()
-
     override fun onCreate() {
         super.onCreate()
 
-        val adapter = moshi.adapter(Chart::class.java)
+        val adapter = Moshi.Builder()
+            .add(ChartAdapterFactory)
+            .build()
+            .adapter(Chart::class.java)
 
         CHARTS = assets.list("")!!.mapNotNull { dir ->
             dir.toIntOrNull()?.let {

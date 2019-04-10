@@ -21,6 +21,10 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val charts = App.CHARTS
+        val fattest = charts.maxBy { it.size * it.lineIds.size }!!
+        val lineBuffer = FloatArray(size = fattest.size.inc() * fattest.lineIds.size * 4)
+
         setContentView(ScrollView(ctx).apply {
             id = ID_SCROLL
 
@@ -29,8 +33,8 @@ class MainActivity : Activity() {
                 showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
                 dividerDrawable = ctx.getDrawable(R.drawable.charts_divider)
 
-                App.CHARTS.forEachIndexed { idx, data ->
-                    addView(ChartParent(ctx, data, idx))
+                charts.forEachIndexed { idx, data ->
+                    addView(ChartParent(ctx, data, idx, lineBuffer))
                 }
             })
         })

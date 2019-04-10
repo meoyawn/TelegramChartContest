@@ -16,7 +16,7 @@ import lol.adel.graph.data.Chart
 import lol.adel.graph.data.LineId
 
 @SuppressLint("ViewConstructor")
-class ChartParent(ctx: Context, val data: Chart, val idx: Idx) : LinearLayout(ctx) {
+class ChartParent(ctx: Context, val data: Chart, val idx: Idx, val lineBuffer:FloatArray) : LinearLayout(ctx) {
 
     private companion object {
         val NAMES = listOf("Followers", "Interactions", "Growth", "Messages", "Views", "Apps")
@@ -83,7 +83,6 @@ class ChartParent(ctx: Context, val data: Chart, val idx: Idx) : LinearLayout(ct
         }
         addView(dates)
 
-        val lineBuffer = FloatArray(size = data.size.inc() * 4)
         val configuration = ctx.resources.configuration
         val height = if (configuration.screenHeightDp > configuration.screenWidthDp) 260.dp else 130.dp
 

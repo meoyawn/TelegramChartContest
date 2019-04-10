@@ -5,7 +5,6 @@ import android.graphics.Paint
 import help.*
 import lol.adel.graph.R
 import lol.adel.graph.widget.ChartView
-import lol.adel.graph.widget.fill
 
 class LineDrawer(val view: ChartView) : TypeDrawer {
 
@@ -40,26 +39,33 @@ class LineDrawer(val view: ChartView) : TypeDrawer {
 
         view.drawYLines(height, canvas, width)
 
+        val buf = view.lineBuf
+
         view.animatedColumns.forEach { id, column ->
             if (column.frac > 0) {
                 val points = column.points
 
                 view.mapped(width, height, points, start.floor()) { x, y ->
                     // start of first line
-                    view.lineBuf[0] = x
-                    view.lineBuf[1] = y
+                    buf[0] = x
+                    buf[1] = y
                 }
 
                 var bufIdx = 2
                 for (i in start.ceil()..end.ceil()) {
                     view.mapped(width, height, points, i) { x, y ->
-                        bufIdx = fill(view.lineBuf, bufIdx, x, y)
+                        buf[bufIdx + 0] = x
+                        buf[bufIdx + 1] = y
+                        buf[bufIdx + 2] = x
+                        buf[bufIdx + 3] = y
+
+                        bufIdx += 4
                     }
                 }
                 bufIdx -= 2
 
                 column.paint.alphaF = column.frac
-                canvas.drawLines(view.lineBuf, 0, bufIdx, column.paint)
+                canvas.drawLines(buf, 0, bufIdx, column.paint)
             }
         }
 
