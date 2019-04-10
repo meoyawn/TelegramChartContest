@@ -31,6 +31,20 @@ fun MinMax.set(min: Float, max: Float) {
     this.max = max
 }
 
+fun MinMax.reset() {
+    min = Float.MAX_VALUE
+    max = Float.MIN_VALUE
+}
+
+fun MinMax.updateMax(value: Float) {
+    max = Math.max(max, value)
+}
+
+fun MinMax.update(value: Float) {
+    min = Math.min(min, value)
+    updateMax(value)
+}
+
 fun MinMax.empty(): Boolean =
     (min == 0f && max == 0f) || (min == Float.MAX_VALUE && max == Float.MIN_VALUE)
 

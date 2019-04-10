@@ -8,7 +8,7 @@ import lol.adel.graph.len
 import lol.adel.graph.norm
 import lol.adel.graph.widget.ChartView
 
-class BarDrawer(val view: ChartView) : TypeDrawer {
+class BarDrawer(override val view: ChartView) : ChartDrawer {
 
     override fun makePaint(clr: ColorInt): Paint =
         Paint().apply {
@@ -19,7 +19,7 @@ class BarDrawer(val view: ChartView) : TypeDrawer {
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX
 
-        val cameraY = view.cameraY
+        val cameraY = view.yCamera
         val height = view.heightF
         val eHeight = view.effectiveHeight()
         val width = view.widthF

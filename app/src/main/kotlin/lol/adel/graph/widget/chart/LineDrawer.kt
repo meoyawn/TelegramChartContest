@@ -3,10 +3,9 @@ package lol.adel.graph.widget.chart
 import android.graphics.Canvas
 import android.graphics.Paint
 import help.*
-import lol.adel.graph.R
 import lol.adel.graph.widget.ChartView
 
-class LineDrawer(val view: ChartView) : TypeDrawer {
+class LineDrawer(override val view: ChartView) : ChartDrawer {
 
     companion object {
 
@@ -15,24 +14,14 @@ class LineDrawer(val view: ChartView) : TypeDrawer {
         val INNER_CIRCLE_RADIUS = 3.dpF
     }
 
-    private val innerCirclePaint = Paint().apply {
-        style = Paint.Style.FILL
-        color = view.color(R.attr.background)
-        isAntiAlias = true
-    }
+    private val innerCirclePaint = makeInnerCirclePaint(view.context)
 
     override fun makePaint(clr: ColorInt): Paint =
-        Paint().apply {
-            style = Paint.Style.STROKE
-            strokeWidth = if (view.preview) 1.dpF else 2.dpF
-            strokeCap = Paint.Cap.ROUND
-            isAntiAlias = true
-            color = clr
-        }
+        makeLinePaint(view.preview, clr)
 
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX
-        val cameraY = view.cameraY
+        val cameraY = view.yCamera
         val height = view.heightF
         val eHeight = view.effectiveHeight()
         val width = view.widthF

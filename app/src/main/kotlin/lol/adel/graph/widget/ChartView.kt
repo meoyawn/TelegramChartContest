@@ -10,28 +10,23 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.DecelerateInterpolator
 import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.*
-import lol.adel.graph.widget.chart.AreaDrawer
-import lol.adel.graph.widget.chart.BarDrawer
-import lol.adel.graph.widget.chart.LineDrawer
-import lol.adel.graph.widget.chart.TypeDrawer
+import lol.adel.graph.widget.chart.*
 import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
 class ChartView(
     ctx: Context,
-    private val data: Chart,
+    val data: Chart,
     val lineBuf: FloatArray,
     val cameraX: MinMax,
-    private val enabledLines: List<LineId>,
+    val enabledLines: List<LineId>,
     val preview: Boolean
 ) : View(ctx) {
 
     private companion object {
-
         // labels
         const val H_LINE_COUNT = 4
         val LINE_LABEL_DIST = 5.dp
@@ -44,9 +39,12 @@ class ChartView(
 
     var listener: Listener? = null
 
-    private val drawer: TypeDrawer = when (data.type) {
-        ChartType.LINE, ChartType.TWO_Y ->
+    private val drawer: ChartDrawer = when (data.type) {
+        ChartType.LINE ->
             LineDrawer(view = this)
+
+        ChartType.TWO_Y ->
+            TwoYDrawer(view = this)
 
         ChartType.BAR ->
             BarDrawer(view = this)
@@ -58,7 +56,6 @@ class ChartView(
     val animatedColumns = data.lineIds.toSimpleArrayMap { id ->
         AnimatedColumn(
             points = data[id],
-            frac = 1f,
             animator = ValueAnimator(),
             paint = drawer.makePaint(data.color(id)),
             path = Path()
@@ -70,14 +67,9 @@ class ChartView(
         }
     }
 
-    //region Camera Y
-    val cameraY = MinMax(0f, 0f)
-    private val anticipatedY = MinMax(0f, 0f)
-    //endregion
-
-    //region Vertical Labels
-    private val yLabels = ArrayList<YLabel>()
-    //endregion
+    val yCamera = MinMax(0f, 0f)
+    val yAnticipated = MinMax(0f, 0f)
+    val yLabels = ArrayList<YLabel>()
 
     fun mapX(idx: Idx, width: PxF): X =
         cameraX.norm(idx) * width
@@ -89,7 +81,7 @@ class ChartView(
         heightF - offsetToSeeBottomCircle - offsetToSeeTopLabel
 
     fun mapY(value: Long): Y =
-        (1 - cameraY.norm(value)) * effectiveHeight() + offsetToSeeTopLabel
+        (1 - yCamera.norm(value)) * effectiveHeight() + offsetToSeeTopLabel
 
     inline fun mapped(width: PxF, height: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
         f(
@@ -119,26 +111,7 @@ class ChartView(
     //endregion
 
     init {
-        if (data.type == ChartType.AREA) {
-            cameraY.set(0f, 100f)
-
-            yLabels += YLabel.create(context).apply {
-                YLabel.tune(context, this, isBar())
-                set(0f, 100f)
-            }
-        } else {
-            cameraY.set(data.minMax(cameraX, enabledLines))
-            anticipatedY.set(cameraY)
-
-            yLabels += YLabel.create(context).apply {
-                YLabel.tune(context, this, isBar())
-                animator.interpolator = DecelerateInterpolator()
-                animator.addUpdateListener {
-                    setAlpha(it.animatedFraction)
-                }
-                set(cameraY)
-            }
-        }
+        drawer.initYAxis()
 
         data.lineIds.forEachByIndex {
             if (it !in enabledLines) {
@@ -149,7 +122,7 @@ class ChartView(
 
     fun cameraXChanged() {
         resetTouch()
-        animateCameraY()
+        drawer.animateYAxis()
         invalidate() // x changed
     }
 
@@ -162,60 +135,25 @@ class ChartView(
             val column = animatedColumns[it]!!
             column.animator.restartWith(column.frac, 1f)
         }
-        animateCameraY()
+        drawer.animateYAxis()
     }
 
-    private val cameraMinAnim = ValueAnimator().apply {
+    val cameraMinAnim = ValueAnimator().apply {
         interpolator = AccelerateDecelerateInterpolator()
 
         addUpdateListener {
-            cameraY.min = it.animatedFloat()
+            yCamera.min = it.animatedFloat()
             invalidate()
         }
     }
 
-    private val cameraMaxAnim = ValueAnimator().apply {
+    val cameraMaxAnim = ValueAnimator().apply {
         interpolator = AccelerateDecelerateInterpolator()
 
         addUpdateListener {
-            cameraY.max = it.animatedFloat()
+            yCamera.max = it.animatedFloat()
             invalidate()
         }
-    }
-
-    private fun animateCameraY() {
-        if (enabledLines.isEmpty() || data.type == ChartType.AREA) return
-
-        val tempY = data.minMax(cameraX, enabledLines)
-        if (tempY == anticipatedY) return
-
-        cameraMinAnim.restartWith(cameraY.min, tempY.min)
-        cameraMaxAnim.restartWith(cameraY.max, tempY.max)
-
-        if (!preview) {
-            val currentYLabel = yLabels.first()
-            if (tempY.distanceSq(currentYLabel) > (currentYLabel.len() * 0.2f).sq()) {
-
-                // appear
-                currentYLabel.run {
-                    set(tempY)
-                    animator.restart()
-                }
-
-                // prune
-                repeat(times = yLabels.size - 3) {
-                    YLabel.release(yLabels[1], yLabels)
-                }
-
-                // fade
-                yLabels += YLabel.obtain(ctx = context, list = yLabels, bar = isBar()).apply {
-                    set(anticipatedY)
-                    animator.start()
-                }
-            }
-        }
-
-        anticipatedY.set(tempY)
     }
 
     fun touch(idx: Idx) {
@@ -297,7 +235,7 @@ class ChartView(
     }
 
     private fun drawLabel(canvas: Canvas, value: Long, height: PxF, paint: Paint): Unit =
-        canvas.drawText(chartValue(value, cameraY.max), LINE_PADDING, mapY(value) - LINE_LABEL_DIST, paint)
+        canvas.drawText(chartValue(value, yCamera.max), LINE_PADDING, mapY(value) - LINE_LABEL_DIST, paint)
 
     fun drawYLines(height: PxF, canvas: Canvas, width: PxF) {
         if (preview) return

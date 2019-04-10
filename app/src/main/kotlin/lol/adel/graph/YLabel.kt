@@ -41,7 +41,7 @@ data class YLabel(
                 }
             )
 
-        fun obtain(ctx: Context, list: MutableList<YLabel>, bar: Boolean): YLabel {
+        fun obtain(ctx: Context, list: MutableList<YLabel>, isBar: Boolean): YLabel {
 
             val ready = POOL.acquire() ?: create(ctx).also { yLabel ->
                 // created for pool
@@ -56,18 +56,18 @@ data class YLabel(
                 }
             }
 
-            tune(ctx = ctx, label = ready, bar = bar)
+            tune(ctx = ctx, label = ready, isBar = isBar)
 
             return ready
         }
 
-        fun tune(ctx: Context, label: YLabel, bar: Boolean) {
+        fun tune(ctx: Context, label: YLabel, isBar: Boolean) {
             // theme changing
             label.linePaint.color = ctx.color(R.attr.divider)
-            label.labelPaint.color = if (bar) ctx.color(R.attr.label_text_bars) else ctx.color(R.attr.label_text)
+            label.labelPaint.color = if (isBar) ctx.color(R.attr.label_text_bars) else ctx.color(R.attr.label_text)
             // anim reuse
             label.maxLineAlpha = 0.1f
-            label.maxLabelAlpha = if (bar) 0.5f else 1f
+            label.maxLabelAlpha = if (isBar) 0.5f else 1f
 
             label.setAlpha(1f)
         }

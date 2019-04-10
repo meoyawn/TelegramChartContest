@@ -4,8 +4,12 @@ import android.graphics.Color
 import androidx.annotation.MainThread
 import help.*
 import lol.adel.graph.MinMax
-import lol.adel.graph.set
-import kotlin.math.*
+import lol.adel.graph.reset
+import lol.adel.graph.update
+import lol.adel.graph.updateMax
+import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.round
 
 fun Columns.first(): LongArray =
     map.first()
@@ -24,6 +28,27 @@ operator fun Chart.get(id: LineId): LongArray =
 
 private val MM = MinMax()
 
+private fun Chart.update(id: LineId, begin: Int, end: Int, local: MinMax) {
+    val points = this[id]
+    for (i in begin..end) {
+        local.update(points[i].toFloat())
+    }
+}
+
+@MainThread
+fun Chart.minMax(cameraX: MinMax, id: LineId): MinMax {
+    val minX = 0
+    val maxX = size - 1
+
+    val begin = clamp(cameraX.min.ceil(), minX, maxX)
+    val end = clamp(cameraX.max.floor(), minX, maxX)
+
+    val local = MM
+    local.reset()
+    update(id, begin, end, local)
+    return local
+}
+
 @MainThread
 fun Chart.minMax(cameraX: MinMax, lines: List<LineId>): MinMax {
 
@@ -33,27 +58,21 @@ fun Chart.minMax(cameraX: MinMax, lines: List<LineId>): MinMax {
     val begin = clamp(cameraX.min.ceil(), minX, maxX)
     val end = clamp(cameraX.max.floor(), minX, maxX)
 
-    var minY = Long.MAX_VALUE
-    var maxY = Long.MIN_VALUE
+    val local = MM
 
-    if (types.any { _, v -> v == ColumnType.bar }) {
-        minY = 0L
+    local.reset()
+    if (type == ChartType.BAR) {
+        local.min = 0f
         for (i in begin..end) {
-            maxY = max(maxY, lines.sumByIndex { this[it][i] })
+            local.updateMax(lines.sumByIndex { this[it][i] }.toFloat())
         }
     } else {
         lines.forEachByIndex { id ->
-            val points = this[id]
-            for (i in begin..end) {
-                val p = points[i]
-                minY = min(minY, p)
-                maxY = max(maxY, p)
-            }
+            update(id, begin, end, local)
         }
     }
 
-    MM.set(min = minY.toFloat(), max = maxY.toFloat())
-    return MM
+    return local
 }
 
 private fun rnd(value: Double): String {

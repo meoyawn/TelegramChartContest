@@ -3,10 +3,12 @@ package lol.adel.graph.widget.chart
 import android.graphics.Canvas
 import android.graphics.Paint
 import help.*
+import lol.adel.graph.YLabel
 import lol.adel.graph.get
+import lol.adel.graph.set
 import lol.adel.graph.widget.ChartView
 
-class AreaDrawer(val view: ChartView) : TypeDrawer {
+class AreaDrawer(override val view: ChartView) : ChartDrawer {
 
     private fun sum(i: Idx): Long {
         var sum = 0L
@@ -23,6 +25,16 @@ class AreaDrawer(val view: ChartView) : TypeDrawer {
     private fun mult(i: Idx): Float =
         (view.heightF - view.offsetToSeeTopLabel) / sum(i)
 
+    override fun initYAxis() {
+        val ctx = view.context
+
+        view.yCamera.set(0f, 100f)
+        view.yLabels += YLabel.create(ctx).apply {
+            YLabel.tune(ctx = ctx, label = this, isBar = false)
+            set(view.yCamera)
+        }
+    }
+
     override fun makePaint(clr: ColorInt): Paint =
         Paint().apply {
             style = Paint.Style.FILL
@@ -30,6 +42,8 @@ class AreaDrawer(val view: ChartView) : TypeDrawer {
             isAntiAlias = true
             color = clr
         }
+
+    override fun animateYAxis() = Unit
 
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX

@@ -70,10 +70,10 @@ operator fun <K, V> SimpleArrayMap<K, V>.minusAssign(k: K) {
     remove(k)
 }
 
-fun <K> SimpleArrayMap<K, LongArray>.deepCopy(): SimpleArrayMap<K, LongArray> =
-    SimpleArrayMap<K, LongArray>(size()).also { copy ->
+inline fun <K, V1, V2> SimpleArrayMap<K, V1>.mapValues(f: (K, V1) -> V2): SimpleArrayMap<K, V2> =
+    SimpleArrayMap<K, V2>(size()).also { new ->
         forEach { k, v ->
-            copy.put(k, v.clone())
+            new[k] = f(k, v)
         }
     }
 
