@@ -21,7 +21,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val charts = App.CHARTS
+        val charts = App.CHARTS.take(1)
         val fattest = charts.maxBy { it.size * it.lineIds.size }!!
         val lineBuffer = FloatArray(size = fattest.size.inc() * fattest.lineIds.size * 4)
 

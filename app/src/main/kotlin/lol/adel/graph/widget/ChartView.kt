@@ -317,4 +317,18 @@ class ChartView(
 
     private fun isBar(): Boolean =
         data.type == ChartType.BAR
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        if (width <= 0) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        } else {
+            setMeasuredDimension(width, height)
+        }
+    }
+
+    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        if (changed) {
+            super.onLayout(changed, l, t, r, b)
+        }
+    }
 }

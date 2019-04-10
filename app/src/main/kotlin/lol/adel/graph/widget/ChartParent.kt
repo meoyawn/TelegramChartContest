@@ -16,7 +16,12 @@ import lol.adel.graph.data.Chart
 import lol.adel.graph.data.LineId
 
 @SuppressLint("ViewConstructor")
-class ChartParent(ctx: Context, val data: Chart, val idx: Idx, val lineBuffer:FloatArray) : LinearLayout(ctx) {
+class ChartParent(
+    ctx: Context,
+    val data: Chart,
+    private val idx: Idx,
+    private val lineBuffer: FloatArray
+) : LinearLayout(ctx) {
 
     private companion object {
         val NAMES = listOf("Followers", "Interactions", "Growth", "Messages", "Views", "Apps")
@@ -166,6 +171,20 @@ class ChartParent(ctx: Context, val data: Chart, val idx: Idx, val lineBuffer:Fl
                     details.redraw(idx)
                 }
             }
+        }
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        if (width <= 0) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        } else {
+            setMeasuredDimension(width, height)
+        }
+    }
+
+    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        if (changed) {
+            super.onLayout(changed, l, t, r, b)
         }
     }
 }
