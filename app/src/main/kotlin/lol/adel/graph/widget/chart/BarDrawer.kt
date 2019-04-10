@@ -1,6 +1,7 @@
 package lol.adel.graph.widget.chart
 
 import android.graphics.Canvas
+import android.graphics.Paint
 import help.*
 import lol.adel.graph.get
 import lol.adel.graph.len
@@ -8,6 +9,12 @@ import lol.adel.graph.norm
 import lol.adel.graph.widget.ChartView
 
 class BarDrawer(val view: ChartView) : TypeDrawer {
+
+    override fun makePaint(clr: ColorInt): Paint =
+        Paint().apply {
+            style = Paint.Style.STROKE
+            color = clr
+        }
 
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX
@@ -25,19 +32,14 @@ class BarDrawer(val view: ChartView) : TypeDrawer {
                 if (column.frac > 0) {
                     val bh = cameraY.norm(column[i]) * eHeight
                     val paint = column.paint
-                    if (view.touchingFade < 1) {
-                        if (i != view.touchingIdx) {
-                            paint.alphaF = view.touchingFade
-                        } else {
-                            paint.alphaF = 1f
-                        }
-                    }
                     canvas.drawRect(x, y - bh, x + bw, y, paint)
                     y -= bh
                 }
             }
             x += bw
         }
+
+        // TODO touching fade
 
         view.drawYLines(height, canvas, width)
     }

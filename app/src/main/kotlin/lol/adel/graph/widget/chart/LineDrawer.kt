@@ -10,6 +10,7 @@ import lol.adel.graph.widget.fill
 class LineDrawer(val view: ChartView) : TypeDrawer {
 
     companion object {
+
         // circles
         val OUTER_CIRCLE_RADIUS = 4.dpF
         val INNER_CIRCLE_RADIUS = 3.dpF
@@ -20,6 +21,15 @@ class LineDrawer(val view: ChartView) : TypeDrawer {
         color = view.color(R.color.background)
         isAntiAlias = true
     }
+
+    override fun makePaint(clr: ColorInt): Paint =
+        Paint().apply {
+            style = Paint.Style.STROKE
+            strokeWidth = if (view.preview) 1.dpF else 2.dpF
+            strokeCap = Paint.Cap.ROUND
+            isAntiAlias = true
+            color = clr
+        }
 
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX

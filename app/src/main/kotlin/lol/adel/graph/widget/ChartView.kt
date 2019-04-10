@@ -44,36 +44,23 @@ class ChartView(
 
     var listener: Listener? = null
 
-    private fun makeLinePaint(clr: ColorInt): Paint =
-        Paint().apply {
-            when (data.type) {
-                ChartType.LINE, ChartType.TWO_Y -> {
-                    style = Paint.Style.STROKE
-                    strokeWidth = if (preview) 1.dpF else 2.dpF
-                    strokeCap = Paint.Cap.ROUND
-                    isAntiAlias = true
-                }
+    private val drawer: TypeDrawer = when (data.type) {
+        ChartType.LINE, ChartType.TWO_Y ->
+            LineDrawer(view = this)
 
-                ChartType.BAR -> {
-                    style = Paint.Style.STROKE
-                }
+        ChartType.BAR ->
+            BarDrawer(view = this)
 
-                ChartType.AREA -> {
-                    style = Paint.Style.FILL
-                    strokeCap = Paint.Cap.ROUND
-                    isAntiAlias = true
-                }
-            }
-
-            color = clr
-        }
+        ChartType.AREA ->
+            AreaDrawer(view = this)
+    }
 
     val animatedColumns = data.lineIds.toSimpleArrayMap { id ->
         AnimatedColumn(
             points = data[id],
             frac = 1f,
             animator = ValueAnimator(),
-            paint = makeLinePaint(data.color(id)),
+            paint = drawer.makePaint(data.color(id)),
             path = Path()
         ).apply {
             animator.addUpdateListener {
@@ -290,17 +277,6 @@ class ChartView(
             }
         }
         return true
-    }
-
-    private val drawer: TypeDrawer = when (data.type) {
-        ChartType.LINE, ChartType.TWO_Y ->
-            LineDrawer(view = this)
-
-        ChartType.BAR ->
-            BarDrawer(view = this)
-
-        ChartType.AREA ->
-            AreaDrawer(view = this)
     }
 
     override fun onDraw(canvas: Canvas) {

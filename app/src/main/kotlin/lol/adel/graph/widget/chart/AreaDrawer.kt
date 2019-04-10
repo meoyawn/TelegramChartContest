@@ -1,6 +1,7 @@
 package lol.adel.graph.widget.chart
 
 import android.graphics.Canvas
+import android.graphics.Paint
 import help.*
 import lol.adel.graph.get
 import lol.adel.graph.widget.ChartView
@@ -21,6 +22,14 @@ class AreaDrawer(val view: ChartView) : TypeDrawer {
 
     private fun mult(i: Idx): Float =
         (view.heightF - view.offsetToSeeTopLabel) / sum(i)
+
+    override fun makePaint(clr: ColorInt): Paint =
+        Paint().apply {
+            style = Paint.Style.FILL
+            strokeCap = Paint.Cap.ROUND
+            isAntiAlias = true
+            color = clr
+        }
 
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX
