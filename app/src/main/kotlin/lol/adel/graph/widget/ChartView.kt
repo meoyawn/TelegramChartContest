@@ -207,7 +207,7 @@ class ChartView(
 
         if (!preview) {
             val currentYLabel = yLabels.first()
-            if (tempY.distanceSq(currentYLabel) > (currentYLabel.len() * 0.1f).sq()) {
+            if (tempY.distanceSq(currentYLabel) > (currentYLabel.len() * 0.2f).sq()) {
 
                 // appear
                 currentYLabel.run {
