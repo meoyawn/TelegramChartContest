@@ -21,11 +21,17 @@ inline fun <V> SparseArray<V>.forEach(f: (Int, V) -> Unit) {
     }
 }
 
-inline fun <K, V> SimpleArrayMap<K, V>.forEachKey(f: (K) -> Unit): Unit =
-    forEach { k, _ -> f(k) }
+inline fun <K, V> SimpleArrayMap<K, V>.forEachKey(f: (K) -> Unit) {
+    for (i in 0 until size()) {
+        f(keyAt(i))
+    }
+}
 
-inline fun <K, V> SimpleArrayMap<K, V>.forEachValue(f: (V) -> Unit): Unit =
-    forEach { _, v -> f(v) }
+inline fun <K, V> SimpleArrayMap<K, V>.forEachValue(f: (V) -> Unit) {
+    for (i in 0 until size()) {
+        f(valueAt(i))
+    }
+}
 
 inline fun <K, V> SimpleArrayMap<K, V>.filterValues(f: (K, V) -> Boolean): List<V> =
     ArrayList<V>().also { list ->

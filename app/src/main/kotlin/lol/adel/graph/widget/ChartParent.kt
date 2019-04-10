@@ -33,7 +33,7 @@ class ChartParent(ctx: Context, val data: Chart, val idx: Idx) : LinearLayout(ct
 
     // state
     private val enabledLines = ArrayList(data.lineIds)
-    private val cameraX = MinMax(min = data.size * 0.75f, max = data.size - 1f)
+    private val cameraX = MinMax(min = 0f, max = data.size - 1f)
 
     init {
         id = ID + idx
