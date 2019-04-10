@@ -21,22 +21,6 @@ import lol.adel.graph.data.get
 @SuppressLint("ViewConstructor")
 class DetailsView(ctx: Context, val data: Chart, val enabledLines: List<LineId>) : LinearLayout(ctx) {
 
-    fun lineChecked(select: List<LineId>, deselect: List<LineId>) {
-        deselect.forEachByIndex {
-            lineTexts[it]?.visibility = View.GONE
-        }
-        select.forEachByIndex {
-            lineTexts[it]?.visibility = View.VISIBLE
-        }
-    }
-
-    fun redraw(idx: Idx) {
-        floatingText.text = Dates.PANEL.format(data.xs[idx])
-        lineTexts.forEach { id, view ->
-            view.component2().toTextView().text = data.columns[id][idx].toString()
-        }
-    }
-
     private companion object {
         fun makeLineText(ctx: Context, chart: Chart, id: LineId, medium: Typeface): ViewGroup =
             LinearLayout(ctx).apply {
@@ -85,6 +69,40 @@ class DetailsView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
             val text = makeLineText(ctx, data, id, Typefaces.medium)
             floatingContainer.addView(text)
             lineTexts[id] = text
+        }
+    }
+
+    fun lineChecked(select: List<LineId>, deselect: List<LineId>) {
+        deselect.forEachByIndex {
+            lineTexts[it]?.visibility = View.GONE
+        }
+        select.forEachByIndex {
+            lineTexts[it]?.visibility = View.VISIBLE
+        }
+    }
+
+    fun show(idx: Idx, x: PxF) {
+        val floatingWidth = width
+        val parentWidth = parent.parent.let { it as View }.width
+
+        val target = x - 20.dp
+        val altTarget = x - floatingWidth + 40.dp
+        val rightOk = target + floatingWidth <= parentWidth
+
+        translationX = when {
+            target > 0 && rightOk ->
+                target
+
+            !rightOk && altTarget > 0 ->
+                altTarget
+
+            else ->
+                0f
+        }
+
+        floatingText.text = Dates.PANEL.format(data.xs[idx])
+        lineTexts.forEach { id, view ->
+            view.component2().toTextView().text = data.columns[id][idx].toString()
         }
     }
 }

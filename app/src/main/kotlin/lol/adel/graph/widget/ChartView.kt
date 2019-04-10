@@ -321,10 +321,10 @@ class ChartView(
         data.type == ChartType.BAR
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (width <= 0) {
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        } else {
+        if (width > 0) {
             setMeasuredDimension(width, height)
+        } else {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         }
     }
 

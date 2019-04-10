@@ -33,18 +33,17 @@ class AreaDrawer(val view: ChartView) : TypeDrawer {
 
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX
-        val cameraY = view.cameraY
         val height = view.heightF
-        val eHeight = view.effectiveHeight()
         val width = view.widthF
 
         view.animatedColumns.forEachValue { it.path.reset() }
 
-        val eh = view.effectiveHeight() + view.offsetToSeeTopLabel
+        val startFloor = start.floor()
+        val endCeil = end.ceil()
 
-        kotlin.run {
-            val i = start.floor()
-            var y: PxF = eh
+        run {
+            val i = startFloor
+            var y: PxF = height
             view.animatedColumns.forEachValue { column ->
                 if (column.frac > 0) {
                     column.path.moveTo(view.mapX(i, width), y)
@@ -53,8 +52,8 @@ class AreaDrawer(val view: ChartView) : TypeDrawer {
             }
         }
 
-        for (i in start.floor()..end.ceil()) {
-            var y: PxF = eh
+        for (i in startFloor..endCeil) {
+            var y: PxF = height
             view.animatedColumns.forEachValue { column ->
                 if (column.frac > 0) {
                     y -= column[i] * mult(i)
@@ -63,9 +62,9 @@ class AreaDrawer(val view: ChartView) : TypeDrawer {
             }
         }
 
-        kotlin.run {
-            val i = end.ceil()
-            var y: PxF = eh
+        run {
+            val i = endCeil
+            var y: PxF = height
             view.animatedColumns.forEachValue { column ->
                 if (column.frac > 0) {
                     column.path.lineTo(view.mapX(i, width), y)
@@ -74,8 +73,8 @@ class AreaDrawer(val view: ChartView) : TypeDrawer {
             }
         }
 
-        for (i in end.ceil() downTo start.floor()) {
-            var y: PxF = eh
+        for (i in endCeil downTo startFloor) {
+            var y: PxF = height
             view.animatedColumns.forEachValue { column ->
                 if (column.frac > 0) {
                     column.path.lineTo(view.mapX(i, width), y)

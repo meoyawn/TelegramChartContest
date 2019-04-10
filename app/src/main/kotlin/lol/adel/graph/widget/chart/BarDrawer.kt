@@ -23,27 +23,22 @@ class BarDrawer(val view: ChartView) : TypeDrawer {
         val height = view.heightF
         val eHeight = view.effectiveHeight()
         val width = view.widthF
-
         val startF = start.floor()
         val endC = end.ceil()
         val range = endC - startF
-
         val barWidth = width / view.cameraX.len()
-
         val columns = view.animatedColumns
-
         val buf = view.lineBuf
-
         val stackSize = range * 4
 
         var x = view.mapX(startF, width)
 
-        val colorCount = columns.size()
+        val dimensions = columns.size()
 
         for (i in startF..endC) {
             val iOffset = (i - startF) * 4
             var y = height
-            for (j in 0 until colorCount) {
+            for (j in 0 until dimensions) {
                 val column = columns.valueAt(j)
                 if (column.frac > 0) {
                     val barHeight = cameraY.norm(column[i]) * eHeight
@@ -61,7 +56,7 @@ class BarDrawer(val view: ChartView) : TypeDrawer {
             x += barWidth
         }
 
-        for (j in 0 until colorCount) {
+        for (j in 0 until dimensions) {
             val column = columns.valueAt(j)
             if (column.frac > 0) {
                 column.paint.strokeWidth = barWidth

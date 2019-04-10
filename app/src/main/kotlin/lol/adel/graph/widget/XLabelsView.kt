@@ -12,7 +12,7 @@ import lol.adel.graph.R
 import lol.adel.graph.len
 
 @SuppressLint("ViewConstructor")
-class XLabelsView(ctx: Context, private val xs: LongArray, val cameraX: MinMax) : View(ctx) {
+class XLabelsView(ctx: Context, private val xs: LongArray, private val cameraX: MinMax) : View(ctx) {
 
     companion object {
         val TEXT_SIZE_PX: PxF = 12.dpF

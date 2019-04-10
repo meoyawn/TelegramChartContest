@@ -30,10 +30,13 @@ class FilterView(ctx: Context, private val data: Chart, private val enabledLines
     var listener: Listener? = null
 
     init {
-        data.lineIds.forEachByIndex { id ->
-            val checkBox = makeCheckBox(lineId = id, initialCheck = id in enabledLines)
-            checkboxes[id] = checkBox
-            addView(checkBox)
+        if (data.lineIds.size <= 1) {
+        } else {
+            data.lineIds.forEachByIndex { id ->
+                val checkBox = makeCheckBox(lineId = id, initialCheck = id in enabledLines)
+                checkboxes[id] = checkBox
+                addView(checkBox)
+            }
         }
     }
 

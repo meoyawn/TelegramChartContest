@@ -41,8 +41,9 @@ data class YLabel(
                 }
             )
 
-        fun obtain(ctx: Context, list: MutableList<YLabel>, bar: Boolean): YLabel =
-            POOL.acquire()?.apply { tune(ctx = ctx, label = this, bar = bar) } ?: create(ctx).also { yLabel ->
+        fun obtain(ctx: Context, list: MutableList<YLabel>, bar: Boolean): YLabel {
+
+            val ready = POOL.acquire() ?: create(ctx).also { yLabel ->
                 // created for pool
                 yLabel.animator.run {
                     interpolator = START_FAST
@@ -55,6 +56,11 @@ data class YLabel(
                 }
             }
 
+            tune(ctx = ctx, label = ready, bar = bar)
+
+            return ready
+        }
+
         fun tune(ctx: Context, label: YLabel, bar: Boolean) {
             // theme changing
             label.linePaint.color = ctx.color(R.attr.divider)
@@ -62,6 +68,8 @@ data class YLabel(
             // anim reuse
             label.maxLineAlpha = 0.1f
             label.maxLabelAlpha = if (bar) 0.5f else 1f
+
+            label.setAlpha(1f)
         }
 
         fun release(label: YLabel, list: MutableList<YLabel>) {
@@ -74,7 +82,7 @@ data class YLabel(
 }
 
 inline fun YLabel.iterate(steps: Int, paint: Paint, f: (Long, Paint) -> Unit) {
-    help.iterate(from = min, to = max, stepSize = (max - min) / steps, f = { f(it.toLong(), paint) })
+    iterate(from = min, to = max, stepSize = (max - min) / steps, f = { f(it.toLong(), paint) })
 }
 
 fun YLabel.set(from: MinMax) {

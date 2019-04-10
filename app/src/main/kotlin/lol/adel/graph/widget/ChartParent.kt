@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.os.Parcelable
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -24,7 +25,7 @@ class ChartParent(
 ) : LinearLayout(ctx) {
 
     private companion object {
-        val NAMES = listOf("Followers", "Interactions", "Growth", "Messages", "Views", "Apps")
+        val CHART_NAMES = listOf("Followers", "Interactions", "Messages", "Views", "Apps")
         val ID = View.generateViewId()
     }
 
@@ -71,22 +72,30 @@ class ChartParent(
 
         val ctx = context
 
-        name = TextView(ctx).apply {
-            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                topMargin = 8.dp
-                bottomMargin = 8.dp
+        addView(FrameLayout(ctx).apply {
+            name = TextView(ctx).apply {
+                text = CHART_NAMES[idx]
+                typeface = Typefaces.bold
+                setTextColor(ctx.color(R.attr.floating_text))
+                textSize = 16f
+                gravity = Gravity.CENTER_VERTICAL
             }
-            text = NAMES[idx]
-            typeface = Typefaces.medium
-            setTextColor(ctx.color(R.attr.floating_text))
-            textSize = 18f
-        }
-        addView(name)
+            addView(name, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
-        dates = TextView(ctx).apply {
-            typeface = Typefaces.medium
-        }
-        addView(dates)
+            dates = TextView(ctx).apply {
+                typeface = Typefaces.bold
+                setTextColor(ctx.color(R.attr.floating_text))
+                textSize = 12f
+                gravity = Gravity.CENTER_VERTICAL or Gravity.END
+            }
+            addView(dates, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+        }, LinearLayout.LayoutParams(MATCH_PARENT, 24.dp).apply {
+            topMargin = 8.dp
+            bottomMargin = 4.dp
+
+            leftMargin = 16.dp
+            rightMargin = 16.dp
+        })
 
         val configuration = ctx.resources.configuration
         val height = if (configuration.screenHeightDp > configuration.screenWidthDp) 260.dp else 130.dp
@@ -132,6 +141,10 @@ class ChartParent(
             }
         })
 
+        val range = Dates.HEADER_RANGE
+        dates.text =
+            "${range.format(data.xs[cameraX.min.toInt()])} - ${range.format(data.xs[cameraX.max.toInt()])}"
+
         scroll.listener = object : ScrollBarView.Listener {
             override fun onBoundsChange(left: Float, right: Float) {
 
@@ -139,9 +152,9 @@ class ChartParent(
                 chartView.cameraXChanged()
                 xLabels.cameraXChanged()
 
-                val range = Dates.HEADER_RANGE
+
                 dates.text =
-                    "${range.format(data.xs[(left * lastIndex).toInt()])} - ${range.format(data.xs[(right * lastIndex).toInt()])}"
+                    "${range.format(data.xs[cameraX.min.toInt()])} - ${range.format(data.xs[cameraX.max.toInt()])}"
             }
         }
 
@@ -151,34 +164,17 @@ class ChartParent(
                 details.visibility = visibleOrInvisible(idx != -1)
 
                 if (idx in 0..lastIndex) {
-                    val floatingWidth = details.width
-
-                    val target = x - 20.dp
-                    val altTarget = x - floatingWidth + 40.dp
-
-                    val rightOk = target + floatingWidth <= chartView.width
-
-                    details.translationX = when {
-                        target > 0 && rightOk ->
-                            target
-
-                        !rightOk && altTarget > 0 ->
-                            altTarget
-
-                        else ->
-                            0f
-                    }
-                    details.redraw(idx)
+                    details.show(idx, x)
                 }
             }
         }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (width <= 0) {
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        } else {
+        if (width > 0) {
             setMeasuredDimension(width, height)
+        } else {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         }
     }
 

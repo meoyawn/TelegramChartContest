@@ -4,8 +4,12 @@ import android.app.Activity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
+import help.MATCH_PARENT
+import help.WRAP_CONTENT
 import help.ctx
 import lol.adel.graph.widget.ChartParent
 
@@ -35,10 +39,13 @@ class MainActivity : Activity() {
                 dividerDrawable = ctx.getDrawable(R.drawable.charts_divider)
 
                 for (idx in charts.indices) {
-                    addView(ChartParent(ctx, charts[idx], idx, lineBuffer))
+                    addView(
+                        ChartParent(ctx, charts[idx], idx, lineBuffer),
+                        LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                    )
                 }
-            })
-        })
+            }, FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+        }, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
