@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Path
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -28,7 +29,7 @@ class ChartView(
     private companion object {
 
         // labels
-        const val H_LINE_COUNT = 5
+        const val H_LINE_COUNT = 4
         val LINE_LABEL_DIST = 5.dp
         val LINE_PADDING = 16.dpF
 
@@ -45,14 +46,20 @@ class ChartView(
 
     private fun makeLinePaint(clr: ColorInt): Paint =
         Paint().apply {
-            if (isBar()) {
-                style = Paint.Style.FILL
-                strokeWidth = 1.pxF
-            } else {
-                style = Paint.Style.STROKE
-                strokeWidth = if (preview) 1.dpF else 2.dpF
-                strokeCap = Paint.Cap.ROUND
-                isAntiAlias = true
+            when (data.type) {
+                ChartType.LINE, ChartType.TWO_Y -> {
+                    style = Paint.Style.STROKE
+                    strokeWidth = if (preview) 1.dpF else 2.dpF
+                    strokeCap = Paint.Cap.ROUND
+                    isAntiAlias = true
+                }
+                ChartType.BAR -> {
+                    style = Paint.Style.FILL
+                }
+                ChartType.AREA -> {
+                    style = Paint.Style.FILL
+                    isAntiAlias = true
+                }
             }
             color = clr
         }
@@ -62,7 +69,8 @@ class ChartView(
             points = data.columns[id],
             frac = 1f,
             animator = ValueAnimator(),
-            paint = makeLinePaint(data.color(id))
+            paint = makeLinePaint(data.color(id)),
+            path = Path()
         ).apply {
             animator.addUpdateListener {
                 frac = it.animatedFloat()
@@ -83,7 +91,7 @@ class ChartView(
     private fun mapX(idx: Idx, width: PxF): X =
         cameraX.norm(idx) * width
 
-    private val offsetToSeeBottomCircle: Px = if (preview || isBar()) 0 else 5.dp
+    private val offsetToSeeBottomCircle: Px = if (preview || !data.line) 0 else 5.dp
     private val offsetToSeeTopLabel: Px = if (preview) 0 else 20.dp
 
     private fun effectiveHeight(): PxF =
@@ -106,7 +114,6 @@ class ChartView(
             touchingFade = it.animatedFloat()
             invalidate()
         }
-
         onEnd {
             if (touchingFade == 1f) {
                 touchingIdx = -1
@@ -126,16 +133,25 @@ class ChartView(
     //endregion
 
     init {
-        cameraY.set(data.minMax(cameraX, enabledLines))
-        anticipatedY.set(cameraY)
+        if (data.type == ChartType.AREA) {
+            cameraY.set(0f, 100f)
 
-        yLabels += YLabel.create(context).apply {
-            YLabel.tune(context, this, isBar())
-            animator.interpolator = DecelerateInterpolator()
-            animator.addUpdateListener {
-                setAlpha(it.animatedFraction)
+            yLabels += YLabel.create(context).apply {
+                YLabel.tune(context, this, isBar())
+                set(0f, 100f)
             }
-            set(cameraY)
+        } else {
+            cameraY.set(data.minMax(cameraX, enabledLines))
+            anticipatedY.set(cameraY)
+
+            yLabels += YLabel.create(context).apply {
+                YLabel.tune(context, this, isBar())
+                animator.interpolator = DecelerateInterpolator()
+                animator.addUpdateListener {
+                    setAlpha(it.animatedFraction)
+                }
+                set(cameraY)
+            }
         }
 
         data.lineIds.forEachByIndex {
@@ -182,7 +198,7 @@ class ChartView(
     }
 
     private fun animateCameraY() {
-        if (enabledLines.isEmpty()) return
+        if (enabledLines.isEmpty() || data.type == ChartType.AREA) return
 
         val tempY = data.minMax(cameraX, enabledLines)
         if (tempY == anticipatedY) return
@@ -291,68 +307,143 @@ class ChartView(
         val start = cameraX.min
         val end = cameraX.max
 
-        if (isBar()) {
-            var x = cameraX.norm(start - start.floor())
-            val bw = width / cameraX.len()
-            for (i in start.floor()..end.ceil()) {
-                var y: PxF = height
+        when (data.type) {
+            ChartType.LINE, ChartType.TWO_Y -> {
+                drawYLines(height, canvas, width)
+
                 animatedColumns.forEach { _, column ->
                     if (column.frac > 0) {
-                        val bh = cameraY.norm(column[i]) * effectiveHeight()
+                        val points = column.points
 
-                        val paint = column.paint
+                        mapped(width, height, points, start.floor()) { x, y ->
+                            // start of first line
+                            lineBuf[0] = x
+                            lineBuf[1] = y
+                        }
 
-                        if (touchingFade < 1) {
-                            if (i != touchingIdx) {
-                                paint.alphaF = touchingFade
-                            } else {
-                                paint.alphaF = 1f
+                        var bufIdx = 2
+                        for (i in start.ceil()..end.ceil()) {
+                            mapped(width, height, points, i) { x, y ->
+                                bufIdx = fill(lineBuf, bufIdx, x, y)
                             }
                         }
+                        bufIdx -= 2
 
-                        canvas.drawRect(x, y - bh, x + bw, y, paint)
-                        y -= bh
+                        column.paint.alphaF = column.frac
+                        canvas.drawLines(lineBuf, 0, bufIdx, column.paint)
                     }
                 }
-                x += bw
-            }
 
-            drawYLines(height, canvas, width)
-        } else {
-            drawYLines(height, canvas, width)
-
-            animatedColumns.forEach { _, column ->
-                if (column.frac > 0) {
-                    val points = column.points
-
-                    mapped(width, height, points, start.floor()) { x, y ->
-                        // start of first line
-                        lineBuf[0] = x
-                        lineBuf[1] = y
-                    }
-
-                    var bufIdx = 2
-                    for (i in start.ceil()..end.ceil()) {
-                        mapped(width, height, points, i) { x, y ->
-                            bufIdx = fill(lineBuf, bufIdx, x, y)
+                if (!preview && touchingIdx != -1) {
+                    animatedColumns.forEach { _, column ->
+                        if (column.frac > 0) {
+                            mapped(width, height, column.points, touchingIdx) { x, y ->
+                                canvas.drawCircle(x, y, OUTER_CIRCLE_RADIUS, column.paint)
+                                canvas.drawCircle(x, y, INNER_CIRCLE_RADIUS, innerCirclePaint)
+                            }
                         }
                     }
-                    bufIdx -= 2
-
-                    column.paint.alphaF = column.frac
-                    canvas.drawLines(lineBuf, 0, bufIdx, column.paint)
                 }
             }
 
-            if (!preview && data.line && touchingIdx != -1) {
-                animatedColumns.forEach { _, column ->
+            ChartType.BAR -> {
+                var x = cameraX.norm(start - start.floor())
+                val bw = width / cameraX.len()
+                for (i in start.floor()..end.ceil()) {
+                    var y: PxF = height
+                    animatedColumns.forEach { _, column ->
+                        if (column.frac > 0) {
+                            val bh = cameraY.norm(column[i]) * effectiveHeight()
+
+                            val paint = column.paint
+
+                            if (touchingFade < 1) {
+                                if (i != touchingIdx) {
+                                    paint.alphaF = touchingFade
+                                } else {
+                                    paint.alphaF = 1f
+                                }
+                            }
+
+                            canvas.drawRect(x, y - bh, x + bw, y, paint)
+                            y -= bh
+                        }
+                    }
+                    x += bw
+                }
+
+                drawYLines(height, canvas, width)
+            }
+
+            ChartType.AREA -> {
+                animatedColumns.forEachValue { it.path.reset() }
+
+                fun sum(i: Idx): Long {
+                    var sum = 0L
+                    animatedColumns.forEach { _, column ->
+                        if (column.frac > 0) {
+                            sum += column[i]
+                        }
+                    }
+                    return sum
+                }
+
+                val eh = effectiveHeight()
+
+                fun mult(i: Idx): Float =
+                    eh / sum(i)
+
+                kotlin.run {
+                    val i = start.floor()
+                    var y: PxF = eh
+                    animatedColumns.forEach { id, column ->
+                        if (column.frac > 0) {
+                            column.path.moveTo(mapX(i, width), y)
+                            y -= column[i] * mult(i)
+                        }
+                    }
+                }
+
+                for (i in start.floor()..end.ceil()) {
+                    var y: PxF = eh
+                    animatedColumns.forEach { id, column ->
+                        if (column.frac > 0) {
+                            y -= column[i] * mult(i)
+                            column.path.lineTo(mapX(i, width), y)
+                        }
+                    }
+                }
+
+                kotlin.run {
+                    val i = end.ceil()
+                    var y: PxF = eh
+                    animatedColumns.forEach { id, column ->
+                        if (column.frac > 0) {
+                            column.path.lineTo(mapX(i, width), y)
+                            y -= column[i] * mult(i)
+                        }
+                    }
+                }
+
+                for (i in end.ceil() downTo start.floor()) {
+                    var y: PxF = eh
+                    animatedColumns.forEach { id, column ->
+                        if (column.frac > 0) {
+                            column.path.lineTo(mapX(i, width), y)
+                            y -= column[i] * mult(i)
+                        }
+                    }
+                }
+
+                for (i in 0 until animatedColumns.size()) {
+                    val column = animatedColumns.valueAt(i)
                     if (column.frac > 0) {
-                        mapped(width, height, column.points, touchingIdx) { x, y ->
-                            canvas.drawCircle(x, y, OUTER_CIRCLE_RADIUS, column.paint)
-                            canvas.drawCircle(x, y, INNER_CIRCLE_RADIUS, innerCirclePaint)
-                        }
+                        column.path.close()
+                        canvas.drawPath(column.path, column.paint)
                     }
                 }
+
+                drawYLines(height, canvas, width)
             }
         }
 

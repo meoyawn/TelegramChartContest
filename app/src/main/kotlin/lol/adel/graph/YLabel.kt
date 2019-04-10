@@ -82,6 +82,11 @@ fun YLabel.set(from: MinMax) {
     max = from.max
 }
 
+fun YLabel.set(min: Float, max: Float) {
+    this.min = min
+    this.max = max
+}
+
 fun YLabel.setAlpha(alpha: Float) {
     linePaint.alphaF = alpha * maxLineAlpha
     labelPaint.alphaF = alpha * maxLabelAlpha
