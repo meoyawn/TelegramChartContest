@@ -33,8 +33,8 @@ class MainActivity : Activity() {
                 showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
                 dividerDrawable = ctx.getDrawable(R.drawable.charts_divider)
 
-                charts.forEachIndexed { idx, data ->
-                    addView(ChartParent(ctx, data, idx, lineBuffer))
+                for (idx in charts.indices) {
+                    addView(ChartParent(ctx, charts[idx], idx, lineBuffer))
                 }
             })
         })
