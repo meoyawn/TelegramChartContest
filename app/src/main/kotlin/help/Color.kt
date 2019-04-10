@@ -1,15 +1,20 @@
 package help
 
 import android.content.Context
-import android.os.Build
+import android.util.TypedValue
 import android.view.View
 
+typealias AttrRes = Int
 typealias ColorInt = Int
-typealias ColorRes = Int
 
-fun Context.color(r: ColorRes): ColorInt =
-    if (Build.VERSION.SDK_INT >= 23) getColor(r)
-    else ctx.resources.getColor(r)
+inline class ColorRes(val res: Int)
 
-fun View.color(r: ColorRes): ColorInt =
-    context.color(r)
+private val TV = TypedValue()
+
+fun Context.color(id: AttrRes): ColorInt {
+    theme.resolveAttribute(id, TV, true)
+    return TV.data
+}
+
+fun View.color(res: AttrRes): ColorInt =
+    context.color(res)

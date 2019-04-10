@@ -31,12 +31,12 @@ data class YLabel(
                 min = 0f,
                 max = 0f,
                 linePaint = Paint().apply {
-                    color = ctx.color(R.color.divider)
+                    color = ctx.color(R.attr.divider)
                     strokeWidth = H_LINE_THICKNESS
                 },
                 animator = ValueAnimator.ofFloat(1f, 0f),
                 labelPaint = TextPaint().apply {
-                    color = ctx.color(R.color.label_text)
+                    color = ctx.color(R.attr.label_text)
                     textSize = XLabelsView.TEXT_SIZE_PX
                 }
             )
@@ -57,8 +57,8 @@ data class YLabel(
 
         fun tune(ctx: Context, label: YLabel, bar: Boolean) {
             // theme changing
-            label.linePaint.color = ctx.color(R.color.divider)
-            label.labelPaint.color = if (bar) ctx.color(R.color.label_text_bars) else ctx.color(R.color.label_text)
+            label.linePaint.color = ctx.color(R.attr.divider)
+            label.labelPaint.color = if (bar) ctx.color(R.attr.label_text_bars) else ctx.color(R.attr.label_text)
             // anim reuse
             label.maxLineAlpha = 0.1f
             label.maxLabelAlpha = if (bar) 0.5f else 1f

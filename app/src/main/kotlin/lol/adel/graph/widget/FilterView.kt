@@ -63,7 +63,7 @@ class FilterView(ctx: Context, private val data: Chart, private val enabledLines
             gravity = Gravity.CENTER_VERTICAL
             textSize = 18f
             isChecked = initialCheck
-            setTextColor(context.color(R.color.floating_text))
+            setTextColor(context.color(R.attr.floating_text))
 
             layoutParams = FlowLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = 8.dp }
             updatePadding(left = 10.dp)

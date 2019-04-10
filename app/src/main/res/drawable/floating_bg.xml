@@ -3,9 +3,9 @@
 
     <corners android:radius="3dp" />
 
-    <solid android:color="@color/background" />
+    <solid android:color="?attr/background" />
 
     <stroke
         android:width="1px"
-        android:color="@color/floating_edge" />
+        android:color="?attr/floating_edge" />
 </shape>

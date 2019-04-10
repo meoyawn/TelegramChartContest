@@ -21,11 +21,11 @@ class XLabelsView(ctx: Context, private val xs: LongArray, val cameraX: MinMax) 
     }
 
     private val opaque = TextPaint().apply {
-        color = ctx.color(R.color.label_text)
+        color = ctx.color(R.attr.label_text)
         textSize = TEXT_SIZE_PX
     }
     private val transparent = TextPaint().apply {
-        color = ctx.color(R.color.label_text)
+        color = ctx.color(R.attr.label_text)
         textSize = TEXT_SIZE_PX
     }
 

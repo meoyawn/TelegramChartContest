@@ -7,8 +7,6 @@ import android.view.MenuItem
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import help.ctx
-import help.isNight
-import help.setNightMode
 import lol.adel.graph.widget.ChartParent
 
 class MainActivity : Activity() {
@@ -16,15 +14,18 @@ class MainActivity : Activity() {
     private companion object {
         const val ID_NIGHT = 100500
         const val ID_SCROLL = 100501
+
+        var night = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val charts = App.CHARTS.take(1)
+        val charts = App.CHARTS
         val fattest = charts.maxBy { it.size * it.lineIds.size }!!
         val lineBuffer = FloatArray(size = fattest.size.inc() * fattest.lineIds.size * 4)
 
+        setTheme(if (night) R.style.AppTheme_Dark else R.style.AppTheme_Light)
         setContentView(ScrollView(ctx).apply {
             id = ID_SCROLL
 
@@ -52,7 +53,7 @@ class MainActivity : Activity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when (item.itemId) {
             ID_NIGHT -> {
-                setNightMode(night = !resources.configuration.isNight())
+                night = !night
                 recreate()
                 true
             }

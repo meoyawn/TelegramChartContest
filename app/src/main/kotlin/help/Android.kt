@@ -44,10 +44,3 @@ val View.heightF: PxF
 
 const val MATCH_PARENT = ViewGroup.MarginLayoutParams.MATCH_PARENT
 const val WRAP_CONTENT = ViewGroup.MarginLayoutParams.WRAP_CONTENT
-
-private val TV = TypedValue()
-
-fun Context.attr(id: Int): Int {
-    theme.resolveAttribute(id, TV, true)
-    return TV.resourceId
-}

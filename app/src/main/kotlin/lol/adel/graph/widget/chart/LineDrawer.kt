@@ -17,7 +17,7 @@ class LineDrawer(val view: ChartView) : TypeDrawer {
 
     private val innerCirclePaint = Paint().apply {
         style = Paint.Style.FILL
-        color = view.color(R.color.background)
+        color = view.color(R.attr.background)
         isAntiAlias = true
     }
 
@@ -38,6 +38,7 @@ class LineDrawer(val view: ChartView) : TypeDrawer {
         val width = view.widthF
 
         view.drawYLines(height, canvas, width)
+        view.drawXLine(canvas, width, height)
 
         val buf = view.lineBuf
 

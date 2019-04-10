@@ -78,7 +78,7 @@ class ChartParent(
             }
             text = NAMES[idx]
             typeface = Typefaces.medium
-            setTextColor(ctx.color(R.color.colorAccent))
+            setTextColor(ctx.color(R.attr.floating_text))
             textSize = 18f
         }
         addView(name)

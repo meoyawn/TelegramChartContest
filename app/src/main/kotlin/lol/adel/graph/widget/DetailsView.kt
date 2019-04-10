@@ -68,7 +68,7 @@ class DetailsView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
 
         floatingText = TextView(ctx).apply {
             typeface = Typefaces.medium
-            setTextColor(ctx.color(R.color.floating_text))
+            setTextColor(ctx.color(R.attr.floating_text))
             textSize = 17f
         }
         addView(floatingText)

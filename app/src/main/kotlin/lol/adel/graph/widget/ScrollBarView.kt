@@ -33,10 +33,10 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
     }
 
     private val pale = Paint().apply {
-        color = ctx.color(R.color.scroll_overlay_pale)
+        color = ctx.color(R.attr.scroll_overlay_pale)
     }
     private val bright = Paint().apply {
-        color = ctx.color(R.color.scroll_overlay_bright)
+        color = ctx.color(R.attr.scroll_overlay_bright)
     }
 
     var listener: Listener? = null

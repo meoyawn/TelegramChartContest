@@ -114,7 +114,7 @@ class ChartView(
 
     private val verticalLinePaint = Paint().apply {
         strokeWidth = 1.dpF
-        color = ctx.color(R.color.vertical_line)
+        color = ctx.color(R.attr.vertical_line)
     }
     //endregion
 
@@ -285,11 +285,6 @@ class ChartView(
         val width = widthF
         val height = heightF
 
-        if (data.line && touchingIdx != -1) {
-            val mappedX = mapX(touchingIdx, width)
-            canvas.drawLine(mappedX, 0f, mappedX, height, verticalLinePaint)
-        }
-
         drawer.draw(canvas)
 
         if (!preview) {
@@ -313,6 +308,13 @@ class ChartView(
                 canvas.drawLine(LINE_PADDING, y, width - LINE_PADDING, y, paint)
             }
         }
+    }
+
+    fun drawXLine(canvas: Canvas, width: PxF, height: PxF) {
+        if (preview || touchingIdx == -1) return
+
+        val mappedX = mapX(touchingIdx, width)
+        canvas.drawLine(mappedX, 0f, mappedX, height, verticalLinePaint)
     }
 
     private fun isBar(): Boolean =

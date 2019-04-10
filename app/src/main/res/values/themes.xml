@@ -1,0 +1,65 @@
+<resources>
+
+    <style name="WindowAnimationTransition">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+
+    <color name="bg_light">#FFFFFF</color>
+    <color name="bg_dark">#1D2733</color>
+
+    <attr name="background" format="color" />
+
+    <attr name="label_text" format="color" />
+    <attr name="label_text_bars" format="color" />
+    <attr name="divider" format="color" />
+    <attr name="vertical_line" format="color" />
+    <attr name="bottom" format="color" />
+
+    <attr name="floating_edge" format="color" />
+    <attr name="floating_text" format="color" />
+
+    <attr name="scroll_overlay_pale" format="color" />
+    <attr name="scroll_overlay_bright" format="color" />
+
+    <style name="AppTheme.Light" parent="android:Theme.Material.Light">
+        <item name="background">@color/bg_light</item>
+        <item name="label_text">#8E8E93</item>
+        <item name="label_text_bars">#80252529</item>
+        <item name="divider">#1A182D3B</item>
+        <item name="vertical_line">#dfe6eb</item>
+        <item name="bottom">#F0F0F0</item>
+        <item name="floating_edge">#E4E4E4</item>
+        <item name="floating_text">#222222</item>
+        <item name="scroll_overlay_pale">#80b1bfca</item>
+        <item name="scroll_overlay_bright">#BFb0bdcc</item>
+
+        <item name="android:colorPrimary">#FFFFFF</item>
+        <item name="android:colorAccent">#3E97D2</item>
+        <item name="android:windowBackground">@color/bg_light</item>
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
+    </style>
+
+    <style name="AppTheme.Dark" parent="android:Theme.Material">
+        <item name="background">@color/bg_dark</item>
+
+        <item name="label_text">#99A3B1C2</item>
+        <item name="label_text_bars">#80ECF2F8</item>
+        <item name="divider">#1AFFFFFF</item>
+        <item name="vertical_line">#3b4a5a</item>
+        <item name="bottom">#151E27</item>
+
+        <item name="floating_edge">#1A232D</item>
+        <item name="floating_text">#E5EFF5</item>
+
+        <item name="scroll_overlay_pale">#BF3b4045</item>
+        <item name="scroll_overlay_bright">#80b1bfca</item>
+
+        <item name="android:colorPrimary">#212D3A</item>
+        <item name="android:colorPrimaryDark">#1A242E</item>
+        <item name="android:colorAccent">#7EC5F9</item>
+        <item name="android:windowBackground">@color/bg_dark</item>
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
+    </style>
+
+</resources>

@@ -92,5 +92,6 @@ class AreaDrawer(val view: ChartView) : TypeDrawer {
         }
 
         view.drawYLines(height, canvas, width)
+        view.drawXLine(canvas, width, height)
     }
 }
