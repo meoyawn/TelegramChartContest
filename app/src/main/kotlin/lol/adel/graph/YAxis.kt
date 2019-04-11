@@ -3,7 +3,6 @@ package lol.adel.graph
 import android.animation.ValueAnimator
 import android.graphics.Canvas
 import help.*
-import lol.adel.graph.data.ChartType
 import lol.adel.graph.data.chartValue
 import lol.adel.graph.widget.ChartView
 
@@ -32,11 +31,34 @@ data class YAxis(
     fun mapY(value: Long): Y =
         (1 - camera.norm(value)) * effectiveHeight() + topOffset
 
-    fun drawLines(canvas: Canvas, width: PxF) {
+    fun drawLines(canvas: Canvas, width: PxF, split: Boolean) {
+
+        val startX = when {
+            !right ->
+                LINE_PADDING
+
+            split ->
+                width / 2f
+
+            else ->
+                LINE_PADDING
+        }
+
+        val stopX = when {
+            right ->
+                width - LINE_PADDING
+
+            split ->
+                width / 2f
+
+            else ->
+                width - LINE_PADDING
+        }
+
         labels.forEachByIndex {
             it.iterate(H_LINE_COUNT, it.linePaint) { value, paint ->
                 val y = mapY(value)
-                canvas.drawLine(LINE_PADDING, y, width - LINE_PADDING, y, paint)
+                canvas.drawLine(startX, y, stopX, y, paint)
             }
         }
     }
@@ -64,7 +86,7 @@ inline fun YAxis.mapped(width: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y)
         mapY(value = points[idx])
     )
 
-fun YAxis.animate(new: MinMax, type: ChartType) {
+fun YAxis.animate(new: MinMax) {
     if (new == anticipated) return
 
     minAnim.restartWith(camera.min, new.min)
@@ -72,7 +94,8 @@ fun YAxis.animate(new: MinMax, type: ChartType) {
 
     if (!view.preview) {
         val currentYLabel = labels.first()
-        if (new.distanceSq(currentYLabel) > (currentYLabel.len() * 0.2f).sq()) {
+        val minMax = currentYLabel.value
+        if (new.distanceSq(minMax) > (minMax.len() * 0.2f).sq()) {
             // appear
             currentYLabel.run {
                 set(new)

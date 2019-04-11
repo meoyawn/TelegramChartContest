@@ -217,7 +217,7 @@ class ChartView(
     fun drawYLines(canvas: Canvas, width: PxF) {
         if (preview) return
 
-        yAxis.drawLines(canvas, width)
+        yAxis.drawLines(canvas, width, split = false)
     }
 
     fun drawXLine(canvas: Canvas, width: PxF, height: PxF) {

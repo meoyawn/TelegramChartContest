@@ -45,5 +45,5 @@ fun ChartView.initCameraAndLabels() {
 
 fun ChartView.animateCameraY() {
     val tempY = data.minMax(cameraX, enabledLines)
-    yAxis.animate(tempY, data.type)
+    yAxis.animate(tempY)
 }

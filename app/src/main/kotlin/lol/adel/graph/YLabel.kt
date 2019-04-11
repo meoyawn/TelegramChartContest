@@ -9,8 +9,7 @@ import help.*
 import lol.adel.graph.widget.XLabelsView
 
 data class YLabel(
-    var min: Float,
-    var max: Float,
+    val value: MinMax,
     val linePaint: Paint,
     val labelPaint: TextPaint,
     val animator: ValueAnimator,
@@ -28,8 +27,7 @@ data class YLabel(
          */
         fun create(ctx: Context): YLabel =
             YLabel(
-                min = 0f,
-                max = 0f,
+                value = MinMax(),
                 linePaint = Paint().apply {
                     color = ctx.color(R.attr.divider)
                     strokeWidth = H_LINE_THICKNESS
@@ -85,16 +83,18 @@ data class YLabel(
     }
 }
 
-inline fun <P:Paint> YLabel.iterate(steps: Int, paint: P, f: (Long, P) -> Unit) {
+inline fun <P : Paint> MinMax.iterate(steps: Int, paint: P, f: (Long, P) -> Unit) {
     iterate(from = min, to = max, stepSize = (max - min) / steps, f = { f(it.toLong(), paint) })
 }
 
+inline fun <P : Paint> YLabel.iterate(steps: Int, paint: P, f: (Long, P) -> Unit) {
+    value.iterate(steps, paint, f)
+}
+
 fun YLabel.set(from: MinMax) {
-    min = from.min
-    max = from.max
+    value.set(from)
 }
 
 fun YLabel.set(min: Float, max: Float) {
-    this.min = min
-    this.max = max
+    value.set(min, max)
 }

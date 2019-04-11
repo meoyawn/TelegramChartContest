@@ -39,7 +39,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
                             view.invalidate()
                         }
                     },
-                    topOffset = view.topOffset,
+                    topOffset = if (view.preview) 0 else 20.dp,
                     bottomOffset = bottomOffset(),
                     view = view,
                     labelColor = view.data.color(id),
@@ -75,8 +75,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
     override fun animateYAxis() {
         val data = view.data
         view.enabledLines.forEachByIndex { id ->
-            val axis = axes[id]!!
-            axis.animate(data.minMax(view.cameraX, id), data.type)
+            axes[id]!!.animate(data.minMax(view.cameraX, id))
         }
     }
 
@@ -88,17 +87,22 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
         val height = view.heightF
         val width = view.widthF
 
-        view.drawYLines(canvas, width)
         view.drawXLine(canvas, width, height)
 
         val buf = view.lineBuf
 
         val columns = view.animatedColumns
 
+        val leftId = columns.keyAt(0)
+        val leftColumn = columns.valueAt(0)
+        val rightId = columns.keyAt(1)
+        val rightColumn = columns.valueAt(1)
+
         if (!view.preview) {
             columns.forEach { id, column ->
                 if (column.frac > 0) {
-                    axes[id]!!.drawLines(canvas, width)
+                    val split = leftColumn.frac > 0 && rightColumn.frac > 0
+                    axes[id]!!.drawLines(canvas, width, split = false)
                 }
             }
         }
@@ -133,7 +137,6 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
         }
 
         if (!view.preview) {
-
             if (view.touchingIdx != -1) {
                 columns.forEach { id, column ->
                     if (column.frac > 0) {
@@ -146,22 +149,11 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
                 }
             }
 
-            val idLeft = columns.keyAt(0)
-            val colLeft = columns.valueAt(0)
-            if (colLeft.frac > 0) {
-                axes[idLeft]!!.drawLabels(canvas, width)
+            if (leftColumn.frac > 0) {
+                axes[leftId]!!.drawLabels(canvas, width)
             }
-
-            val idRight = columns.keyAt(1)
-            val colRight = columns.valueAt(1)
-            if (colRight.frac > 0) {
-
-            }
-            columns.forEach { id, column ->
-                if (column.frac > 0) {
-                    val axis = axes[id]!!
-                    axis.drawLabels(canvas, width)
-                }
+            if (rightColumn.frac > 0) {
+                axes[rightId]!!.drawLabels(canvas, width)
             }
         }
     }
