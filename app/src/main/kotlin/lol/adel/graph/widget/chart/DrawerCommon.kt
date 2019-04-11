@@ -6,10 +6,11 @@ import android.view.animation.DecelerateInterpolator
 import help.ColorInt
 import help.color
 import help.dpF
-import help.restartWith
-import lol.adel.graph.*
-import lol.adel.graph.data.ChartType
+import lol.adel.graph.R
+import lol.adel.graph.YLabel
+import lol.adel.graph.animate
 import lol.adel.graph.data.minMax
+import lol.adel.graph.set
 import lol.adel.graph.widget.ChartView
 
 fun makeInnerCirclePaint(ctx: Context): Paint =
@@ -33,7 +34,7 @@ fun ChartView.initCameraAndLabels() {
     yAxis.camera.set(yAxis.anticipated)
 
     yAxis.labels += YLabel.create(context).apply {
-        YLabel.tune(ctx = context, label = this, isBar = data.type == ChartType.BAR)
+        YLabel.tune(ctx = context, label = this, axis = yAxis)
         animator.interpolator = DecelerateInterpolator()
         animator.addUpdateListener {
             setAlpha(it.animatedFraction)
@@ -44,15 +45,5 @@ fun ChartView.initCameraAndLabels() {
 
 fun ChartView.animateCameraY() {
     val tempY = data.minMax(cameraX, enabledLines)
-    if (tempY == yAxis.anticipated) return
-
-    val yCamera = yAxis.camera
-
-    yAxis.minAnim.restartWith(yCamera.min, tempY.min)
-    yAxis.maxAnim.restartWith(yCamera.max, tempY.max)
-
-    if (!preview) {
-        yAxis.animate(tempY, data.type)
-    }
-    yAxis.anticipated.set(tempY)
+    yAxis.animate(tempY, data.type)
 }

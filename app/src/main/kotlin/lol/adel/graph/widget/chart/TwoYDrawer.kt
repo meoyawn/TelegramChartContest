@@ -9,6 +9,7 @@ import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.LineId
+import lol.adel.graph.data.color
 import lol.adel.graph.data.minMax
 import lol.adel.graph.widget.ChartView
 
@@ -16,31 +17,37 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
 
     private val innerCirclePaint: Paint = makeInnerCirclePaint(view.context)
 
-    private val axes: SimpleArrayMap<LineId, YAxis> = view.data.lineIds.toSimpleArrayMap {
-        val camera = MinMax()
-        YAxis(
-            camera = camera,
-            anticipated = MinMax(),
-            labels = ArrayList(),
-            minAnim = ValueAnimator().apply {
-                interpolator = AccelerateDecelerateInterpolator()
-                addUpdateListener {
-                    camera.min = it.animatedFloat()
-                    view.invalidate()
-                }
-            },
-            maxAnim = ValueAnimator().apply {
-                interpolator = AccelerateDecelerateInterpolator()
-                addUpdateListener {
-                    camera.max = it.animatedFloat()
-                    view.invalidate()
-                }
-            },
-            topOffset = view.topOffset,
-            bottomOffset = bottomOffset(),
-            view = view
-        )
-    }
+    private val axes: SimpleArrayMap<LineId, YAxis> =
+        SimpleArrayMap<LineId, YAxis>(view.data.lineIds.size).also { map ->
+            view.data.lineIds.forEachIndexed { idx, id ->
+                val camera = MinMax()
+                map[id] = YAxis(
+                    camera = camera,
+                    anticipated = MinMax(),
+                    labels = ArrayList(),
+                    minAnim = ValueAnimator().apply {
+                        interpolator = AccelerateDecelerateInterpolator()
+                        addUpdateListener {
+                            camera.min = it.animatedFloat()
+                            view.invalidate()
+                        }
+                    },
+                    maxAnim = ValueAnimator().apply {
+                        interpolator = AccelerateDecelerateInterpolator()
+                        addUpdateListener {
+                            camera.max = it.animatedFloat()
+                            view.invalidate()
+                        }
+                    },
+                    topOffset = view.topOffset,
+                    bottomOffset = bottomOffset(),
+                    view = view,
+                    labelColor = view.data.color(id),
+                    maxLabelAlpha = maxLabelAlpha(),
+                    right = idx == 1
+                )
+            }
+        }
 
     override fun bottomOffset(): Px =
         if (view.preview) 0 else 5.dp
@@ -55,7 +62,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
             axis.camera.set(axis.anticipated)
 
             axis.labels += YLabel.create(ctx).apply {
-                YLabel.tune(ctx = ctx, label = this, isBar = false)
+                YLabel.tune(ctx = ctx, label = this, axis = axis)
                 animator.interpolator = DecelerateInterpolator()
                 animator.addUpdateListener {
                     setAlpha(it.animatedFraction)
@@ -69,18 +76,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
         val data = view.data
         view.enabledLines.forEachByIndex { id ->
             val axis = axes[id]!!
-            val temp = data.minMax(view.cameraX, id)
-
-            if (temp != axis.anticipated) {
-                axis.minAnim.restartWith(axis.camera.min, temp.min)
-                axis.maxAnim.restartWith(axis.camera.max, temp.max)
-
-                if (!view.preview) {
-                    axis.animate(temp, data.type)
-                }
-
-                axis.anticipated.set(temp)
-            }
+            axis.animate(data.minMax(view.cameraX, id), data.type)
         }
     }
 
@@ -97,14 +93,17 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
 
         val buf = view.lineBuf
 
+        val columns = view.animatedColumns
+
         if (!view.preview) {
-            view.animatedColumns.forEach { id, column ->
-                val axis = axes[id]!!
-                axis.drawLines(canvas, width)
+            columns.forEach { id, column ->
+                if (column.frac > 0) {
+                    axes[id]!!.drawLines(canvas, width)
+                }
             }
         }
 
-        view.animatedColumns.forEach { id, column ->
+        columns.forEach { id, column ->
             if (column.frac > 0) {
                 val points = column.points
                 val axis = axes[id]!!
@@ -133,22 +132,36 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
             }
         }
 
-        if (!view.preview && view.touchingIdx != -1) {
-            view.animatedColumns.forEach { id, column ->
-                if (column.frac > 0) {
-                    val axis = axes[id]!!
-                    axis.mapped(width, column.points, view.touchingIdx) { x, y ->
-                        canvas.drawCircle(x, y, LineDrawer.OUTER_CIRCLE_RADIUS, column.paint)
-                        canvas.drawCircle(x, y, LineDrawer.INNER_CIRCLE_RADIUS, innerCirclePaint)
+        if (!view.preview) {
+
+            if (view.touchingIdx != -1) {
+                columns.forEach { id, column ->
+                    if (column.frac > 0) {
+                        val axis = axes[id]!!
+                        axis.mapped(width, column.points, view.touchingIdx) { x, y ->
+                            canvas.drawCircle(x, y, LineDrawer.OUTER_CIRCLE_RADIUS, column.paint)
+                            canvas.drawCircle(x, y, LineDrawer.INNER_CIRCLE_RADIUS, innerCirclePaint)
+                        }
                     }
                 }
             }
-        }
 
-        if (!view.preview) {
-            view.animatedColumns.forEach { id, column ->
-                val axis = axes[id]!!
-                axis.drawLabels(canvas)
+            val idLeft = columns.keyAt(0)
+            val colLeft = columns.valueAt(0)
+            if (colLeft.frac > 0) {
+                axes[idLeft]!!.drawLabels(canvas, width)
+            }
+
+            val idRight = columns.keyAt(1)
+            val colRight = columns.valueAt(1)
+            if (colRight.frac > 0) {
+
+            }
+            columns.forEach { id, column ->
+                if (column.frac > 0) {
+                    val axis = axes[id]!!
+                    axis.drawLabels(canvas, width)
+                }
             }
         }
     }

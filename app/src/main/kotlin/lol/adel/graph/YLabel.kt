@@ -14,14 +14,14 @@ data class YLabel(
     val linePaint: Paint,
     val labelPaint: TextPaint,
     val animator: ValueAnimator,
-    var maxLineAlpha: Float = 1f,
-    var maxLabelAlpha: Float = 1f
+    var maxLabelAlpha: Norm = 1f
 ) {
     companion object {
 
         private val H_LINE_THICKNESS = 2.dpF
         private val POOL = SimplePool<YLabel>(maxPoolSize = 100)
         private val START_FAST = AccelerateInterpolator()
+        private const val MAX_LINE_ALPHA = 0.1f
 
         /**
          * created independently
@@ -41,7 +41,7 @@ data class YLabel(
                 }
             )
 
-        fun obtain(ctx: Context, list: MutableList<YLabel>, isBar: Boolean): YLabel {
+        fun obtain(ctx: Context, list: MutableList<YLabel>, axis: YAxis): YLabel {
 
             val ready = POOL.acquire() ?: create(ctx).also { yLabel ->
                 // created for pool
@@ -56,19 +56,18 @@ data class YLabel(
                 }
             }
 
-            tune(ctx = ctx, label = ready, isBar = isBar)
+            tune(ctx, ready, axis)
 
             return ready
         }
 
-        fun tune(ctx: Context, label: YLabel, isBar: Boolean) {
+        fun tune(ctx: Context, label: YLabel, axis: YAxis) {
             // theme changing
             label.linePaint.color = ctx.color(R.attr.divider)
-            label.labelPaint.color = if (isBar) ctx.color(R.attr.label_text_bars) else ctx.color(R.attr.label_text)
-            // anim reuse
-            label.maxLineAlpha = 0.1f
-            label.maxLabelAlpha = if (isBar) 0.5f else 1f
 
+            // reuse
+            label.labelPaint.color = axis.labelColor
+            label.maxLabelAlpha = axis.maxLabelAlpha
             label.setAlpha(1f)
         }
 
@@ -79,9 +78,14 @@ data class YLabel(
             POOL.release(label)
         }
     }
+
+    fun setAlpha(alpha: Float) {
+        linePaint.alphaF = alpha * MAX_LINE_ALPHA
+        labelPaint.alphaF = alpha * maxLabelAlpha
+    }
 }
 
-inline fun YLabel.iterate(steps: Int, paint: Paint, f: (Long, Paint) -> Unit) {
+inline fun <P:Paint> YLabel.iterate(steps: Int, paint: P, f: (Long, P) -> Unit) {
     iterate(from = min, to = max, stepSize = (max - min) / steps, f = { f(it.toLong(), paint) })
 }
 
@@ -93,9 +97,4 @@ fun YLabel.set(from: MinMax) {
 fun YLabel.set(min: Float, max: Float) {
     this.min = min
     this.max = max
-}
-
-fun YLabel.setAlpha(alpha: Float) {
-    linePaint.alphaF = alpha * maxLineAlpha
-    labelPaint.alphaF = alpha * maxLabelAlpha
 }

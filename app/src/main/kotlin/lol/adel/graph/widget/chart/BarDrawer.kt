@@ -3,6 +3,7 @@ package lol.adel.graph.widget.chart
 import android.graphics.Canvas
 import android.graphics.Paint
 import help.*
+import lol.adel.graph.R
 import lol.adel.graph.get
 import lol.adel.graph.len
 import lol.adel.graph.norm
@@ -15,6 +16,12 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
             style = Paint.Style.STROKE
             color = clr
         }
+
+    override fun labelColor(): ColorInt =
+        view.color(R.attr.label_text_bars)
+
+    override fun maxLabelAlpha(): Norm =
+        0.5f
 
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX

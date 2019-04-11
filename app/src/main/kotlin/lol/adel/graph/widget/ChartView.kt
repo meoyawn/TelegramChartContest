@@ -84,7 +84,10 @@ class ChartView(
             },
             topOffset = topOffset,
             bottomOffset = drawer.bottomOffset(),
-            view = this
+            view = this,
+            labelColor = drawer.labelColor(),
+            maxLabelAlpha = drawer.maxLabelAlpha(),
+            right = false
         )
     }
 
@@ -207,7 +210,7 @@ class ChartView(
         drawer.draw(canvas)
 
         if (!preview) {
-            yAxis.drawLabels(canvas)
+            yAxis.drawLabels(canvas, widthF)
         }
     }
 

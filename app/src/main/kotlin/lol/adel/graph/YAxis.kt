@@ -16,7 +16,9 @@ data class YAxis(
     val topOffset: Px,
     val bottomOffset: Px,
     val view: ChartView, // for height
-    val color: ColorInt
+    val labelColor: ColorInt,
+    val maxLabelAlpha: Norm,
+    val right: Boolean
 ) {
     private companion object {
         const val H_LINE_COUNT = 4
@@ -39,10 +41,18 @@ data class YAxis(
         }
     }
 
-    fun drawLabels(canvas: Canvas) {
+    fun drawLabels(canvas: Canvas, width: PxF) {
         labels.forEachByIndex {
             it.iterate(H_LINE_COUNT, it.labelPaint) { value, paint ->
-                canvas.drawText(chartValue(value, camera.max), LINE_PADDING, mapY(value) - LINE_LABEL_DIST, paint)
+                val txt = chartValue(value, camera.max)
+                val x = when {
+                    right ->
+                        width - LINE_PADDING - paint.measureText(txt)
+
+                    else ->
+                        LINE_PADDING
+                }
+                canvas.drawText(chartValue(value, camera.max), x, mapY(value) - LINE_LABEL_DIST, paint)
             }
         }
     }
@@ -54,24 +64,33 @@ inline fun YAxis.mapped(width: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y)
         mapY(value = points[idx])
     )
 
-fun YAxis.animate(tempY: MinMax, type: ChartType) {
-    val currentYLabel = labels.first()
-    if (tempY.distanceSq(currentYLabel) <= (currentYLabel.len() * 0.2f).sq()) return
+fun YAxis.animate(new: MinMax, type: ChartType) {
+    if (new == anticipated) return
 
-    // appear
-    currentYLabel.run {
-        set(tempY)
-        animator.restart()
+    minAnim.restartWith(camera.min, new.min)
+    maxAnim.restartWith(camera.max, new.max)
+
+    if (!view.preview) {
+        val currentYLabel = labels.first()
+        if (new.distanceSq(currentYLabel) > (currentYLabel.len() * 0.2f).sq()) {
+            // appear
+            currentYLabel.run {
+                set(new)
+                animator.restart()
+            }
+
+            // prune
+            repeat(times = labels.size - 2) {
+                YLabel.release(labels[1], labels)
+            }
+
+            // fade
+            labels += YLabel.obtain(ctx = view.context, list = labels, axis = this).apply {
+                set(anticipated)
+                animator.start()
+            }
+        }
     }
 
-    // prune
-    repeat(times = labels.size - 3) {
-        YLabel.release(labels[1], labels)
-    }
-
-    // fade
-    labels += YLabel.obtain(ctx = view.context, list = labels, isBar = type == ChartType.BAR).apply {
-        set(anticipated)
-        animator.start()
-    }
+    anticipated.set(new)
 }

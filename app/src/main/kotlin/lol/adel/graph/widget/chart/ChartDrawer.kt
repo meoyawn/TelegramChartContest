@@ -3,7 +3,10 @@ package lol.adel.graph.widget.chart
 import android.graphics.Canvas
 import android.graphics.Paint
 import help.ColorInt
+import help.Norm
 import help.Px
+import help.color
+import lol.adel.graph.R
 import lol.adel.graph.widget.ChartView
 
 interface ChartDrawer {
@@ -22,4 +25,10 @@ interface ChartDrawer {
 
     fun bottomOffset(): Px =
         0
+
+    fun labelColor():ColorInt =
+        view.color(R.attr.label_text)
+
+    fun maxLabelAlpha(): Norm =
+        1f
 }
