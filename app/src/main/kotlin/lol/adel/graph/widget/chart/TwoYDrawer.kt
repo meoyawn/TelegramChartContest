@@ -12,14 +12,6 @@ import lol.adel.graph.data.LineId
 import lol.adel.graph.data.minMax
 import lol.adel.graph.widget.ChartView
 
-data class YAxis(
-    val camera: MinMax,
-    val anticipated: MinMax,
-    val labels: ArrayList<YLabel>,
-    val minAnim: ValueAnimator,
-    val maxAnim: ValueAnimator
-)
-
 class TwoYDrawer(override val view: ChartView) : ChartDrawer {
 
     private val innerCirclePaint: Paint = makeInnerCirclePaint(view.context)
@@ -43,18 +35,15 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
                     camera.max = it.animatedFloat()
                     view.invalidate()
                 }
-            }
+            },
+            topOffset = view.topOffset,
+            bottomOffset = bottomOffset(),
+            view = view
         )
     }
 
-    fun YAxis.mapY(value: Long): Float =
-        (1 - camera.norm(value)) * view.effectiveHeight() + view.offsetToSeeTopLabel
-
-    inline fun YAxis.mapped(width: PxF, height: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
-        f(
-            view.mapX(idx = idx, width = width),
-            mapY(value = points[idx])
-        )
+    override fun bottomOffset(): Px =
+        if (view.preview) 0 else 5.dp
 
     override fun initYAxis() {
         val ctx = view.context
@@ -87,7 +76,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
                 axis.maxAnim.restartWith(axis.camera.max, temp.max)
 
                 if (!view.preview) {
-
+                    axis.animate(temp, data.type)
                 }
 
                 axis.anticipated.set(temp)
@@ -100,22 +89,27 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
 
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX
-        val cameraY = view.yCamera
         val height = view.heightF
-        val eHeight = view.effectiveHeight()
         val width = view.widthF
 
-        view.drawYLines(height, canvas, width)
+        view.drawYLines(canvas, width)
         view.drawXLine(canvas, width, height)
 
         val buf = view.lineBuf
+
+        if (!view.preview) {
+            view.animatedColumns.forEach { id, column ->
+                val axis = axes[id]!!
+                axis.drawLines(canvas, width)
+            }
+        }
 
         view.animatedColumns.forEach { id, column ->
             if (column.frac > 0) {
                 val points = column.points
                 val axis = axes[id]!!
 
-                axis.mapped(width, height, points, start.floor()) { x, y ->
+                axis.mapped(width, points, start.floor()) { x, y ->
                     // start of first line
                     buf[0] = x
                     buf[1] = y
@@ -123,7 +117,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
 
                 var bufIdx = 2
                 for (i in start.ceil()..end.ceil()) {
-                    axis.mapped(width, height, points, i) { x, y ->
+                    axis.mapped(width, points, i) { x, y ->
                         buf[bufIdx + 0] = x
                         buf[bufIdx + 1] = y
                         buf[bufIdx + 2] = x
@@ -143,11 +137,18 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
             view.animatedColumns.forEach { id, column ->
                 if (column.frac > 0) {
                     val axis = axes[id]!!
-                    axis.mapped(width, height, column.points, view.touchingIdx) { x, y ->
+                    axis.mapped(width, column.points, view.touchingIdx) { x, y ->
                         canvas.drawCircle(x, y, LineDrawer.OUTER_CIRCLE_RADIUS, column.paint)
                         canvas.drawCircle(x, y, LineDrawer.INNER_CIRCLE_RADIUS, innerCirclePaint)
                     }
                 }
+            }
+        }
+
+        if (!view.preview) {
+            view.animatedColumns.forEach { id, column ->
+                val axis = axes[id]!!
+                axis.drawLabels(canvas)
             }
         }
     }

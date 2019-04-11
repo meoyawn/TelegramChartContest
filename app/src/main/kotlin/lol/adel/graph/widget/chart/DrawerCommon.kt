@@ -3,7 +3,10 @@ package lol.adel.graph.widget.chart
 import android.content.Context
 import android.graphics.Paint
 import android.view.animation.DecelerateInterpolator
-import help.*
+import help.ColorInt
+import help.color
+import help.dpF
+import help.restartWith
 import lol.adel.graph.*
 import lol.adel.graph.data.ChartType
 import lol.adel.graph.data.minMax
@@ -26,47 +29,30 @@ fun makeLinePaint(preview: Boolean, clr: ColorInt): Paint =
     }
 
 fun ChartView.initCameraAndLabels() {
-    yAnticipated.set(data.minMax(cameraX, enabledLines))
-    yCamera.set(yAnticipated)
+    yAxis.anticipated.set(data.minMax(cameraX, enabledLines))
+    yAxis.camera.set(yAxis.anticipated)
 
-    yLabels += YLabel.create(context).apply {
+    yAxis.labels += YLabel.create(context).apply {
         YLabel.tune(ctx = context, label = this, isBar = data.type == ChartType.BAR)
         animator.interpolator = DecelerateInterpolator()
         animator.addUpdateListener {
             setAlpha(it.animatedFraction)
         }
-        set(yCamera)
+        set(yAxis.camera)
     }
 }
 
 fun ChartView.animateCameraY() {
     val tempY = data.minMax(cameraX, enabledLines)
-    if (tempY == yAnticipated) return
+    if (tempY == yAxis.anticipated) return
 
-    cameraMinAnim.restartWith(yCamera.min, tempY.min)
-    cameraMaxAnim.restartWith(yCamera.max, tempY.max)
+    val yCamera = yAxis.camera
+
+    yAxis.minAnim.restartWith(yCamera.min, tempY.min)
+    yAxis.maxAnim.restartWith(yCamera.max, tempY.max)
 
     if (!preview) {
-        val currentYLabel = yLabels.first()
-        if (tempY.distanceSq(currentYLabel) > (currentYLabel.len() * 0.2f).sq()) {
-
-            // appear
-            currentYLabel.run {
-                set(tempY)
-                animator.restart()
-            }
-
-            // prune
-            repeat(times = yLabels.size - 3) {
-                YLabel.release(yLabels[1], yLabels)
-            }
-
-            // fade
-            yLabels += YLabel.obtain(ctx = context, list = yLabels, isBar = data.type == ChartType.BAR).apply {
-                set(yAnticipated)
-                animator.start()
-            }
-        }
+        yAxis.animate(tempY, data.type)
     }
-    yAnticipated.set(tempY)
+    yAxis.anticipated.set(tempY)
 }

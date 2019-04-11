@@ -19,9 +19,10 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX
 
-        val cameraY = view.yCamera
+        val axis = view.yAxis
+        val cameraY = axis.camera
         val height = view.heightF
-        val eHeight = view.effectiveHeight()
+        val eHeight = axis.effectiveHeight()
         val width = view.widthF
         val startF = start.floor()
         val endC = end.ceil()
@@ -66,6 +67,6 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
 
         // TODO touching fade
 
-        view.drawYLines(height, canvas, width)
+        view.drawYLines(canvas, width)
     }
 }

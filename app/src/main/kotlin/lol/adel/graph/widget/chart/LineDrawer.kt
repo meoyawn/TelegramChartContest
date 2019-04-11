@@ -3,6 +3,7 @@ package lol.adel.graph.widget.chart
 import android.graphics.Canvas
 import android.graphics.Paint
 import help.*
+import lol.adel.graph.mapped
 import lol.adel.graph.widget.ChartView
 
 class LineDrawer(override val view: ChartView) : ChartDrawer {
@@ -19,14 +20,20 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
     override fun makePaint(clr: ColorInt): Paint =
         makeLinePaint(view.preview, clr)
 
+    override fun bottomOffset(): Px =
+        if (view.preview) 0 else 5.dp
+
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX
-        val cameraY = view.yCamera
+
+        val axis = view.yAxis
+
+        val cameraY = axis.camera
         val height = view.heightF
-        val eHeight = view.effectiveHeight()
+        val eHeight = axis.effectiveHeight()
         val width = view.widthF
 
-        view.drawYLines(height, canvas, width)
+        view.drawYLines(canvas, width)
         view.drawXLine(canvas, width, height)
 
         val buf = view.lineBuf
@@ -35,7 +42,7 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
             if (column.frac > 0) {
                 val points = column.points
 
-                view.mapped(width, height, points, start.floor()) { x, y ->
+                axis.mapped(width, points, start.floor()) { x, y ->
                     // start of first line
                     buf[0] = x
                     buf[1] = y
@@ -43,7 +50,7 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
 
                 var bufIdx = 2
                 for (i in start.ceil()..end.ceil()) {
-                    view.mapped(width, height, points, i) { x, y ->
+                    axis.mapped(width, points, i) { x, y ->
                         buf[bufIdx + 0] = x
                         buf[bufIdx + 1] = y
                         buf[bufIdx + 2] = x
@@ -62,7 +69,7 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
         if (!view.preview && view.touchingIdx != -1) {
             view.animatedColumns.forEach { id, column ->
                 if (column.frac > 0) {
-                    view.mapped(width, height, column.points, view.touchingIdx) { x, y ->
+                    axis.mapped(width, column.points, view.touchingIdx) { x, y ->
                         canvas.drawCircle(x, y, OUTER_CIRCLE_RADIUS, column.paint)
                         canvas.drawCircle(x, y, INNER_CIRCLE_RADIUS, innerCirclePaint)
                     }

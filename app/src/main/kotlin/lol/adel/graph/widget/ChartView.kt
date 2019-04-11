@@ -26,13 +26,6 @@ class ChartView(
     val preview: Boolean
 ) : View(ctx) {
 
-    private companion object {
-        // labels
-        const val H_LINE_COUNT = 4
-        val LINE_LABEL_DIST = 5.dp
-        val LINE_PADDING = 16.dpF
-    }
-
     interface Listener {
         fun onTouch(idx: Idx, x: PxF)
     }
@@ -67,27 +60,36 @@ class ChartView(
         }
     }
 
-    val yCamera = MinMax(0f, 0f)
-    val yAnticipated = MinMax(0f, 0f)
-    val yLabels = ArrayList<YLabel>()
+    val topOffset = if (preview) 0 else 20.dp
+
+    val yAxis = run {
+        val camera = MinMax()
+        YAxis(
+            camera = camera,
+            anticipated = MinMax(),
+            labels = ArrayList(),
+            minAnim = ValueAnimator().apply {
+                interpolator = AccelerateDecelerateInterpolator()
+                addUpdateListener {
+                    camera.min = it.animatedFloat()
+                    invalidate()
+                }
+            },
+            maxAnim = ValueAnimator().apply {
+                interpolator = AccelerateDecelerateInterpolator()
+                addUpdateListener {
+                    camera.max = it.animatedFloat()
+                    invalidate()
+                }
+            },
+            topOffset = topOffset,
+            bottomOffset = drawer.bottomOffset(),
+            view = this
+        )
+    }
 
     fun mapX(idx: Idx, width: PxF): X =
         cameraX.norm(idx) * width
-
-    private val offsetToSeeBottomCircle: Px = if (preview || !data.line) 0 else 5.dp
-    val offsetToSeeTopLabel: Px = if (preview) 0 else 20.dp
-
-    fun effectiveHeight(): PxF =
-        heightF - offsetToSeeBottomCircle - offsetToSeeTopLabel
-
-    fun mapY(value: Long): Y =
-        (1 - yCamera.norm(value)) * effectiveHeight() + offsetToSeeTopLabel
-
-    inline fun mapped(width: PxF, height: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
-        f(
-            mapX(idx = idx, width = width),
-            mapY(value = points[idx])
-        )
 
     //region Touch Feedback
     var touchingIdx: Idx = -1
@@ -136,24 +138,6 @@ class ChartView(
             column.animator.restartWith(column.frac, 1f)
         }
         drawer.animateYAxis()
-    }
-
-    val cameraMinAnim = ValueAnimator().apply {
-        interpolator = AccelerateDecelerateInterpolator()
-
-        addUpdateListener {
-            yCamera.min = it.animatedFloat()
-            invalidate()
-        }
-    }
-
-    val cameraMaxAnim = ValueAnimator().apply {
-        interpolator = AccelerateDecelerateInterpolator()
-
-        addUpdateListener {
-            yCamera.max = it.animatedFloat()
-            invalidate()
-        }
     }
 
     fun touch(idx: Idx) {
@@ -220,32 +204,17 @@ class ChartView(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val width = widthF
-        val height = heightF
-
         drawer.draw(canvas)
 
         if (!preview) {
-            yLabels.forEachByIndex {
-                it.iterate(H_LINE_COUNT, it.labelPaint) { value, paint ->
-                    drawLabel(canvas, value, height, paint)
-                }
-            }
+            yAxis.drawLabels(canvas)
         }
     }
 
-    private fun drawLabel(canvas: Canvas, value: Long, height: PxF, paint: Paint): Unit =
-        canvas.drawText(chartValue(value, yCamera.max), LINE_PADDING, mapY(value) - LINE_LABEL_DIST, paint)
-
-    fun drawYLines(height: PxF, canvas: Canvas, width: PxF) {
+    fun drawYLines(canvas: Canvas, width: PxF) {
         if (preview) return
 
-        yLabels.forEachByIndex {
-            it.iterate(H_LINE_COUNT, it.linePaint) { value, paint ->
-                val y = mapY(value)
-                canvas.drawLine(LINE_PADDING, y, width - LINE_PADDING, y, paint)
-            }
-        }
+        yAxis.drawLines(canvas, width)
     }
 
     fun drawXLine(canvas: Canvas, width: PxF, height: PxF) {

@@ -141,20 +141,14 @@ class ChartParent(
             }
         })
 
-        val range = Dates.HEADER_RANGE
-        dates.text =
-            "${range.format(data.xs[cameraX.min.toInt()])} - ${range.format(data.xs[cameraX.max.toInt()])}"
-
+        dates.text = currentDateRange()
         scroll.listener = object : ScrollBarView.Listener {
             override fun onBoundsChange(left: Float, right: Float) {
 
                 cameraX.set(left * lastIndex, right * lastIndex)
                 chartView.cameraXChanged()
                 xLabels.cameraXChanged()
-
-
-                dates.text =
-                    "${range.format(data.xs[cameraX.min.toInt()])} - ${range.format(data.xs[cameraX.max.toInt()])}"
+                dates.text = currentDateRange()
             }
         }
 
@@ -168,6 +162,11 @@ class ChartParent(
                 }
             }
         }
+    }
+
+    private fun currentDateRange(): String {
+        val range = Dates.HEADER_RANGE
+        return "${range.format(data.xs[cameraX.min.toInt()])} - ${range.format(data.xs[cameraX.max.toInt()])}"
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

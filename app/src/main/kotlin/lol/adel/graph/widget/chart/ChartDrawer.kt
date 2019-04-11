@@ -3,6 +3,7 @@ package lol.adel.graph.widget.chart
 import android.graphics.Canvas
 import android.graphics.Paint
 import help.ColorInt
+import help.Px
 import lol.adel.graph.widget.ChartView
 
 interface ChartDrawer {
@@ -18,4 +19,7 @@ interface ChartDrawer {
 
     fun animateYAxis(): Unit =
         view.animateCameraY()
+
+    fun bottomOffset(): Px =
+        0
 }

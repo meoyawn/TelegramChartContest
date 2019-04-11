@@ -23,15 +23,16 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
     }
 
     private fun mult(i: Idx): Float =
-        (view.heightF - view.offsetToSeeTopLabel) / sum(i)
+        view.yAxis.effectiveHeight().toFloat() / sum(i)
 
     override fun initYAxis() {
         val ctx = view.context
 
-        view.yCamera.set(0f, 100f)
-        view.yLabels += YLabel.create(ctx).apply {
+        val axis = view.yAxis
+        axis.camera.set(0f, 100f)
+        axis.labels += YLabel.create(ctx).apply {
             YLabel.tune(ctx = ctx, label = this, isBar = false)
-            set(view.yCamera)
+            set(axis.camera)
         }
     }
 
@@ -104,7 +105,7 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
             }
         }
 
-        view.drawYLines(height, canvas, width)
+        view.drawYLines(canvas, width)
         view.drawXLine(canvas, width, height)
     }
 }
