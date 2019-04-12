@@ -8,8 +8,6 @@ import lol.adel.graph.reset
 import lol.adel.graph.update
 import lol.adel.graph.updateMax
 import kotlin.math.abs
-import kotlin.math.floor
-import kotlin.math.round
 
 fun Columns.first(): LongArray =
     map.first()
@@ -75,26 +73,26 @@ fun Chart.minMax(cameraX: MinMax, lines: List<LineId>): MinMax {
     return local
 }
 
-private fun rnd(value: Double): String {
-    val prettyRound = round(value * 10) / 10
-    val floor = floor(prettyRound).toLong()
-    val point = prettyRound - floor
+private fun leadingZeros(l: Long): String =
+    when (l) {
+        in 0..9 ->
+            "00$l"
 
-    return if (point == 0.0) {
-        "$floor"
-    } else {
-        "$floor.${(point * 10).toInt()}"
-    }
-}
-
-fun chartValue(value: Long): String =
-    when (abs(value)) {
-        in 0..1_000 ->
-            "$value"
-
-        in 1000..1_000_000 ->
-            "${rnd(value = value / 1_000.0)}K"
+        in 10..100 ->
+            "0$l"
 
         else ->
-            "${rnd(value = value / 1_000_000.0)}M"
+            l.toString()
+    }
+
+fun tooltipValue(v: Long): String =
+    when (abs(v)) {
+        in 1_000..999_999 ->
+            "${v / 1_000} ${leadingZeros(v % 1_000)}"
+
+        in 1_000_000..999_999_999 ->
+            "${v / 1_000_000} ${leadingZeros(v % 1_000_000 / 1_000)} ${leadingZeros(v % 1_000)}"
+
+        else ->
+            v.toString()
     }

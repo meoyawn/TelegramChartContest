@@ -3,8 +3,10 @@ package lol.adel.graph
 import android.animation.ValueAnimator
 import android.graphics.Canvas
 import help.*
-import lol.adel.graph.data.chartValue
 import lol.adel.graph.widget.ChartView
+import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.round
 
 data class YAxis(
     val camera: MinMax,
@@ -20,7 +22,8 @@ data class YAxis(
     val right: Boolean,
     val verticalSplits: Int
 ) {
-    private companion object {
+
+    companion object {
         val LINE_PADDING = 16.dpF
         val LINE_LABEL_DIST = 5.dp
     }
@@ -62,24 +65,49 @@ data class YAxis(
             }
         }
     }
-
-    fun drawLabels(canvas: Canvas, width: PxF, frac: Norm = 1f): Unit =
-        labels.forEachByIndex {
-            val paint = it.labelPaint
-            paint.alphaF = it.currentLabelAlpha * frac
-
-            it.iterate(verticalSplits) { value ->
-                val txt = chartValue(value)
-                val x = when {
-                    right ->
-                        width - LINE_PADDING - paint.measureText(txt)
-                    else ->
-                        LINE_PADDING
-                }
-                canvas.drawText(chartValue(value), x, mapY(value) - LINE_LABEL_DIST, paint)
-            }
-        }
 }
+
+private fun rnd(value: Double): String {
+    val prettyRound = round(value * 10) / 10
+    val floor = floor(prettyRound).toLong()
+    val point = prettyRound - floor
+
+    return if (point == 0.0) {
+        "$floor"
+    } else {
+        "$floor.${(point * 10).toInt()}"
+    }
+}
+
+private fun yLabelStr(value: Long): String =
+    when (abs(value)) {
+        in 0..1_000 ->
+            "$value"
+
+        in 1000..1_000_000 ->
+            "${rnd(value = value / 1_000.0)}K"
+
+        else ->
+            "${rnd(value = value / 1_000_000.0)}M"
+    }
+
+fun YAxis.drawLabels(canvas: Canvas, width: PxF, frac: Norm = 1f): Unit =
+    labels.forEachByIndex {
+        val paint = it.labelPaint
+        paint.alphaF = it.currentLabelAlpha * frac
+
+        it.iterate(verticalSplits) { value ->
+            val txt = yLabelStr(value)
+            val x = when {
+                right ->
+                    width - YAxis.LINE_PADDING - paint.measureText(txt)
+                else ->
+                    YAxis.LINE_PADDING
+            }
+            canvas.drawText(txt, x, mapY(value) - YAxis.LINE_LABEL_DIST, paint)
+        }
+    }
+
 
 inline fun YAxis.mapped(width: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
     f(
@@ -101,7 +129,7 @@ fun YAxis.animate(new: MinMax, forceLabels: Boolean = false) {
                 set(new)
                 animator.restart()
             }
-            repeat(times = labels.size - 3) {
+            repeat(times = labels.size - 2) {
                 YLabel.release(labels[1], labels)
             }
             labels += YLabel.obtain(ctx = view.context, list = labels, axis = this).apply {

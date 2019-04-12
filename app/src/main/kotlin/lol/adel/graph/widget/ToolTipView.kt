@@ -13,10 +13,7 @@ import help.*
 import lol.adel.graph.Dates
 import lol.adel.graph.R
 import lol.adel.graph.Typefaces
-import lol.adel.graph.data.Chart
-import lol.adel.graph.data.LineId
-import lol.adel.graph.data.color
-import lol.adel.graph.data.get
+import lol.adel.graph.data.*
 
 @SuppressLint("ViewConstructor")
 class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>) : LinearLayout(ctx) {
@@ -33,15 +30,17 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
             visibility = visibleOrGone(id in enabledLines)
 
             addView(TextView(ctx).apply {
-                textSize = 16f
+                textSize = 12f
+                setTextColor(ctx.color(R.attr.label_text))
                 text = chart.names[id]
             })
 
-            addView(TextView(ctx).apply {
-                textSize = 18f
-                setTextColor(chart.color(id))
+            addView(TextDiffView(ctx).apply {
+                textSizeDp = 12.dpF
+                textColor = chart.color(id)
                 typeface = medium
-            })
+                fullFlip = true
+            }, LayoutParams(MATCH_PARENT, 20.dp))
         }
 
     init {
@@ -55,7 +54,7 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
             textColor = ctx.color(R.attr.floating_text)
             textSizeDp = 12.dpF
         }
-        addView(floatingText, LinearLayout.LayoutParams(100.dp, 20.dp))
+        addView(floatingText, LinearLayout.LayoutParams(MATCH_PARENT, 20.dp))
 
         floatingContainer = LinearLayout(ctx).apply {
             layoutTransition = LayoutTransition()
@@ -100,9 +99,9 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
                 0f
         }
 
-        floatingText.text = Dates.PANEL.format(data.xs[idx])
+        floatingText.text = Dates.tooltip(data.xs[idx])
         lineTexts.forEach { id, view ->
-            view.component2().toTextView().text = data.columns[id][idx].toString()
+            view.component2().toTextDiff().text = tooltipValue(data.columns[id][idx])
         }
     }
 }

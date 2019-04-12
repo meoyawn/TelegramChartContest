@@ -107,7 +107,7 @@ class ChartParent(
             addView(chartView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
             toolTip = ToolTipView(ctx, data, enabledLines)
-            addView(toolTip, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { topMargin = 28.dp })
+            addView(toolTip, FrameLayout.LayoutParams(150.dp, WRAP_CONTENT).apply { topMargin = 28.dp })
         }, LinearLayout.LayoutParams(MATCH_PARENT, height))
 
         addView(FrameLayout(ctx).apply {

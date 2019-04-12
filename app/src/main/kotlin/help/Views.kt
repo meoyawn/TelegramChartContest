@@ -3,6 +3,7 @@ package help
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import lol.adel.graph.widget.TextDiffView
 
 fun View.updatePadding(
     left: Px = paddingLeft,
@@ -28,6 +29,9 @@ operator fun ViewGroup.component2(): View =
 
 fun View.toTextView(): TextView =
     this as TextView
+
+fun View.toTextDiff(): TextDiffView =
+    this as TextDiffView
 
 inline fun ViewGroup.forEach(f: (View) -> Unit): Unit =
     repeat(childCount) {

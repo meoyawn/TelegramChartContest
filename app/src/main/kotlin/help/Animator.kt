@@ -1,9 +1,6 @@
 package help
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.AnimatorSet
-import android.animation.ValueAnimator
+import android.animation.*
 
 inline fun animateFloat(from: Float, to: Float, crossinline f: (Float) -> Unit): ValueAnimator =
     ValueAnimator.ofFloat(from, to)
@@ -67,3 +64,16 @@ fun ValueAnimator.restart() {
 
 // 0 to 255
 typealias PaintAlpha = Int
+
+private object DummyEvaluator : TypeEvaluator<Any> {
+    override fun evaluate(fraction: Float, startValue: Any, endValue: Any): Any =
+        endValue
+}
+
+private val any = Any()
+
+fun valueAnimator(): ValueAnimator =
+    ValueAnimator().apply {
+        setObjectValues(any, any)
+        setEvaluator(DummyEvaluator)
+    }

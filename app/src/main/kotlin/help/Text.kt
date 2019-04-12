@@ -2,7 +2,7 @@ package help
 
 import kotlin.math.min
 
-fun diff(from: String, to: String): Idx {
+fun firstChangeFromEnd(from: String, to: String): Idx {
     val lastFrom = from.lastIndex
     val lastTo = to.lastIndex
 
