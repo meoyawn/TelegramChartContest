@@ -17,10 +17,10 @@ data class YAxis(
     val view: ChartView, // for height
     val labelColor: ColorInt,
     val maxLabelAlpha: Norm,
-    val right: Boolean
+    val right: Boolean,
+    val verticalSplits: Int
 ) {
     private companion object {
-        const val H_LINE_COUNT = 4
         val LINE_PADDING = 16.dpF
         val LINE_LABEL_DIST = 5.dp
     }
@@ -56,18 +56,20 @@ data class YAxis(
         }
 
         labels.forEachByIndex {
-            it.iterate(H_LINE_COUNT) { value ->
+            it.iterate(verticalSplits) { value ->
                 val y = mapY(value)
                 canvas.drawLine(startX, y, stopX, y, it.linePaint)
             }
         }
     }
 
-    fun drawLabels(canvas: Canvas, width: PxF): Unit =
+    fun drawLabels(canvas: Canvas, width: PxF, frac: Norm = 1f): Unit =
         labels.forEachByIndex {
-            it.iterate(H_LINE_COUNT) { value ->
+            val paint = it.labelPaint
+            paint.alphaF = it.currentLabelAlpha * frac
+
+            it.iterate(verticalSplits) { value ->
                 val txt = chartValue(value)
-                val paint = it.labelPaint
                 val x = when {
                     right ->
                         width - LINE_PADDING - paint.measureText(txt)

@@ -17,7 +17,6 @@ class XLabelsView(ctx: Context, private val xs: LongArray, private val cameraX: 
     companion object {
         val TEXT_SIZE_PX: PxF = 12.dpF
         private val GAP: PxF = 80.dpF
-        private val PX_PER_CHAR: PxF = TEXT_SIZE_PX / 3.8f
     }
 
     private val opaque = TextPaint().apply {
@@ -56,12 +55,12 @@ class XLabelsView(ctx: Context, private val xs: LongArray, private val cameraX: 
 
         iterate(from = startFromIdx, to = hiddenEnd, step = stepCeil) { idx ->
             val text = Dates.formatX(xs[idx])
-            canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * PX_PER_CHAR), halfHeight, opaque)
+            canvas.drawText(text, pxPerIdx * (idx - start) - opaque.measureText(text), halfHeight, opaque)
         }
         transparent.alphaF = 1 - fraction
         iterate(from = startFromIdx + stepFloor, to = hiddenEnd, step = stepCeil) { idx ->
             val text = Dates.formatX(xs[idx])
-            canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * PX_PER_CHAR), halfHeight, transparent)
+            canvas.drawText(text, pxPerIdx * (idx - start) - transparent.measureText(text), halfHeight, transparent)
         }
     }
 }

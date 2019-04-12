@@ -13,7 +13,8 @@ data class YLabel(
     val linePaint: Paint,
     val labelPaint: TextPaint,
     val animator: ValueAnimator,
-    var maxLabelAlpha: Norm = 1f
+    var maxLabelAlpha: Norm = 1f,
+    var currentLabelAlpha: Norm = 1f
 ) {
     companion object {
 
@@ -79,16 +80,14 @@ data class YLabel(
 
     fun setAlpha(alpha: Float) {
         linePaint.alphaF = alpha * MAX_LINE_ALPHA
-        labelPaint.alphaF = alpha * maxLabelAlpha
+
+        currentLabelAlpha = alpha * maxLabelAlpha
+        labelPaint.alphaF = currentLabelAlpha
     }
 }
 
-inline fun MinMax.iterate(steps: Int, f: (Long) -> Unit) {
-    iterate(from = min, to = max, stepSize = (max - min) / steps, f = { f(it.toLong()) })
-}
-
 inline fun YLabel.iterate(steps: Int, f: (Long) -> Unit) {
-    value.iterate(steps, f)
+    iterate(from = value.min, to = value.max, stepSize = (value.max - value.min) / steps, f = { f(it.toLong()) })
 }
 
 fun YLabel.set(from: MinMax) {

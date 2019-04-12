@@ -44,7 +44,8 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
                     view = view,
                     labelColor = view.data.color(id),
                     maxLabelAlpha = maxLabelAlpha(),
-                    right = idx == 1
+                    right = idx == 1,
+                    verticalSplits = verticalSplits()
                 )
             }
         }
@@ -74,8 +75,14 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
 
     override fun animateYAxis() {
         val data = view.data
+
+        val columns = view.animatedColumns
+        val leftColumn = columns.valueAt(0)
+        val rightColumn = columns.valueAt(1)
+        val split = leftColumn.frac > 0 && rightColumn.frac > 0
+
         view.enabledLines.forEachByIndex { id ->
-            axes[id]!!.animate(data.minMax(view.cameraX, id), forceLabels = true)
+            axes[id]!!.animate(data.minMax(view.cameraX, id), forceLabels = split)
         }
     }
 
@@ -99,9 +106,10 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
         val rightColumn = columns.valueAt(1)
 
         if (!view.preview) {
+            val split = leftColumn.frac > 0 && rightColumn.frac > 0
             columns.forEach { id, column ->
                 if (column.frac > 0) {
-                    axes[id]!!.drawLines(canvas, width, split = leftColumn.frac > 0 && rightColumn.frac > 0)
+                    axes[id]!!.drawLines(canvas, width, split = split)
                 }
             }
         }
@@ -149,10 +157,10 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
             }
 
             if (leftColumn.frac > 0) {
-                axes[leftId]!!.drawLabels(canvas, width)
+                axes[leftId]!!.drawLabels(canvas, width, frac = leftColumn.frac)
             }
             if (rightColumn.frac > 0) {
-                axes[rightId]!!.drawLabels(canvas, width)
+                axes[rightId]!!.drawLabels(canvas, width, frac = rightColumn.frac)
             }
         }
     }

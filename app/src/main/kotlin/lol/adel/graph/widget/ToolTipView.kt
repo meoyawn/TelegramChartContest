@@ -19,7 +19,7 @@ import lol.adel.graph.data.color
 import lol.adel.graph.data.get
 
 @SuppressLint("ViewConstructor")
-class DetailsView(ctx: Context, val data: Chart, val enabledLines: List<LineId>) : LinearLayout(ctx) {
+class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>) : LinearLayout(ctx) {
 
     private companion object {
         fun makeLineText(ctx: Context, chart: Chart, id: LineId, medium: Typeface): ViewGroup =

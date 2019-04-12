@@ -31,7 +31,7 @@ class ChartParent(
 
     private lateinit var name: TextView
     private lateinit var chartView: ChartView
-    private lateinit var details: DetailsView
+    private lateinit var toolTip: ToolTipView
     private lateinit var xLabels: XLabelsView
     private lateinit var preview: ChartView
     private lateinit var scroll: ScrollBarView
@@ -106,8 +106,8 @@ class ChartParent(
             chartView = ChartView(ctx, data, lineBuffer, cameraX, enabledLines, false)
             addView(chartView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
-            details = DetailsView(ctx, data, enabledLines)
-            addView(details, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { topMargin = 28.dp })
+            toolTip = ToolTipView(ctx, data, enabledLines)
+            addView(toolTip, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { topMargin = 28.dp })
         }, LinearLayout.LayoutParams(MATCH_PARENT, height))
 
         addView(FrameLayout(ctx).apply {
@@ -136,7 +136,7 @@ class ChartParent(
 
                     chartView.lineSelected(select, deselect)
                     preview.lineSelected(select, deselect)
-                    details.lineChecked(select, deselect)
+                    toolTip.lineChecked(select, deselect)
                 }
             }
         })
@@ -152,21 +152,22 @@ class ChartParent(
             }
         }
 
-        details.visibility = View.INVISIBLE
+        toolTip.visibility = View.INVISIBLE
         chartView.listener = object : ChartView.Listener {
             override fun onTouch(idx: Idx, x: PxF) {
-                details.visibility = visibleOrInvisible(idx != -1)
+                toolTip.visibility = visibleOrInvisible(idx != -1)
 
                 if (idx in 0..lastIndex) {
-                    details.show(idx, x)
+                    toolTip.show(idx, x)
                 }
             }
         }
     }
 
     private fun currentDateRange(): String {
-        val range = Dates.HEADER_RANGE
-        return "${range.format(data.xs[cameraX.min.toInt()])} - ${range.format(data.xs[cameraX.max.toInt()])}"
+        val left = Dates.formatHeader(data.xs[cameraX.min.toInt()])
+        val right = Dates.formatHeader(data.xs[cameraX.max.toInt()])
+        return "${left} - ${right}"
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

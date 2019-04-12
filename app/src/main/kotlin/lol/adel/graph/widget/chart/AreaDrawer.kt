@@ -43,6 +43,9 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
     override fun maxLabelAlpha(): Norm =
         0.5f
 
+    override fun verticalSplits(): Int =
+        4
+
     override fun makePaint(clr: ColorInt): Paint =
         Paint().apply {
             style = Paint.Style.FILL

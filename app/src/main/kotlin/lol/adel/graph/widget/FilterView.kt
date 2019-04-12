@@ -51,6 +51,7 @@ class FilterView(ctx: Context, private val data: Chart, private val enabledLines
     }
 
     private fun CheckBox.shake() {
+        isChecked = true
         translationX = 0f
         animate()
             .translationXBy(8.dpF)

@@ -26,9 +26,12 @@ interface ChartDrawer {
     fun bottomOffset(): Px =
         0
 
-    fun labelColor():ColorInt =
+    fun labelColor(): ColorInt =
         view.color(R.attr.label_text)
 
     fun maxLabelAlpha(): Norm =
         1f
+
+    fun verticalSplits(): Int =
+        5
 }

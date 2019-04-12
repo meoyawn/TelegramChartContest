@@ -60,8 +60,6 @@ class ChartView(
         }
     }
 
-    val topOffset = if (preview) 0 else 20.dp
-
     val yAxis = run {
         val camera = MinMax()
         YAxis(
@@ -82,12 +80,13 @@ class ChartView(
                     invalidate()
                 }
             },
-            topOffset = topOffset,
+            topOffset = if (preview) 0 else 20.dp,
             bottomOffset = drawer.bottomOffset(),
             view = this,
             labelColor = drawer.labelColor(),
             maxLabelAlpha = drawer.maxLabelAlpha(),
-            right = false
+            right = false,
+            verticalSplits = drawer.verticalSplits()
         )
     }
 
