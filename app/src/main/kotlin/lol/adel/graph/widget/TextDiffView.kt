@@ -67,11 +67,11 @@ class TextDiffView(ctx: Context) : View(ctx) {
             invalidate()
         }
 
-    var textSize: Float = 14f
+    var textSizeDp: Float = 14.dpF
         set(value) {
             field = value
             paints.forEachByIndex {
-                it.textSize = value.dp
+                it.textSize = value
             }
             invalidate()
         }
@@ -88,12 +88,24 @@ class TextDiffView(ctx: Context) : View(ctx) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val textHeight = newBounds.height()
+        val height = heightF
+        val halfHeight = height / 2
 
-        val oldY: Float = TODO()
-        canvas.drawText(old, 0f, oldY, oldPaint)
-        val newY: Float = TODO()
-        canvas.drawText(new, 0f, newY, newPaint)
-        canvas.drawText(unchanged, newBounds.width().toFloat(), heightF / 2, unchangedPaint)
+        run {
+            val oldFrac = 1 - frac
+            val oldY = denorm(oldFrac, 0f, halfHeight)
+            oldPaint.alphaF = oldFrac
+            oldPaint.textSize = textSizeDp * oldFrac
+            canvas.drawText(old, 0f, oldY, oldPaint)
+        }
+
+        run {
+            val newY = denorm(frac, height, halfHeight)
+            newPaint.alphaF = frac
+            newPaint.textSize = textSizeDp * frac
+            canvas.drawText(new, 0f, newY, newPaint)
+        }
+
+        canvas.drawText(unchanged, newBounds.width().toFloat(), halfHeight, unchangedPaint)
     }
 }

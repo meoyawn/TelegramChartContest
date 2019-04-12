@@ -53,7 +53,7 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
         floatingText = TextDiffView(ctx).apply {
             typeface = Typefaces.medium
             textColor = ctx.color(R.attr.floating_text)
-            textSize = 12f
+            textSizeDp = 12.dpF
         }
         addView(floatingText, LinearLayout.LayoutParams(100.dp, 20.dp))
 
