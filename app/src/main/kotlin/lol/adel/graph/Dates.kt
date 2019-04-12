@@ -12,7 +12,7 @@ object Dates {
         return cache[instant] ?: format.format(instant).also { cache.put(instant, it) }
     }
 
-    val PANEL = SimpleDateFormat("EEE, MMM d", Locale.US)
+    val PANEL = SimpleDateFormat("EEE, d MMM yyyy", Locale.US)
 
     private val horizontalFmt = SimpleDateFormat("MMM d", Locale.US)
     private val horizontalCache = LongSparseArray<String>()
@@ -22,6 +22,6 @@ object Dates {
     private val headerFmt = SimpleDateFormat(" d MMMM yyyy", Locale.US)
     private val headerCache = LongSparseArray<String>()
 
-    fun formatHeader(instant: Long): String =
+    fun header(instant: Long): String =
         func(instant, headerCache, headerFmt)
 }

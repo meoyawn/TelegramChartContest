@@ -21,28 +21,28 @@ import lol.adel.graph.data.get
 @SuppressLint("ViewConstructor")
 class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>) : LinearLayout(ctx) {
 
-    private companion object {
-        fun makeLineText(ctx: Context, chart: Chart, id: LineId, medium: Typeface): ViewGroup =
-            LinearLayout(ctx).apply {
-                orientation = LinearLayout.HORIZONTAL
-
-                addView(TextView(ctx).apply {
-                    textSize = 16f
-                    text = chart.names[id]
-                })
-
-                addView(TextView(ctx).apply {
-                    textSize = 18f
-                    setTextColor(chart.color(id))
-                    typeface = medium
-                })
-            }
-    }
-
-    private val floatingText: TextView
+    private val floatingText: TextDiffView
     private val floatingContainer: ViewGroup
 
     private val lineTexts = SimpleArrayMap<LineId, ViewGroup>()
+
+    private fun makeLineText(ctx: Context, chart: Chart, id: LineId, medium: Typeface): ViewGroup =
+        LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+
+            visibility = visibleOrGone(id in enabledLines)
+
+            addView(TextView(ctx).apply {
+                textSize = 16f
+                text = chart.names[id]
+            })
+
+            addView(TextView(ctx).apply {
+                textSize = 18f
+                setTextColor(chart.color(id))
+                typeface = medium
+            })
+        }
 
     init {
         orientation = LinearLayout.VERTICAL
@@ -50,12 +50,12 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
         elevation = 2.dpF
         updatePadding(left = 16.dp, top = 8.dp, right = 16.dp, bottom = 8.dp)
 
-        floatingText = TextView(ctx).apply {
+        floatingText = TextDiffView(ctx).apply {
             typeface = Typefaces.medium
-            setTextColor(ctx.color(R.attr.floating_text))
-            textSize = 17f
+            textColor = ctx.color(R.attr.floating_text)
+            textSize = 12f
         }
-        addView(floatingText)
+        addView(floatingText, LinearLayout.LayoutParams(100.dp, 20.dp))
 
         floatingContainer = LinearLayout(ctx).apply {
             layoutTransition = LayoutTransition()

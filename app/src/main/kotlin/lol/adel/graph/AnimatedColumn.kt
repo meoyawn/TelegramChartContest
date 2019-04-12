@@ -10,10 +10,9 @@ class AnimatedColumn(
     val points: LongArray,
     val animator: ValueAnimator,
     val paint: Paint,
-    val path: Path
-) {
+    val path: Path,
     var frac: Norm = 1f
-}
+)
 
 operator fun AnimatedColumn.get(idx: Idx): Long =
     (points[idx] * frac).toLong()

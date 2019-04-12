@@ -1,5 +1,6 @@
 package lol.adel.graph.widget.chart
 
+import android.animation.ValueAnimator
 import android.graphics.Canvas
 import android.graphics.Paint
 import help.*
@@ -16,6 +17,10 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
     }
 
     private val innerCirclePaint = makeInnerCirclePaint(view.context)
+
+    private val touchingSlideAnim = ValueAnimator().apply {
+
+    }
 
     override fun makePaint(clr: ColorInt): Paint =
         makeLinePaint(view.preview, clr)

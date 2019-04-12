@@ -81,10 +81,11 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
 
         for (i in startFloor..endCeil) {
             var y: PxF = height
+            val x = view.mapX(i, width)
             columns.forEachValue { column ->
                 if (column.frac > 0) {
                     y -= column[i] * mult(i)
-                    column.path.lineTo(view.mapX(i, width), y)
+                    column.path.lineTo(x, y)
                 }
             }
         }
@@ -92,9 +93,11 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
         run {
             val i = endCeil
             var y: PxF = height
+            val x = view.mapX(i, width)
+
             view.animatedColumns.forEachValue { column ->
                 if (column.frac > 0) {
-                    column.path.lineTo(view.mapX(i, width), y)
+                    column.path.lineTo(x, y)
                     y -= column[i] * mult(i)
                 }
             }
@@ -102,9 +105,10 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
 
         for (i in endCeil downTo startFloor) {
             var y: PxF = height
+            val x = view.mapX(i, width)
             columns.forEachValue { column ->
                 if (column.frac > 0) {
-                    column.path.lineTo(view.mapX(i, width), y)
+                    column.path.lineTo(x, y)
                     y -= column[i] * mult(i)
                 }
             }

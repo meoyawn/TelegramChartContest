@@ -165,22 +165,8 @@ class ChartParent(
     }
 
     private fun currentDateRange(): String {
-        val left = Dates.formatHeader(data.xs[cameraX.min.toInt()])
-        val right = Dates.formatHeader(data.xs[cameraX.max.toInt()])
-        return "${left} - ${right}"
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (width > 0) {
-            setMeasuredDimension(width, height)
-        } else {
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        }
-    }
-
-    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        if (changed) {
-            super.onLayout(changed, l, t, r, b)
-        }
+        val left = Dates.header(data.xs[cameraX.min.toInt()])
+        val right = Dates.header(data.xs[cameraX.max.toInt()])
+        return "$left - $right"
     }
 }

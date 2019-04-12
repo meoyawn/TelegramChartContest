@@ -1,5 +1,6 @@
 package lol.adel.graph.widget.chart
 
+import android.animation.ValueAnimator
 import android.graphics.Canvas
 import android.graphics.Paint
 import help.*
@@ -10,6 +11,14 @@ import lol.adel.graph.norm
 import lol.adel.graph.widget.ChartView
 
 class BarDrawer(override val view: ChartView) : ChartDrawer {
+
+    private var touchingFade: Norm = 1f
+    private val touchingFadeAnim = ValueAnimator().apply {
+        addUpdateListener {
+            touchingFade = it.animatedFloat()
+            view.invalidate()
+        }
+    }
 
     override fun makePaint(clr: ColorInt): Paint =
         Paint().apply {
@@ -33,11 +42,13 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
         val width = view.widthF
         val startF = start.floor()
         val endC = end.ceil()
+
         val range = endC - startF
+        val colorStackSize = range * 4
+
         val barWidth = width / view.cameraX.len()
         val columns = view.animatedColumns
         val buf = view.lineBuf
-        val stackSize = range * 4
 
         var x = view.mapX(startF, width)
 
@@ -51,7 +62,7 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
                 if (column.frac > 0) {
                     val barHeight = cameraY.norm(column[i]) * eHeight
 
-                    val bufIdx = j * stackSize + iOffset
+                    val bufIdx = j * colorStackSize + iOffset
                     buf[bufIdx + 0] = x
                     buf[bufIdx + 1] = y - barHeight
                     buf[bufIdx + 2] = x
@@ -68,7 +79,7 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
             val column = columns.valueAt(j)
             if (column.frac > 0) {
                 column.paint.strokeWidth = barWidth
-                canvas.drawLines(buf, j * stackSize, stackSize, column.paint)
+                canvas.drawLines(buf, j * colorStackSize, colorStackSize, column.paint)
             }
         }
 

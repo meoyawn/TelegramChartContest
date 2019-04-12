@@ -6,7 +6,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
-import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -14,6 +13,7 @@ import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.*
 import lol.adel.graph.widget.chart.*
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
@@ -95,19 +95,6 @@ class ChartView(
 
     //region Touch Feedback
     var touchingIdx: Idx = -1
-    var touchingFade: Norm = 1f
-    private val touchingFadeAnim = ValueAnimator().apply {
-        addUpdateListener {
-            touchingFade = it.animatedFloat()
-            invalidate()
-        }
-        onEnd {
-            if (touchingFade == 1f) {
-                touchingIdx = -1
-            }
-        }
-    }
-
     private val verticalLinePaint = Paint().apply {
         strokeWidth = 1.dpF
         color = ctx.color(R.attr.vertical_line)
@@ -125,7 +112,12 @@ class ChartView(
     }
 
     fun cameraXChanged() {
-        resetTouch()
+        if (touchingIdx != -1) {
+            touchingIdx = -1
+            listener?.onTouch(idx = touchingIdx, x = -1f)
+            invalidate()
+        }
+
         drawer.animateYAxis()
         invalidate() // x changed
     }
@@ -142,61 +134,37 @@ class ChartView(
         drawer.animateYAxis()
     }
 
-    fun touch(idx: Idx) {
-        if (touchingIdx == idx) return
-
-        touchingIdx = idx
-        if (isBar()) {
-            if (!touchingFadeAnim.isRunning) {
-                touchingFadeAnim.restartWith(touchingFade, if (idx == -1) 1f else 0.5f)
-            }
-        } else {
-            invalidate()
-        }
-    }
-
-    private val gd = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-
-        override fun onSingleTapUp(e: MotionEvent): Boolean {
-            touch(cameraX.denorm(value = e.x / widthF).roundToInt())
-            val mappedX = mapX(touchingIdx, widthF)
-            listener?.onTouch(idx = touchingIdx, x = mappedX)
-            return true
-        }
-
-        override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
-            touch(cameraX.denorm(value = e2.x / widthF).roundToInt())
-            val mappedX = mapX(touchingIdx, widthF)
-            listener?.onTouch(idx = touchingIdx, x = mappedX)
-
-            if (distanceX > distanceY) {
-                parent.requestDisallowInterceptTouchEvent(false)
-            }
-
-            return true
-        }
-    })
-
-    private fun resetTouch() {
-        if (touchingFadeAnim.isRunning || touchingIdx == -1) return
-
-        if (isBar()) {
-            touchingFadeAnim.restartWith(touchingFade, 1f)
-        } else {
-            touch(-1)
-        }
-
-        listener?.onTouch(idx = -1, x = -1f)
-    }
+    private var touchX: X = -1f
+    private var touchY: Y = -1f
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (preview) return false
 
-        gd.onTouchEvent(event)
-
         when (event.action) {
+            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+                val evX = event.x
+                val evY = event.y
+
+                if (touchX != -1f) {
+                    if (abs(evX - touchX) < abs(evY - touchY)) {
+                        parent.requestDisallowInterceptTouchEvent(true)
+                    }
+                }
+
+                touchX = evX
+                touchY = evY
+
+                val width = widthF
+                touchingIdx = cameraX.denorm(value = evX / width).roundToInt()
+                val mappedX = mapX(touchingIdx, width)
+                listener?.onTouch(idx = touchingIdx, x = mappedX)
+                invalidate()
+            }
+
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                touchY = -1f
+                touchX = -1f
                 parent.requestDisallowInterceptTouchEvent(false)
             }
         }
