@@ -54,14 +54,13 @@ class XLabelsView(ctx: Context, private val xs: LongArray, private val cameraX: 
         val startFromIdx = (start - start % stepCeil).toInt()
         val hiddenEnd = end.ceil()
 
-        val format = Dates.HORIZONTAL
         iterate(from = startFromIdx, to = hiddenEnd, step = stepCeil) { idx ->
-            val text = format.format(xs[idx])
+            val text = Dates.formatX(xs[idx])
             canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * PX_PER_CHAR), halfHeight, opaque)
         }
         transparent.alphaF = 1 - fraction
         iterate(from = startFromIdx + stepFloor, to = hiddenEnd, step = stepCeil) { idx ->
-            val text = format.format(xs[idx])
+            val text = Dates.formatX(xs[idx])
             canvas.drawText(text, pxPerIdx * (idx - start) - (text.length * PX_PER_CHAR), halfHeight, transparent)
         }
     }

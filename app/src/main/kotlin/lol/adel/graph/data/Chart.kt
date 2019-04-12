@@ -87,7 +87,7 @@ private fun rnd(value: Double): String {
     }
 }
 
-fun chartValue(value: Long, max: Float): String =
+fun chartValue(value: Long): String =
     when (abs(value)) {
         in 0..1_000 ->
             "$value"

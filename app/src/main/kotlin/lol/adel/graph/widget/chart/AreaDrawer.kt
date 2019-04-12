@@ -58,7 +58,9 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
         val height = view.heightF
         val width = view.widthF
 
-        view.animatedColumns.forEachValue { it.path.reset() }
+        val columns = view.animatedColumns
+
+        columns.forEachValue { it.path.reset() }
 
         val startFloor = start.floor()
         val endCeil = end.ceil()
@@ -76,7 +78,7 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
 
         for (i in startFloor..endCeil) {
             var y: PxF = height
-            view.animatedColumns.forEachValue { column ->
+            columns.forEachValue { column ->
                 if (column.frac > 0) {
                     y -= column[i] * mult(i)
                     column.path.lineTo(view.mapX(i, width), y)
@@ -97,7 +99,7 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
 
         for (i in endCeil downTo startFloor) {
             var y: PxF = height
-            view.animatedColumns.forEachValue { column ->
+            columns.forEachValue { column ->
                 if (column.frac > 0) {
                     column.path.lineTo(view.mapX(i, width), y)
                     y -= column[i] * mult(i)
@@ -105,7 +107,7 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
             }
         }
 
-        view.animatedColumns.forEachValue { column ->
+        columns.forEachValue { column ->
             if (column.frac > 0) {
                 column.path.close()
                 canvas.drawPath(column.path, column.paint)

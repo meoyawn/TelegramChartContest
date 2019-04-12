@@ -56,28 +56,27 @@ data class YAxis(
         }
 
         labels.forEachByIndex {
-            it.iterate(H_LINE_COUNT, it.linePaint) { value, paint ->
+            it.iterate(H_LINE_COUNT) { value ->
                 val y = mapY(value)
-                canvas.drawLine(startX, y, stopX, y, paint)
+                canvas.drawLine(startX, y, stopX, y, it.linePaint)
             }
         }
     }
 
-    fun drawLabels(canvas: Canvas, width: PxF) {
+    fun drawLabels(canvas: Canvas, width: PxF): Unit =
         labels.forEachByIndex {
-            it.iterate(H_LINE_COUNT, it.labelPaint) { value, paint ->
-                val txt = chartValue(value, camera.max)
+            it.iterate(H_LINE_COUNT) { value ->
+                val txt = chartValue(value)
+                val paint = it.labelPaint
                 val x = when {
                     right ->
                         width - LINE_PADDING - paint.measureText(txt)
-
                     else ->
                         LINE_PADDING
                 }
-                canvas.drawText(chartValue(value, camera.max), x, mapY(value) - LINE_LABEL_DIST, paint)
+                canvas.drawText(chartValue(value), x, mapY(value) - LINE_LABEL_DIST, paint)
             }
         }
-    }
 }
 
 inline fun YAxis.mapped(width: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
@@ -86,7 +85,7 @@ inline fun YAxis.mapped(width: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y)
         mapY(value = points[idx])
     )
 
-fun YAxis.animate(new: MinMax) {
+fun YAxis.animate(new: MinMax, forceLabels: Boolean = false) {
     if (new == anticipated) return
 
     minAnim.restartWith(camera.min, new.min)
@@ -94,20 +93,15 @@ fun YAxis.animate(new: MinMax) {
 
     if (!view.preview) {
         val currentYLabel = labels.first()
-        val minMax = currentYLabel.value
-        if (new.distanceSq(minMax) > (minMax.len() * 0.2f).sq()) {
-            // appear
-            currentYLabel.run {
+        val currentMinMax = currentYLabel.value
+        if (forceLabels || new.distanceSq(currentMinMax) > (currentMinMax.len() * 0.2f).sq()) {
+            labels.first().run {
                 set(new)
                 animator.restart()
             }
-
-            // prune
-            repeat(times = labels.size - 2) {
+            repeat(times = labels.size - 3) {
                 YLabel.release(labels[1], labels)
             }
-
-            // fade
             labels += YLabel.obtain(ctx = view.context, list = labels, axis = this).apply {
                 set(anticipated)
                 animator.start()

@@ -83,12 +83,12 @@ data class YLabel(
     }
 }
 
-inline fun <P : Paint> MinMax.iterate(steps: Int, paint: P, f: (Long, P) -> Unit) {
-    iterate(from = min, to = max, stepSize = (max - min) / steps, f = { f(it.toLong(), paint) })
+inline fun MinMax.iterate(steps: Int, f: (Long) -> Unit) {
+    iterate(from = min, to = max, stepSize = (max - min) / steps, f = { f(it.toLong()) })
 }
 
-inline fun <P : Paint> YLabel.iterate(steps: Int, paint: P, f: (Long, P) -> Unit) {
-    value.iterate(steps, paint, f)
+inline fun YLabel.iterate(steps: Int, f: (Long) -> Unit) {
+    value.iterate(steps, f)
 }
 
 fun YLabel.set(from: MinMax) {

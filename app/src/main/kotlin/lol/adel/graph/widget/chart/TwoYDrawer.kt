@@ -75,7 +75,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
     override fun animateYAxis() {
         val data = view.data
         view.enabledLines.forEachByIndex { id ->
-            axes[id]!!.animate(data.minMax(view.cameraX, id))
+            axes[id]!!.animate(data.minMax(view.cameraX, id), forceLabels = true)
         }
     }
 
@@ -101,8 +101,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
         if (!view.preview) {
             columns.forEach { id, column ->
                 if (column.frac > 0) {
-                    val split = leftColumn.frac > 0 && rightColumn.frac > 0
-                    axes[id]!!.drawLines(canvas, width, split = false)
+                    axes[id]!!.drawLines(canvas, width, split = leftColumn.frac > 0 && rightColumn.frac > 0)
                 }
             }
         }
