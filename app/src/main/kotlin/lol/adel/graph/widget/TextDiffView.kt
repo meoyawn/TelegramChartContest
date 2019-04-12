@@ -13,35 +13,29 @@ import lol.adel.graph.Typefaces
 
 class TextDiffView(ctx: Context) : View(ctx) {
 
-    var text: String = ""
-        set(value) {
-            if (field != value) {
-                animate(from = field, to = value)
-                field = value
-            }
-        }
-
-    private var old: String = ""
-
-    private var new: String = ""
-        set(value) {
-            if (field != value) {
-                unchangedPaint.getTextBounds(value, 0, value.length, newBounds)
-            }
-            field = value
-        }
-
-    private var unchanged = ""
-
-    private var frac = 1f
+    private val newBounds = Rect()
 
     private val oldPaint = TextPaint().apply { isAntiAlias = true }
     private val newPaint = TextPaint().apply { isAntiAlias = true }
     private val unchangedPaint = TextPaint().apply { isAntiAlias = true }
-    private val newBounds = Rect()
+
+    private var splitIdx: Idx = 0
+    private var prevText: String = ""
+
+    var text: String = ""
+        set(value) {
+            if (field != value) {
+                splitIdx = diff(field, value)
+                unchangedPaint.getTextBounds(value, 0, value.length - splitIdx, newBounds)
+                prevText = field
+                field = value
+                anim.restart()
+            }
+        }
 
     private val paints = listOf(oldPaint, newPaint, unchangedPaint)
 
+    private var frac = 1f
     private val anim = ValueAnimator.ofFloat(0f, 1f).apply {
         addUpdateListener {
             frac = it.animatedFraction
@@ -76,36 +70,39 @@ class TextDiffView(ctx: Context) : View(ctx) {
             invalidate()
         }
 
-    private fun animate(from: String, to: String) {
-        diff(from, to) { old, new, unchanged ->
-            this.old = old
-            this.new = new
-            this.unchanged = unchanged
-        }
-        anim.restart()
-    }
-
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
         val height = heightF
         val halfHeight = height / 2
 
+        val blankX = newBounds.width().toFloat()
+        val halfBlankX = blankX / 2
+
         run {
             val oldFrac = 1 - frac
-            val oldY = denorm(oldFrac, 0f, halfHeight)
+
             oldPaint.alphaF = oldFrac
             oldPaint.textSize = textSizeDp * oldFrac
-            canvas.drawText(old, 0f, oldY, oldPaint)
+
+            val x = denorm(oldFrac, halfBlankX, 0f)
+            val y = denorm(oldFrac, -halfHeight, halfHeight)
+
+            canvas.drawText(prevText, 0, prevText.length - splitIdx, x, y, oldPaint)
         }
+
+        val textLen = text.length
 
         run {
-            val newY = denorm(frac, height, halfHeight)
             newPaint.alphaF = frac
             newPaint.textSize = textSizeDp * frac
-            canvas.drawText(new, 0f, newY, newPaint)
+
+            val x = denorm(frac, halfBlankX, 0f)
+            val y = denorm(frac, height, halfHeight)
+
+            canvas.drawText(text, 0, textLen - splitIdx, x, y, newPaint)
         }
 
-        canvas.drawText(unchanged, newBounds.width().toFloat(), halfHeight, unchangedPaint)
+        canvas.drawText(text, textLen - splitIdx, textLen, blankX, halfHeight, unchangedPaint)
     }
 }
