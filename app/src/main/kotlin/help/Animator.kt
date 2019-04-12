@@ -37,7 +37,6 @@ inline fun animateColor(from: ColorInt, to: ColorInt, crossinline f: (ColorInt) 
 inline fun <T : Animator> T.onEnd(crossinline f: (T) -> Unit): Unit =
     addListener(object : AnimatorListenerAdapter() {
         override fun onAnimationEnd(animation: Animator?) {
-            removeListener(this)
             f(this@onEnd)
         }
     })

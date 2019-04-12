@@ -82,7 +82,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
         val split = leftColumn.frac > 0 && rightColumn.frac > 0
 
         view.enabledLines.forEachByIndex { id ->
-            axes[id]!!.animate(data.minMax(view.cameraX, id), forceLabels = split)
+            axes[id]!!.animate(data.minMax(view.cameraX, id))
         }
     }
 

@@ -115,23 +115,23 @@ inline fun YAxis.mapped(width: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y)
         mapY(value = points[idx])
     )
 
-fun YAxis.animate(new: MinMax, forceLabels: Boolean = false) {
+fun YAxis.animate(new: MinMax) {
     if (new == anticipated) return
 
     minAnim.restartWith(camera.min, new.min)
     maxAnim.restartWith(camera.max, new.max)
 
     if (!view.preview) {
-        val currentYLabel = labels.first()
-        val currentMinMax = currentYLabel.value
-        if (forceLabels || new.distanceSq(currentMinMax) > (currentMinMax.len() * 0.2f).sq()) {
-            labels.first().run {
-                set(new)
+        val single = labels.size == 1
+
+        labels.first().run {
+            set(new)
+            if (single) {
                 animator.restart()
             }
-            repeat(times = labels.size - 2) {
-                YLabel.release(labels[1], labels)
-            }
+        }
+
+        if (single) {
             labels += YLabel.obtain(ctx = view.context, list = labels, axis = this).apply {
                 set(anticipated)
                 animator.start()

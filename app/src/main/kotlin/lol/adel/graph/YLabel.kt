@@ -18,7 +18,7 @@ data class YLabel(
 ) {
     companion object {
 
-        private val H_LINE_THICKNESS = 2.dpF
+        private val H_LINE_THICKNESS = 1.dpF
         private val POOL = SimplePool<YLabel>(maxPoolSize = 100)
         private val START_FAST = AccelerateInterpolator()
         private const val MAX_LINE_ALPHA = 0.1f
