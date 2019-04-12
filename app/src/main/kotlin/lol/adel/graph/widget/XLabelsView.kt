@@ -22,10 +22,12 @@ class XLabelsView(ctx: Context, private val xs: LongArray, private val cameraX: 
     private val opaque = TextPaint().apply {
         color = ctx.color(R.attr.label_text)
         textSize = TEXT_SIZE_PX
+        isAntiAlias = true
     }
     private val transparent = TextPaint().apply {
         color = ctx.color(R.attr.label_text)
         textSize = TEXT_SIZE_PX
+        isAntiAlias = true
     }
 
     fun cameraXChanged() {

@@ -35,6 +35,7 @@ data class YLabel(
                 },
                 animator = ValueAnimator.ofFloat(1f, 0f),
                 labelPaint = TextPaint().apply {
+                    isAntiAlias = true
                     color = ctx.color(R.attr.label_text)
                     textSize = XLabelsView.TEXT_SIZE_PX
                 }
