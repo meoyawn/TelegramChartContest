@@ -36,7 +36,12 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
     }
 
     override fun touched(idx: Idx) {
-        touchingSlideAnim.restartWith(touchingX, view.mapX(idx, view.widthF))
+        if (idx >= 0) {
+            touchingSlideAnim.restartWith(touchingX, view.mapX(idx, view.widthF))
+        } else {
+            touchingX = -1f
+            view.listener?.onTouch(idx, touchingX)
+        }
     }
 
     override fun makePaint(clr: ColorInt): Paint =
