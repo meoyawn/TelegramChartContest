@@ -1,6 +1,7 @@
 package lol.adel.graph.widget.chart
 
 import android.animation.ValueAnimator
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -57,6 +58,8 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
             }
         }
 
+    private val bitmaps = SimpleArrayMap<LineId, Bitmap>()
+
     override fun bottomOffset(): Px =
         if (view.preview) 0 else 5.dp
 
@@ -79,7 +82,68 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
     override fun makePaint(clr: ColorInt): Paint =
         makeLinePaint(view.preview, clr)
 
+    private fun drawLine(
+        column: AnimatedColumn,
+        id: LineId,
+        width: PxF,
+        start: Float,
+        buf: FloatArray,
+        end: Float,
+        canvas: Canvas
+    ) {
+        val points = column.points
+        val axis = axes[id]!!
+
+        axis.mapped(width, points, start.floor()) { x, y ->
+            // start of first line
+            buf[0] = x
+            buf[1] = y
+        }
+
+        var bufIdx = 2
+        for (i in start.ceil()..end.ceil()) {
+            axis.mapped(width, points, i) { x, y ->
+                buf[bufIdx + 0] = x
+                buf[bufIdx + 1] = y
+                buf[bufIdx + 2] = x
+                buf[bufIdx + 3] = y
+
+                bufIdx += 4
+            }
+        }
+        bufIdx -= 2
+
+        column.paint.alphaF = if (view.preview) 1f else column.frac
+        canvas.drawLines(buf, 0, bufIdx, column.paint)
+    }
+
+    private fun drawPreview(canvas: Canvas) {
+        val columns = view.animatedColumns
+
+        val (start, end) = view.cameraX
+        val height = view.height
+        val width = view.width
+
+        columns.forEach { id, column ->
+            if (column.frac > 0) {
+                val bmp = bitmaps[id]
+                    ?: Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444).also {
+                        drawLine(column, id, width.toFloat(), start, view.lineBuf, end, Canvas(it))
+                        bitmaps[id] = it
+                    }
+
+                column.paint.alphaF = column.frac
+                canvas.drawBitmap(bmp, 0f, 0f, column.paint)
+            }
+        }
+    }
+
     override fun draw(canvas: Canvas) {
+        if (view.preview) {
+            drawPreview(canvas)
+            return
+        }
+
         val (start, end) = view.cameraX
         val height = view.heightF
         val width = view.widthF
@@ -95,63 +159,36 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
         val rightId = columns.keyAt(1)
         val rightColumn = columns.valueAt(1)
 
-        if (!view.preview) {
-            val split = leftColumn.frac > 0 && rightColumn.frac > 0
-            columns.forEach { id, column ->
-                if (column.frac > 0) {
-                    axes[id]!!.drawLines(canvas, width, split = split)
-                }
+        val split = leftColumn.frac > 0 && rightColumn.frac > 0
+        columns.forEach { id, column ->
+            if (column.frac > 0) {
+                axes[id]!!.drawLines(canvas, width, split = split)
             }
         }
 
         columns.forEach { id, column ->
             if (column.frac > 0) {
-                val points = column.points
-                val axis = axes[id]!!
-
-                axis.mapped(width, points, start.floor()) { x, y ->
-                    // start of first line
-                    buf[0] = x
-                    buf[1] = y
-                }
-
-                var bufIdx = 2
-                for (i in start.ceil()..end.ceil()) {
-                    axis.mapped(width, points, i) { x, y ->
-                        buf[bufIdx + 0] = x
-                        buf[bufIdx + 1] = y
-                        buf[bufIdx + 2] = x
-                        buf[bufIdx + 3] = y
-
-                        bufIdx += 4
-                    }
-                }
-                bufIdx -= 2
-
-                column.paint.alphaF = column.frac
-                canvas.drawLines(buf, 0, bufIdx, column.paint)
+                drawLine(column, id, width, start, buf, end, canvas)
             }
         }
 
-        if (!view.preview) {
-            if (view.touchingIdx != -1) {
-                columns.forEach { id, column ->
-                    if (column.frac > 0) {
-                        val axis = axes[id]!!
-                        axis.mapped(width, column.points, view.touchingIdx) { x, y ->
-                            canvas.drawCircle(x, y, LineDrawer.OUTER_CIRCLE_RADIUS, column.paint)
-                            canvas.drawCircle(x, y, LineDrawer.INNER_CIRCLE_RADIUS, innerCirclePaint)
-                        }
+        if (view.touchingIdx != -1) {
+            columns.forEach { id, column ->
+                if (column.frac > 0) {
+                    val axis = axes[id]!!
+                    axis.mapped(width, column.points, view.touchingIdx) { x, y ->
+                        canvas.drawCircle(x, y, LineDrawer.OUTER_CIRCLE_RADIUS, column.paint)
+                        canvas.drawCircle(x, y, LineDrawer.INNER_CIRCLE_RADIUS, innerCirclePaint)
                     }
                 }
             }
+        }
 
-            if (leftColumn.frac > 0) {
-                axes[leftId]!!.drawLabels(canvas, width, frac = leftColumn.frac)
-            }
-            if (rightColumn.frac > 0) {
-                axes[rightId]!!.drawLabels(canvas, width, frac = rightColumn.frac)
-            }
+        if (leftColumn.frac > 0) {
+            axes[leftId]!!.drawLabels(canvas, width, frac = leftColumn.frac)
+        }
+        if (rightColumn.frac > 0) {
+            axes[rightId]!!.drawLabels(canvas, width, frac = rightColumn.frac)
         }
     }
 }
