@@ -148,13 +148,14 @@ class ChartView(
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (preview) return false
 
-        when (event.action) {
+        val action = event.action
+        when (action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                 val evX = event.x
                 val evY = event.y
 
-                if (touchX != -1f) {
-                    if (abs(evX - touchX) < abs(evY - touchY)) {
+                if (touchX != -1f && action == MotionEvent.ACTION_MOVE) {
+                    if (abs(evX - touchX) > abs(evY - touchY)) {
                         parent.requestDisallowInterceptTouchEvent(true)
                     }
                 }

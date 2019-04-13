@@ -9,12 +9,12 @@ import help.*
 import lol.adel.graph.lerp
 import lol.adel.graph.set
 import lol.adel.graph.widget.ChartView
+import kotlin.math.floor
 import kotlin.math.roundToInt
 
 class LineDrawer(override val view: ChartView) : ChartDrawer {
 
     companion object {
-
         // circles
         val OUTER_CIRCLE_RADIUS = 4.dpF
         val INNER_CIRCLE_RADIUS = 3.dpF
@@ -22,25 +22,24 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
 
     private val innerCirclePaint = makeInnerCirclePaint(view.context)
 
-    var touchingX: X = -1f
+    private val arr = FloatArray(size = 2)
 
-    private val arr = FloatArray(2)
-
-    private val touchingSlideAnim = ValueAnimator().apply {
-        interpolator = DecelerateInterpolator(2f)
+    private var touchingIdx: IdxF = -1f
+    private val touchingAnim = ValueAnimator().apply {
+        interpolator = DecelerateInterpolator(3f)
         addUpdateListener {
-            touchingX = it.animatedFloat()
-            view.listener?.onTouch(idx(touchingX).roundToInt(), touchingX)
+            touchingIdx = it.animatedFloat()
+            view.listener?.onTouch(touchingIdx.roundToInt(), map(touchingIdx))
             view.invalidate()
         }
     }
 
     override fun touched(idx: Idx) {
         if (idx >= 0) {
-            touchingSlideAnim.restartWith(touchingX, view.mapX(idx, view.widthF))
+            touchingAnim.restartWith(touchingIdx, idx.toFloat())
         } else {
-            touchingX = -1f
-            view.listener?.onTouch(idx, touchingX)
+            touchingIdx = -1f
+            view.listener?.onTouch(-1, -1f)
         }
     }
 
@@ -51,7 +50,6 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
         if (view.preview) 0 else 5.dp
 
     private val mx = Matrix()
-    private val inv = Matrix()
 
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX
@@ -60,7 +58,6 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
         val eHeight = axis.effectiveHeight()
 
         mx.set(view.cameraX, view.yAxis.camera, view.widthF, eHeight.toFloat())
-        mx.invert(inv)
 
         val height = view.heightF
 
@@ -68,7 +65,8 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
 
         view.drawYLines(canvas, width)
         if (!view.preview) {
-            canvas.drawLine(touchingX, 0f, touchingX, height, view.verticalLinePaint)
+            val x = map(touchingIdx)
+            canvas.drawLine(x, 0f, x, height, view.verticalLinePaint)
         }
 
         val buf = view.lineBuf
@@ -76,8 +74,11 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
             if (column.frac > 0) {
                 val points = column.points
 
-                buf[0] = start.floor().toFloat()
-                buf[1] = points[start.floor()].toFloat()
+                run {
+                    val i = floor(start)
+                    buf[0] = i
+                    buf[1] = points[i.toInt()].toFloat()
+                }
 
                 var bufIdx = 2
                 for (i in start.ceil()..end.ceil()) {
@@ -93,29 +94,17 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
                 }
                 bufIdx -= 2
 
-                column.paint.alphaF = column.frac
-
                 mx.mapPoints(buf, 0, buf, 0, bufIdx)
+                column.paint.alphaF = column.frac
                 canvas.drawLines(buf, 0, bufIdx, column.paint)
             }
         }
 
-        if (!view.preview && touchingX > 0) {
-            view.animatedColumns.forEach { id, column ->
+        if (!view.preview && touchingIdx >= 0f) {
+            view.animatedColumns.forEach { _, column ->
                 if (column.frac > 0) {
-                    val i = idx(touchingX)
-                    val floor = i.floor()
-                    val ceil = i.ceil()
-                    val points = column.points
-
-                    arr[0] = i
-                    arr[1] = lerp(
-                        x0 = floor.toFloat(),
-                        y0 = points[floor].toFloat(),
-                        x1 = ceil.toFloat(),
-                        y1 = points[ceil].toFloat(),
-                        x = i
-                    )
+                    arr[0] = touchingIdx
+                    arr[1] = lerp(touchingIdx, column.points)
 
                     mx.mapPoints(arr)
 
@@ -127,10 +116,10 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
         }
     }
 
-    private fun idx(x: X): IdxF {
-        arr[0] = x
+    private fun map(idx: IdxF): X {
+        arr[0] = idx
         arr[1] = 1f
-        inv.mapPoints(arr)
+        mx.mapPoints(arr)
         return arr.first()
     }
 }

@@ -27,7 +27,7 @@ class TextDiffView(ctx: Context) : View(ctx) {
             frac = it.animatedFraction
             invalidate()
         }
-        duration = 150
+        duration = 200
     }
 
     private var splitIdx: Idx = 0
