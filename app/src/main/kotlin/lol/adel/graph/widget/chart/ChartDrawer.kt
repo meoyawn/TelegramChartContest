@@ -2,10 +2,7 @@ package lol.adel.graph.widget.chart
 
 import android.graphics.Canvas
 import android.graphics.Paint
-import help.ColorInt
-import help.Norm
-import help.Px
-import help.color
+import help.*
 import lol.adel.graph.R
 import lol.adel.graph.widget.ChartView
 
@@ -34,4 +31,6 @@ interface ChartDrawer {
 
     fun verticalSplits(): Int =
         5
+
+    fun touched(idx: Idx) = Unit
 }

@@ -20,7 +20,6 @@ data class YLabel(
     companion object {
 
         private val H_LINE_THICKNESS = 1.dpF
-        private val START_FAST = AccelerateInterpolator()
         private const val MAX_LINE_ALPHA = 0.1f
 
         /**
@@ -43,7 +42,7 @@ data class YLabel(
 
         fun tune(ctx: Context, axis: YAxis) {
             axis.labels.first().run {
-                animator.interpolator = DecelerateInterpolator()
+//                animator.interpolator = AccelerateInterpolator()
                 animator.addUpdateListener {
                     setAlpha(it.animatedFraction)
                 }
@@ -52,7 +51,7 @@ data class YLabel(
             }
             axis.labels.last().run {
                 animator.run {
-                    interpolator = START_FAST
+//                    interpolator = DecelerateInterpolator()
                     addUpdateListener {
                         setAlpha(1 - it.animatedFraction)
                     }

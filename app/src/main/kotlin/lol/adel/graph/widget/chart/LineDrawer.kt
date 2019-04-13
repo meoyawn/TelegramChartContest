@@ -3,6 +3,7 @@ package lol.adel.graph.widget.chart
 import android.animation.ValueAnimator
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.view.animation.DecelerateInterpolator
 import help.*
 import lol.adel.graph.mapped
 import lol.adel.graph.widget.ChartView
@@ -18,11 +19,20 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
 
     private val innerCirclePaint = makeInnerCirclePaint(view.context)
 
-    private val touchingSlideAnim = ValueAnimator().apply {
+    var touchingX: X = -1f
 
+    private val touchingSlideAnim = ValueAnimator().apply {
+        interpolator = DecelerateInterpolator()
+        addUpdateListener {
+            touchingX = it.animatedFloat()
+            view.listener?.onTouch(view.touchingIdx, touchingX)
+            view.invalidate()
+        }
     }
 
-    var touchingX:X = -1f
+    override fun touched(idx: Idx) {
+        touchingSlideAnim.restartWith(touchingX, view.mapX(idx, view.widthF))
+    }
 
     override fun makePaint(clr: ColorInt): Paint =
         makeLinePaint(view.preview, clr)
@@ -41,7 +51,9 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
         val width = view.widthF
 
         view.drawYLines(canvas, width)
-        view.drawTouchLine(canvas, width, height)
+        if (!view.preview) {
+            canvas.drawLine(touchingX, 0f, touchingX, height, view.verticalLinePaint)
+        }
 
         val buf = view.lineBuf
 
@@ -77,8 +89,8 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
             view.animatedColumns.forEach { id, column ->
                 if (column.frac > 0) {
                     axis.mapped(width, column.points, view.touchingIdx) { x, y ->
-                        canvas.drawCircle(x, y, OUTER_CIRCLE_RADIUS, column.paint)
-                        canvas.drawCircle(x, y, INNER_CIRCLE_RADIUS, innerCirclePaint)
+                        canvas.drawCircle(touchingX, y, OUTER_CIRCLE_RADIUS, column.paint)
+                        canvas.drawCircle(touchingX, y, INNER_CIRCLE_RADIUS, innerCirclePaint)
                     }
                 }
             }

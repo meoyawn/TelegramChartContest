@@ -8,7 +8,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.*
@@ -53,6 +53,7 @@ class ChartView(
             paint = drawer.makePaint(data.color(id)),
             path = Path()
         ).apply {
+            animator.interpolator = DecelerateInterpolator(1f)
             animator.addUpdateListener {
                 frac = it.animatedFloat()
                 invalidate()
@@ -67,14 +68,14 @@ class ChartView(
             anticipated = MinMax(),
             labels = listOf(YLabel.create(ctx), YLabel.create(ctx)),
             minAnim = ValueAnimator().apply {
-                interpolator = AccelerateDecelerateInterpolator()
+                interpolator = DecelerateInterpolator(1f)
                 addUpdateListener {
                     camera.min = it.animatedFloat()
                     invalidate()
                 }
             },
             maxAnim = ValueAnimator().apply {
-                interpolator = AccelerateDecelerateInterpolator()
+                interpolator = DecelerateInterpolator(1f)
                 addUpdateListener {
                     camera.max = it.animatedFloat()
                     invalidate()
@@ -97,7 +98,13 @@ class ChartView(
 
     //region Touch Feedback
     var touchingIdx: Idx = -1
-    private val verticalLinePaint = Paint().apply {
+        set(value) {
+            if (field != value) {
+                field = value
+                drawer.touched(value)
+            }
+        }
+    val verticalLinePaint = Paint().apply {
         strokeWidth = 1.dpF
         color = ctx.color(R.attr.vertical_line)
     }
@@ -116,8 +123,6 @@ class ChartView(
     fun cameraXChanged() {
         if (touchingIdx != -1) {
             touchingIdx = -1
-            listener?.onTouch(idx = touchingIdx, x = -1f)
-            invalidate()
         }
 
         drawer.animateYAxis()
@@ -157,11 +162,7 @@ class ChartView(
                 touchX = evX
                 touchY = evY
 
-                val width = widthF
-                touchingIdx = cameraX.denorm(value = evX / width).roundToInt()
-                val mappedX = mapX(touchingIdx, width)
-                listener?.onTouch(idx = touchingIdx, x = mappedX)
-                invalidate()
+                touchingIdx = cameraX.denorm(value = evX / widthF).roundToInt()
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
