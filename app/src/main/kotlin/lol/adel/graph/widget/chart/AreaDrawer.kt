@@ -4,7 +4,6 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import help.*
 import lol.adel.graph.R
-import lol.adel.graph.YLabel
 import lol.adel.graph.get
 import lol.adel.graph.set
 import lol.adel.graph.widget.ChartView
@@ -27,14 +26,9 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
         view.yAxis.effectiveHeight().toFloat() / sum(i)
 
     override fun initYAxis() {
-        val ctx = view.context
-
         val axis = view.yAxis
         axis.camera.set(0f, 100f)
-        axis.labels += YLabel.create(ctx).apply {
-            YLabel.tune(ctx = ctx, label = this, axis = axis)
-            set(axis.camera)
-        }
+        axis.labels.first().run { set(axis.camera) }
     }
 
     override fun labelColor(): ColorInt =

@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Paint
 import android.text.TextPaint
 import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import help.*
 import lol.adel.graph.widget.XLabelsView
 
@@ -19,7 +20,6 @@ data class YLabel(
     companion object {
 
         private val H_LINE_THICKNESS = 1.dpF
-        private val POOL = SimplePool<YLabel>(maxPoolSize = 100)
         private val START_FAST = AccelerateInterpolator()
         private const val MAX_LINE_ALPHA = 0.1f
 
@@ -33,7 +33,7 @@ data class YLabel(
                     color = ctx.color(R.attr.divider)
                     strokeWidth = H_LINE_THICKNESS
                 },
-                animator = ValueAnimator.ofFloat(1f, 0f),
+                animator = valueAnimator(),
                 labelPaint = TextPaint().apply {
                     isAntiAlias = true
                     color = ctx.color(R.attr.label_text)
@@ -41,41 +41,34 @@ data class YLabel(
                 }
             )
 
-        fun obtain(ctx: Context, list: MutableList<YLabel>, axis: YAxis): YLabel {
-
-            val ready = POOL.acquire() ?: create(ctx).also { yLabel ->
-                // created for pool
-                yLabel.animator.run {
+        fun tune(ctx: Context, axis: YAxis) {
+            axis.labels.first().run {
+                animator.interpolator = DecelerateInterpolator()
+                animator.addUpdateListener {
+                    setAlpha(it.animatedFraction)
+                }
+                tune(ctx, this, axis)
+                setAlpha(1f)
+            }
+            axis.labels.last().run {
+                animator.run {
                     interpolator = START_FAST
                     addUpdateListener {
-                        yLabel.setAlpha(1 - it.animatedFraction)
-                    }
-                    onEnd {
-                        release(yLabel, list)
+                        setAlpha(1 - it.animatedFraction)
                     }
                 }
+                tune(ctx, this, axis)
+                setAlpha(0f)
             }
-
-            tune(ctx, ready, axis)
-
-            return ready
         }
 
-        fun tune(ctx: Context, label: YLabel, axis: YAxis) {
+        private fun tune(ctx: Context, label: YLabel, axis: YAxis) {
             // theme changing
             label.linePaint.color = ctx.color(R.attr.divider)
 
             // reuse
             label.labelPaint.color = axis.labelColor
             label.maxLabelAlpha = axis.maxLabelAlpha
-            label.setAlpha(1f)
-        }
-
-        fun release(label: YLabel, list: MutableList<YLabel>) {
-            label.animator.removeAllListeners()
-            label.animator.cancel()
-            list -= label
-            POOL.release(label)
         }
     }
 
@@ -88,6 +81,7 @@ data class YLabel(
 }
 
 inline fun YLabel.iterate(steps: Int, f: (Long) -> Unit) {
+    if (value.empty()) return
     iterate(from = value.min, to = value.max, stepSize = (value.max - value.min) / steps, f = { f(it.toLong()) })
 }
 

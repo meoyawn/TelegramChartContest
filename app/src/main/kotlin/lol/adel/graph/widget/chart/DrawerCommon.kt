@@ -2,12 +2,10 @@ package lol.adel.graph.widget.chart
 
 import android.content.Context
 import android.graphics.Paint
-import android.view.animation.DecelerateInterpolator
 import help.ColorInt
 import help.color
 import help.dpF
 import lol.adel.graph.R
-import lol.adel.graph.YLabel
 import lol.adel.graph.animate
 import lol.adel.graph.data.minMax
 import lol.adel.graph.set
@@ -32,15 +30,7 @@ fun makeLinePaint(preview: Boolean, clr: ColorInt): Paint =
 fun ChartView.initCameraAndLabels() {
     yAxis.anticipated.set(data.minMax(cameraX, enabledLines))
     yAxis.camera.set(yAxis.anticipated)
-
-    yAxis.labels += YLabel.create(context).apply {
-        YLabel.tune(ctx = context, label = this, axis = yAxis)
-        animator.interpolator = DecelerateInterpolator()
-        animator.addUpdateListener {
-            setAlpha(it.animatedFraction)
-        }
-        set(yAxis.camera)
-    }
+    yAxis.labels.first().set(yAxis.camera)
 }
 
 fun ChartView.animateCameraY(): Unit =

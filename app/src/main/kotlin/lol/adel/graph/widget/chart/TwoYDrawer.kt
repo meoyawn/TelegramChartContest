@@ -4,7 +4,6 @@ import android.animation.ValueAnimator
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.DecelerateInterpolator
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.*
@@ -19,12 +18,16 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
 
     private val axes: SimpleArrayMap<LineId, YAxis> =
         SimpleArrayMap<LineId, YAxis>(view.data.lineIds.size).also { map ->
+            val ctx = view.context
             view.data.lineIds.forEachIndexed { idx, id ->
                 val camera = MinMax()
-                map[id] = YAxis(
+                val axis = YAxis(
                     camera = camera,
                     anticipated = MinMax(),
-                    labels = ArrayList(),
+                    labels = listOf(
+                        YLabel.create(ctx),
+                        YLabel.create(ctx)
+                    ),
                     minAnim = ValueAnimator().apply {
                         interpolator = AccelerateDecelerateInterpolator()
                         addUpdateListener {
@@ -47,6 +50,10 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
                     right = idx == 1,
                     verticalSplits = verticalSplits()
                 )
+
+                YLabel.tune(ctx, axis)
+
+                map[id] = axis
             }
         }
 
@@ -54,33 +61,16 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
         if (view.preview) 0 else 5.dp
 
     override fun initYAxis() {
-        val ctx = view.context
         val data = view.data
-        data.lineIds.forEachByIndex { id ->
-            val axis = axes[id]!!
-
+        axes.forEach { id, axis ->
             axis.anticipated.set(data.minMax(view.cameraX, id))
             axis.camera.set(axis.anticipated)
-
-            axis.labels += YLabel.create(ctx).apply {
-                YLabel.tune(ctx = ctx, label = this, axis = axis)
-                animator.interpolator = DecelerateInterpolator()
-                animator.addUpdateListener {
-                    setAlpha(it.animatedFraction)
-                }
-                set(axis.camera)
-            }
+            axis.labels.first().set(axis.camera)
         }
     }
 
     override fun animateYAxis() {
         val data = view.data
-
-        val columns = view.animatedColumns
-        val leftColumn = columns.valueAt(0)
-        val rightColumn = columns.valueAt(1)
-        val split = leftColumn.frac > 0 && rightColumn.frac > 0
-
         view.enabledLines.forEachByIndex { id ->
             axes[id]!!.animate(data.minMax(view.cameraX, id))
         }

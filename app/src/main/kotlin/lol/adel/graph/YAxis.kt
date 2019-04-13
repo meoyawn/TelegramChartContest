@@ -11,7 +11,7 @@ import kotlin.math.round
 data class YAxis(
     val camera: MinMax,
     val anticipated: MinMax,
-    val labels: ArrayList<YLabel>,
+    val labels: List<YLabel>,
     val minAnim: ValueAnimator,
     val maxAnim: ValueAnimator,
     val topOffset: Px,
@@ -59,9 +59,11 @@ data class YAxis(
         }
 
         labels.forEachByIndex {
-            it.iterate(verticalSplits) { value ->
-                val y = mapY(value)
-                canvas.drawLine(startX, y, stopX, y, it.linePaint)
+            if (it.currentLabelAlpha > 0) {
+                it.iterate(verticalSplits) { value ->
+                    val y = mapY(value)
+                    canvas.drawLine(startX, y, stopX, y, it.linePaint)
+                }
             }
         }
     }
@@ -93,18 +95,20 @@ private fun yLabelStr(value: Long): String =
 
 fun YAxis.drawLabels(canvas: Canvas, width: PxF, frac: Norm = 1f): Unit =
     labels.forEachByIndex {
-        val paint = it.labelPaint
-        paint.alphaF = it.currentLabelAlpha * frac
+        if (it.currentLabelAlpha > 0) {
+            val paint = it.labelPaint
+            paint.alphaF = it.currentLabelAlpha * frac
 
-        it.iterate(verticalSplits) { value ->
-            val txt = yLabelStr(value)
-            val x = when {
-                right ->
-                    width - YAxis.LINE_PADDING - paint.measureText(txt)
-                else ->
-                    YAxis.LINE_PADDING
+            it.iterate(verticalSplits) { value ->
+                val txt = yLabelStr(value)
+                val x = when {
+                    right ->
+                        width - YAxis.LINE_PADDING - paint.measureText(txt)
+                    else ->
+                        YAxis.LINE_PADDING
+                }
+                canvas.drawText(txt, x, mapY(value) - YAxis.LINE_LABEL_DIST, paint)
             }
-            canvas.drawText(txt, x, mapY(value) - YAxis.LINE_LABEL_DIST, paint)
         }
     }
 
@@ -122,17 +126,17 @@ fun YAxis.animate(new: MinMax) {
     maxAnim.restartWith(camera.max, new.max)
 
     if (!view.preview) {
-        val single = labels.size == 1
+        val single = labels.last().currentLabelAlpha == 0f
 
         labels.first().run {
             set(new)
             if (single) {
-                animator.restart()
+                animator.start()
             }
         }
 
         if (single) {
-            labels += YLabel.obtain(ctx = view.context, list = labels, axis = this).apply {
+            labels.last().run {
                 set(anticipated)
                 animator.start()
             }

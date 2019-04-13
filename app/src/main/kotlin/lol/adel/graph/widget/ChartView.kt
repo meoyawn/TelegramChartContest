@@ -65,7 +65,7 @@ class ChartView(
         YAxis(
             camera = camera,
             anticipated = MinMax(),
-            labels = ArrayList(),
+            labels = listOf(YLabel.create(ctx), YLabel.create(ctx)),
             minAnim = ValueAnimator().apply {
                 interpolator = AccelerateDecelerateInterpolator()
                 addUpdateListener {
@@ -87,7 +87,9 @@ class ChartView(
             maxLabelAlpha = drawer.maxLabelAlpha(),
             right = false,
             verticalSplits = drawer.verticalSplits()
-        )
+        ).also {
+            YLabel.tune(ctx, it)
+        }
     }
 
     fun mapX(idx: Idx, width: PxF): X =
