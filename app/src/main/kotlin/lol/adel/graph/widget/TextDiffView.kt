@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.Typeface
 import android.text.TextPaint
+import android.view.Gravity
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import help.*
@@ -26,7 +27,7 @@ class TextDiffView(ctx: Context) : View(ctx) {
             frac = it.animatedFraction
             invalidate()
         }
-        duration = 200
+        duration = 150
     }
 
     private var splitIdx: Idx = 0
@@ -70,10 +71,13 @@ class TextDiffView(ctx: Context) : View(ctx) {
             invalidate()
         }
 
+    var gravity: Int = Gravity.START
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
         val height = heightF
+        val width = widthF
 
         val blankX = newBounds.width().toFloat()
         val halfBlankX = blankX / 2
@@ -83,21 +87,28 @@ class TextDiffView(ctx: Context) : View(ctx) {
 
         run {
             val oldFrac = 1 - frac
+            val halfFrac = denorm(oldFrac, 0.5f, 1f)
 
             oldPaint.alphaF = oldFrac
-            oldPaint.textSize = textSizeDp * oldFrac
+            oldPaint.textSize = textSizeDp * halfFrac
 
-            val x = denorm(oldFrac, halfBlankX, 0f)
+            val startX = if (gravity == Gravity.START) 0f else width - unchangedPaint.measureText(prevText)
+
+            val x = denorm(halfFrac, startX + halfBlankX, startX)
             val y = denorm(frac, height / 2, 0f)
 
             canvas.drawText(prevText, 0, prevText.length - splitIdx, x, y, oldPaint)
         }
 
         run {
-            newPaint.alphaF = frac
-            newPaint.textSize = textSizeDp * frac
+            val halfFrac = denorm(frac, 0.5f, 1f)
 
-            val x = denorm(frac, halfBlankX, 0f)
+            newPaint.alphaF = frac
+            newPaint.textSize = textSizeDp * halfFrac
+
+            val startX = if (gravity == Gravity.START) 0f else width - unchangedPaint.measureText(text)
+
+            val x = denorm(halfFrac, startX + halfBlankX, startX)
             val y = denorm(frac, height, height / 2)
 
             canvas.drawText(text, 0, textLen - splitIdx, x, y, newPaint)

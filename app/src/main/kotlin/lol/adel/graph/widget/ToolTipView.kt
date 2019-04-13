@@ -3,7 +3,7 @@ package lol.adel.graph.widget
 import android.animation.LayoutTransition
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Typeface
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -23,7 +23,7 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
 
     private val lineTexts = SimpleArrayMap<LineId, ViewGroup>()
 
-    private fun makeLineText(ctx: Context, chart: Chart, id: LineId, medium: Typeface): ViewGroup =
+    private fun makeLineText(ctx: Context, chart: Chart, id: LineId): ViewGroup =
         LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
 
@@ -31,15 +31,16 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
 
             addView(TextView(ctx).apply {
                 textSize = 12f
-                setTextColor(ctx.color(R.attr.label_text))
+                setTextColor(ctx.color(R.attr.floating_text))
                 text = chart.names[id]
             })
 
             addView(TextDiffView(ctx).apply {
                 textSizeDp = 12.dpF
                 textColor = chart.color(id)
-                typeface = medium
+                typeface = Typefaces.medium
                 fullFlip = true
+                gravity = Gravity.END
             }, LayoutParams(MATCH_PARENT, 20.dp))
         }
 
@@ -53,6 +54,7 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
             typeface = Typefaces.medium
             textColor = ctx.color(R.attr.floating_text)
             textSizeDp = 12.dpF
+            gravity = Gravity.START
         }
         addView(floatingText, LinearLayout.LayoutParams(MATCH_PARENT, 20.dp))
 
@@ -65,7 +67,7 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
         addView(floatingContainer)
 
         data.lineIds.forEachByIndex { id ->
-            val text = makeLineText(ctx, data, id, Typefaces.medium)
+            val text = makeLineText(ctx, data, id)
             floatingContainer.addView(text)
             lineTexts[id] = text
         }

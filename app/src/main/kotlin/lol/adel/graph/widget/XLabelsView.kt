@@ -15,7 +15,7 @@ import lol.adel.graph.len
 class XLabelsView(ctx: Context, private val xs: LongArray, private val cameraX: MinMax) : View(ctx) {
 
     companion object {
-        val TEXT_SIZE_PX: PxF = 12.dpF
+        val TEXT_SIZE_PX: PxF = 11.dpF
         private val GAP: PxF = 80.dpF
     }
 
@@ -57,12 +57,14 @@ class XLabelsView(ctx: Context, private val xs: LongArray, private val cameraX: 
 
         iterate(from = startFromIdx, to = hiddenEnd, step = stepCeil) { idx ->
             val text = Dates.xLabel(xs[idx])
-            canvas.drawText(text, pxPerIdx * (idx - start) - opaque.measureText(text), halfHeight, opaque)
+            val textWidth = opaque.measureText(text)
+            canvas.drawText(text, pxPerIdx * (idx - start) - textWidth / 2f, halfHeight, opaque)
         }
         transparent.alphaF = 1 - fraction
         iterate(from = startFromIdx + stepFloor, to = hiddenEnd, step = stepCeil) { idx ->
             val text = Dates.xLabel(xs[idx])
-            canvas.drawText(text, pxPerIdx * (idx - start) - transparent.measureText(text), halfHeight, transparent)
+            val textWidth = transparent.measureText(text)
+            canvas.drawText(text, pxPerIdx * (idx - start) - textWidth / 2f, halfHeight, transparent)
         }
     }
 }
