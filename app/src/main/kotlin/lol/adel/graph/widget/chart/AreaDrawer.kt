@@ -116,6 +116,6 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
         }
 
         view.drawYLines(canvas, width)
-        view.drawXLine(canvas, width, height)
+        view.drawTouchLine(canvas, width, height)
     }
 }

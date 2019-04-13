@@ -189,15 +189,12 @@ class ChartView(
         yAxis.drawLines(canvas, width, split = false)
     }
 
-    fun drawXLine(canvas: Canvas, width: PxF, height: PxF) {
+    fun drawTouchLine(canvas: Canvas, width: PxF, height: PxF) {
         if (preview || touchingIdx == -1) return
 
         val mappedX = mapX(touchingIdx, width)
         canvas.drawLine(mappedX, 0f, mappedX, height, verticalLinePaint)
     }
-
-    private fun isBar(): Boolean =
-        data.type == ChartType.BAR
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         if (width > 0) {

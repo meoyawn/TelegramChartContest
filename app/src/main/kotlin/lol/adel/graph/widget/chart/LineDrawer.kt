@@ -22,6 +22,8 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
 
     }
 
+    var touchingX:X = -1f
+
     override fun makePaint(clr: ColorInt): Paint =
         makeLinePaint(view.preview, clr)
 
@@ -39,7 +41,7 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
         val width = view.widthF
 
         view.drawYLines(canvas, width)
-        view.drawXLine(canvas, width, height)
+        view.drawTouchLine(canvas, width, height)
 
         val buf = view.lineBuf
 

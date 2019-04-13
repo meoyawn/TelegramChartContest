@@ -148,7 +148,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
         val height = view.heightF
         val width = view.widthF
 
-        view.drawXLine(canvas, width, height)
+        view.drawTouchLine(canvas, width, height)
 
         val buf = view.lineBuf
 

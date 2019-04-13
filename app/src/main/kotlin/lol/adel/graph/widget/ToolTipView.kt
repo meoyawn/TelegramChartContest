@@ -84,22 +84,10 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
 
     fun show(idx: Idx, x: PxF) {
         val floatingWidth = width
-        val parentWidth = parent.parent.let { it as View }.width
+        val parentWidth = parent.parent.let { it as View }.widthF
 
-        val target = x - 20.dp
-        val altTarget = x - floatingWidth + 40.dp
-        val rightOk = target + floatingWidth <= parentWidth
-
-        translationX = when {
-            target > 0 && rightOk ->
-                target
-
-            !rightOk && altTarget > 0 ->
-                altTarget
-
-            else ->
-                0f
-        }
+        val target = x - floatingWidth / 2f
+        translationX = clamp(target, 0f, parentWidth - floatingWidth)
 
         floatingText.text = Dates.tooltip(data.xs[idx])
         lineTexts.forEach { id, view ->
