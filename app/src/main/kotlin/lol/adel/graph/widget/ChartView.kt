@@ -14,7 +14,6 @@ import lol.adel.graph.*
 import lol.adel.graph.data.*
 import lol.adel.graph.widget.chart.*
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
 class ChartView(
@@ -61,6 +60,8 @@ class ChartView(
         }
     }
 
+    val topOffset: PxF = if (preview) 0f else 20.dpF
+
     val yAxis = run {
         val camera = MinMax()
         YAxis(
@@ -81,13 +82,10 @@ class ChartView(
                     invalidate()
                 }
             },
-            topOffset = if (preview) 0 else 20.dp,
-            bottomOffset = drawer.bottomOffset(),
-            view = this,
             labelColor = drawer.labelColor(),
             maxLabelAlpha = drawer.maxLabelAlpha(),
-            right = false,
-            verticalSplits = drawer.verticalSplits()
+            isRight = false,
+            horizontalCount = drawer.verticalSplits()
         ).also {
             YLabel.tune(ctx, it)
         }
@@ -97,13 +95,6 @@ class ChartView(
         cameraX.norm(idx) * width
 
     //region Touch Feedback
-    var touchingIdx: Idx = -1
-        set(value) {
-            if (field != value) {
-                field = value
-                drawer.touched(value)
-            }
-        }
     val verticalLinePaint = Paint().apply {
         strokeWidth = 1.dpF
         color = ctx.color(R.attr.vertical_line)
@@ -121,10 +112,7 @@ class ChartView(
     }
 
     fun cameraXChanged() {
-        if (touchingIdx != -1) {
-            touchingIdx = -1
-        }
-
+        drawer.touchClear()
         drawer.animateYAxis()
         invalidate() // x changed
     }
@@ -154,7 +142,7 @@ class ChartView(
                 val evX = event.x
                 val evY = event.y
 
-                if (touchX != -1f && action == MotionEvent.ACTION_MOVE) {
+                if (touchX != -1f) {
                     if (abs(evX - touchX) > abs(evY - touchY)) {
                         parent.requestDisallowInterceptTouchEvent(true)
                     }
@@ -163,13 +151,14 @@ class ChartView(
                 touchX = evX
                 touchY = evY
 
-                touchingIdx = cameraX.denorm(value = evX / widthF).roundToInt()
+                drawer.touch(idx = cameraX.denorm(value = evX / widthF), x = evX)
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 touchY = -1f
                 touchX = -1f
                 parent.requestDisallowInterceptTouchEvent(false)
+                drawer.touchUp()
             }
         }
         return true
@@ -179,23 +168,6 @@ class ChartView(
         super.onDraw(canvas)
 
         drawer.draw(canvas)
-
-        if (!preview) {
-            yAxis.drawLabels(canvas, widthF)
-        }
-    }
-
-    fun drawYLines(canvas: Canvas, width: PxF) {
-        if (preview) return
-
-        yAxis.drawLines(canvas, width, split = false)
-    }
-
-    fun drawTouchLine(canvas: Canvas, width: PxF, height: PxF) {
-        if (preview || touchingIdx == -1) return
-
-        val mappedX = mapX(touchingIdx, width)
-        canvas.drawLine(mappedX, 0f, mappedX, height, verticalLinePaint)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

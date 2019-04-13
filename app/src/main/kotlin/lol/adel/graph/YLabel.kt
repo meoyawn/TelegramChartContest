@@ -4,8 +4,6 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Paint
 import android.text.TextPaint
-import android.view.animation.AccelerateInterpolator
-import android.view.animation.DecelerateInterpolator
 import help.*
 import lol.adel.graph.widget.XLabelsView
 
@@ -42,7 +40,6 @@ data class YLabel(
 
         fun tune(ctx: Context, axis: YAxis) {
             axis.labels.first().run {
-//                animator.interpolator = AccelerateInterpolator()
                 animator.addUpdateListener {
                     setAlpha(it.animatedFraction)
                 }
@@ -51,7 +48,6 @@ data class YLabel(
             }
             axis.labels.last().run {
                 animator.run {
-//                    interpolator = DecelerateInterpolator()
                     addUpdateListener {
                         setAlpha(1 - it.animatedFraction)
                     }
@@ -80,8 +76,9 @@ data class YLabel(
 }
 
 inline fun YLabel.iterate(steps: Int, f: (Long) -> Unit) {
-    if (value.empty()) return
-    iterate(from = value.min, to = value.max, stepSize = (value.max - value.min) / steps, f = { f(it.toLong()) })
+    if (value.empty() || currentLabelAlpha <= 0f) return
+
+    iterate(from = value.min, to = value.max, stepSize = value.len() / steps, f = { f(it.toLong()) })
 }
 
 fun YLabel.set(from: MinMax) {

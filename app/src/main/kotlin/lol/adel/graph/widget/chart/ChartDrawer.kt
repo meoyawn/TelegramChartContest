@@ -20,9 +20,6 @@ interface ChartDrawer {
     fun animateYAxis(): Unit =
         view.animateCameraY()
 
-    fun bottomOffset(): Px =
-        0
-
     fun labelColor(): ColorInt =
         view.color(R.attr.label_text)
 
@@ -32,5 +29,7 @@ interface ChartDrawer {
     fun verticalSplits(): Int =
         5
 
-    fun touched(idx: Idx) = Unit
+    fun touch(idx: IdxF, x: X) = Unit
+    fun touchUp() = Unit
+    fun touchClear() = Unit
 }

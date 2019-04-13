@@ -2,8 +2,8 @@ package lol.adel.graph
 
 import android.animation.ValueAnimator
 import android.graphics.Canvas
+import android.graphics.Matrix
 import help.*
-import lol.adel.graph.widget.ChartView
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.round
@@ -14,30 +14,25 @@ data class YAxis(
     val labels: List<YLabel>,
     val minAnim: ValueAnimator,
     val maxAnim: ValueAnimator,
-    val topOffset: Px,
-    val bottomOffset: Px,
-    val view: ChartView, // for height
     val labelColor: ColorInt,
     val maxLabelAlpha: Norm,
-    val right: Boolean,
-    val verticalSplits: Int
+    val isRight: Boolean,
+    val horizontalCount: Int
 ) {
-
     companion object {
         val LINE_PADDING = 16.dpF
         val LINE_LABEL_DIST = 5.dp
     }
 
-    fun effectiveHeight(): Px =
-        view.height - bottomOffset - topOffset
-
-    fun mapY(value: Long): Y =
-        (1 - camera.norm(value)) * effectiveHeight() + topOffset
-
-    fun drawLines(canvas: Canvas, width: PxF, split: Boolean) {
+    fun drawLines(
+        canvas: Canvas,
+        width: PxF,
+        matrix: Matrix,
+        split: Boolean = false
+    ) {
 
         val startX = when {
-            !right ->
+            !isRight ->
                 LINE_PADDING
 
             split ->
@@ -48,7 +43,7 @@ data class YAxis(
         }
 
         val stopX = when {
-            right ->
+            isRight ->
                 width - LINE_PADDING
 
             split ->
@@ -59,11 +54,9 @@ data class YAxis(
         }
 
         labels.forEachByIndex {
-            if (it.currentLabelAlpha > 0) {
-                it.iterate(verticalSplits) { value ->
-                    val y = mapY(value)
-                    canvas.drawLine(startX, y, stopX, y, it.linePaint)
-                }
+            it.iterate(horizontalCount) { value ->
+                val y = matrix.mapY(value)
+                canvas.drawLine(startX, y, stopX, y, it.linePaint)
             }
         }
     }
@@ -93,39 +86,36 @@ private fun yLabelStr(value: Long): String =
             "${rnd(value = value / 1_000_000.0)}M"
     }
 
-fun YAxis.drawLabels(canvas: Canvas, width: PxF, frac: Norm = 1f): Unit =
+fun YAxis.drawLabels(
+    canvas: Canvas,
+    width: PxF,
+    matrix: Matrix,
+    frac: Norm = 1f
+): Unit =
     labels.forEachByIndex {
-        if (it.currentLabelAlpha > 0) {
-            val paint = it.labelPaint
-            paint.alphaF = it.currentLabelAlpha * frac
+        val paint = it.labelPaint
+        paint.alphaF = it.currentLabelAlpha * frac
 
-            it.iterate(verticalSplits) { value ->
-                val txt = yLabelStr(value)
-                val x = when {
-                    right ->
-                        width - YAxis.LINE_PADDING - paint.measureText(txt)
-                    else ->
-                        YAxis.LINE_PADDING
-                }
-                canvas.drawText(txt, x, mapY(value) - YAxis.LINE_LABEL_DIST, paint)
+        it.iterate(horizontalCount) { value ->
+            val txt = yLabelStr(value)
+            val x = when {
+                isRight ->
+                    width - YAxis.LINE_PADDING - paint.measureText(txt)
+
+                else ->
+                    YAxis.LINE_PADDING
             }
+            canvas.drawText(txt, x, matrix.mapY(value) - YAxis.LINE_LABEL_DIST, paint)
         }
     }
 
-
-inline fun YAxis.mapped(width: PxF, points: LongArray, idx: Idx, f: (x: X, y: Y) -> Unit): Unit =
-    f(
-        view.mapX(idx = idx, width = width),
-        mapY(value = points[idx])
-    )
-
-fun YAxis.animate(new: MinMax) {
+fun YAxis.animate(new: MinMax, preview: Boolean) {
     if (new == anticipated) return
 
     minAnim.restartWith(camera.min, new.min)
     maxAnim.restartWith(camera.max, new.max)
 
-    if (!view.preview) {
+    if (!preview) {
         val single = labels.last().currentLabelAlpha == 0f
 
         labels.first().run {

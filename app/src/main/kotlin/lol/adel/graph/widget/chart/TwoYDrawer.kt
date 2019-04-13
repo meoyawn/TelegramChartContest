@@ -3,6 +3,7 @@ package lol.adel.graph.widget.chart
 import android.animation.ValueAnimator
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.view.animation.DecelerateInterpolator
 import androidx.collection.SimpleArrayMap
@@ -43,13 +44,10 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
                             view.invalidate()
                         }
                     },
-                    topOffset = if (view.preview) 0 else 20.dp,
-                    bottomOffset = bottomOffset(),
-                    view = view,
                     labelColor = view.data.color(id),
                     maxLabelAlpha = maxLabelAlpha(),
-                    right = idx == 1,
-                    verticalSplits = verticalSplits()
+                    isRight = idx == 1,
+                    horizontalCount = verticalSplits()
                 )
 
                 YLabel.tune(ctx, axis)
@@ -75,7 +73,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
     override fun animateYAxis() {
         val data = view.data
         view.enabledLines.forEachByIndex { id ->
-            axes[id]!!.animate(data.minMax(view.cameraX, id))
+            axes[id]!!.animate(new = data.minMax(view.cameraX, id), preview = view.preview)
         }
     }
 
@@ -89,7 +87,8 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
         start: Float,
         buf: FloatArray,
         end: Float,
-        canvas: Canvas
+        canvas: Canvas,
+        matrix: Matrix
     ) {
         val points = column.points
         val axis = axes[id]!!
@@ -172,17 +171,17 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
             }
         }
 
-        if (view.touchingIdx != -1) {
-            columns.forEach { id, column ->
-                if (column.frac > 0) {
-                    val axis = axes[id]!!
-                    axis.mapped(width, column.points, view.touchingIdx) { x, y ->
-                        canvas.drawCircle(x, y, LineDrawer.OUTER_CIRCLE_RADIUS, column.paint)
-                        canvas.drawCircle(x, y, LineDrawer.INNER_CIRCLE_RADIUS, innerCirclePaint)
-                    }
-                }
-            }
-        }
+//        if (view.touchingIdx != -1) {
+//            columns.forEach { id, column ->
+//                if (column.frac > 0) {
+//                    val axis = axes[id]!!
+//                    axis.mapped(width, column.points, view.touchingIdx) { x, y ->
+//                        canvas.drawCircle(x, y, LineDrawer.OUTER_CIRCLE_RADIUS, column.paint)
+//                        canvas.drawCircle(x, y, LineDrawer.INNER_CIRCLE_RADIUS, innerCirclePaint)
+//                    }
+//                }
+//            }
+//        }
 
         if (leftColumn.frac > 0) {
             axes[leftId]!!.drawLabels(canvas, width, frac = leftColumn.frac)

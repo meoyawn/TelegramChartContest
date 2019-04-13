@@ -14,7 +14,7 @@ class LearnMatrices {
         val width = 1080f
         val height = 1920f
 
-        val m = Matrix().apply { set(cameraX, cameraY, width, height) }
+        val m = Matrix().apply { setup(cameraX, cameraY, width, height) }
         println(m)
 
         val result = FloatArray(2)
