@@ -1,34 +1,40 @@
 package lol.adel.graph
 
 import android.graphics.Matrix
+import help.PxF
 
 private val ARR1 = FloatArray(8)
 private val ARR2 = FloatArray(8)
 
-fun Matrix.set(cameraX: MinMax, cameraY: MinMax, height: Float, width: Float): Boolean =
+fun Matrix.set(cameraX: MinMax, cameraY: MinMax, width: PxF, height: PxF): Boolean =
     setPolyToPoly(
-        ARR1.apply {
-            this[0] = cameraX.min
-            this[1] = cameraY.min
-            this[2] = cameraX.min
-            this[3] = cameraY.max
-            this[4] = cameraX.max
-            this[5] = cameraY.min
-            this[6] = cameraX.max
-            this[7] = cameraY.max
+        ARR1.also {
+            it[0] = cameraX.min
+            it[1] = cameraY.min
+            it[2] = cameraX.min
+            it[3] = cameraY.max
+            it[4] = cameraX.max
+            it[5] = cameraY.min
+            it[6] = cameraX.max
+            it[7] = cameraY.max
         },
         0,
-        ARR2.apply {
-            this[0] = 0f
-            this[1] = height
-            this[2] = 0f
-            this[3] = 0f
-            this[4] = width
-            this[5] = height
-            this[6] = width
-            this[7] = 0f
+        ARR2.also {
+            it[0] = 0f
+            it[1] = height
+            it[2] = 0f
+            it[3] = 0f
+            it[4] = width
+            it[5] = height
+            it[6] = width
+            it[7] = 0f
         },
         0,
         4
     )
 
+/**
+ * linear interpolation
+ */
+fun lerp(x0: Float, y0: Float, x1: Float, y1: Float, x: Float): Float =
+    (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0)

@@ -14,7 +14,7 @@ class LearnMatrices {
         val width = 1080f
         val height = 1920f
 
-        val m = Matrix().apply { set(cameraX, cameraY, height, width) }
+        val m = Matrix().apply { set(cameraX, cameraY, width, height) }
         println(m)
 
         val result = FloatArray(2)
@@ -22,5 +22,10 @@ class LearnMatrices {
 
         assertEquals(width / 2, result.first())
         assertEquals(height / 2, result.last())
+    }
+
+    @Test
+    fun mapBetweenPoints() {
+
     }
 }

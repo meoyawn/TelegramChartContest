@@ -2,11 +2,14 @@ package lol.adel.graph.widget.chart
 
 import android.animation.ValueAnimator
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.view.animation.DecelerateInterpolator
 import help.*
-import lol.adel.graph.mapped
+import lol.adel.graph.lerp
+import lol.adel.graph.set
 import lol.adel.graph.widget.ChartView
+import kotlin.math.roundToInt
 
 class LineDrawer(override val view: ChartView) : ChartDrawer {
 
@@ -21,11 +24,13 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
 
     var touchingX: X = -1f
 
+    private val arr = FloatArray(2)
+
     private val touchingSlideAnim = ValueAnimator().apply {
-        interpolator = DecelerateInterpolator()
+        interpolator = DecelerateInterpolator(2f)
         addUpdateListener {
             touchingX = it.animatedFloat()
-            view.listener?.onTouch(view.touchingIdx, touchingX)
+            view.listener?.onTouch(idx(touchingX).roundToInt(), touchingX)
             view.invalidate()
         }
     }
@@ -40,14 +45,20 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
     override fun bottomOffset(): Px =
         if (view.preview) 0 else 5.dp
 
+    private val mx = Matrix()
+    private val inv = Matrix()
+
     override fun draw(canvas: Canvas) {
         val (start, end) = view.cameraX
 
         val axis = view.yAxis
-
-        val cameraY = axis.camera
-        val height = view.heightF
         val eHeight = axis.effectiveHeight()
+
+        mx.set(view.cameraX, view.yAxis.camera, view.widthF, eHeight.toFloat())
+        mx.invert(inv)
+
+        val height = view.heightF
+
         val width = view.widthF
 
         view.drawYLines(canvas, width)
@@ -56,44 +67,65 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
         }
 
         val buf = view.lineBuf
-
         view.animatedColumns.forEach { id, column ->
             if (column.frac > 0) {
                 val points = column.points
 
-                axis.mapped(width, points, start.floor()) { x, y ->
-                    // start of first line
-                    buf[0] = x
-                    buf[1] = y
-                }
+                buf[0] = start.floor().toFloat()
+                buf[1] = points[start.floor()].toFloat()
 
                 var bufIdx = 2
                 for (i in start.ceil()..end.ceil()) {
-                    axis.mapped(width, points, i) { x, y ->
-                        buf[bufIdx + 0] = x
-                        buf[bufIdx + 1] = y
-                        buf[bufIdx + 2] = x
-                        buf[bufIdx + 3] = y
+                    val x = i.toFloat()
+                    val y = points[i].toFloat()
 
-                        bufIdx += 4
-                    }
+                    buf[bufIdx + 0] = x
+                    buf[bufIdx + 1] = y
+                    buf[bufIdx + 2] = x
+                    buf[bufIdx + 3] = y
+
+                    bufIdx += 4
                 }
                 bufIdx -= 2
 
                 column.paint.alphaF = column.frac
+
+                mx.mapPoints(buf, 0, buf, 0, bufIdx)
                 canvas.drawLines(buf, 0, bufIdx, column.paint)
             }
         }
 
-        if (!view.preview && view.touchingIdx != -1) {
+        if (!view.preview && touchingX > 0) {
             view.animatedColumns.forEach { id, column ->
                 if (column.frac > 0) {
-                    axis.mapped(width, column.points, view.touchingIdx) { x, y ->
-                        canvas.drawCircle(touchingX, y, OUTER_CIRCLE_RADIUS, column.paint)
-                        canvas.drawCircle(touchingX, y, INNER_CIRCLE_RADIUS, innerCirclePaint)
-                    }
+                    val i = idx(touchingX)
+                    val floor = i.floor()
+                    val ceil = i.ceil()
+                    val points = column.points
+
+                    arr[0] = i
+                    arr[1] = lerp(
+                        x0 = floor.toFloat(),
+                        y0 = points[floor].toFloat(),
+                        x1 = ceil.toFloat(),
+                        y1 = points[ceil].toFloat(),
+                        x = i
+                    )
+
+                    mx.mapPoints(arr)
+
+                    val (x, y) = arr
+                    canvas.drawCircle(x, y, OUTER_CIRCLE_RADIUS, column.paint)
+                    canvas.drawCircle(x, y, INNER_CIRCLE_RADIUS, innerCirclePaint)
                 }
             }
         }
+    }
+
+    private fun idx(x: X): IdxF {
+        arr[0] = x
+        arr[1] = 1f
+        inv.mapPoints(arr)
+        return arr.first()
     }
 }
