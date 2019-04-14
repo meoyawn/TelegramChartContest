@@ -6,7 +6,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
-import android.graphics.Path
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
@@ -50,8 +49,7 @@ class ChartView(
         AnimatedColumn(
             points = data[id],
             animator = ValueAnimator(),
-            paint = drawer.makePaint(data.color(id)),
-            path = Path()
+            paint = drawer.makePaint(data.color(id))
         ).apply {
             animator.interpolator = DecelerateInterpolator(1f)
             animator.addUpdateListener {
@@ -166,7 +164,6 @@ class ChartView(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-
         drawer.draw(canvas)
     }
 

@@ -25,6 +25,12 @@ inline fun MinMax.ceilToCeil(f: (Int) -> Unit) {
     }
 }
 
+inline fun MinMax.ceilToFloor(f: (Int) -> Unit) {
+    for (i in min.ceil()..max.floor()) {
+        f(i)
+    }
+}
+
 fun MinMax.floorToCeilLen(): Int =
     max.ceil() - min.floor()
 

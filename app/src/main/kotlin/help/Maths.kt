@@ -1,5 +1,6 @@
 package help
 
+import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.log
@@ -84,3 +85,6 @@ fun clamp(value: Int, min: Int, max: Int): Int =
         else ->
             value
     }
+
+fun closeEnough(f1: Float, f2: Float): Boolean =
+    abs(f2 - f1) < 0.1

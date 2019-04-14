@@ -76,8 +76,8 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
         val endC = cameraX.max.ceil()
 
         val columns = view.animatedColumns
-        val buf = view.lineBuf
 
+        val buf = view.lineBuf
         val xRange = cameraX.floorToCeilLen() + 1
         val yRange = columns.size()
         val colorStackSize = xRange * 4
