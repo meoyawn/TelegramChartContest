@@ -62,15 +62,11 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
 
         val yAxis = view.yAxis
         val matrix = yAxis.matrix
-
         val cameraX = view.cameraX
-        val cameraY = yAxis.camera
-
-        val barWidth = width / cameraX.len()
 
         matrix.setup(
             cameraX = cameraX,
-            cameraY = cameraY,
+            cameraY = yAxis.camera,
             right = width,
             bottom = height,
             top = view.topOffset
@@ -108,9 +104,11 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
             }
         }
 
+        // I don't know why *2, but it works
         matrix.mapPoints(buf, 0, buf, 0, xRange * yRange * 2)
 
-        val touching = touchingIdx in cameraX
+        val barWidth = width / cameraX.len()
+        val isTouching = touchingIdx in cameraX
         for (j in 0 until yRange) {
             val column = columns.valueAt(j)
             if (column.frac > 0) {
@@ -118,7 +116,7 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
                 column.paint.alphaF = touchingFade
 
                 val start = j * colorStackSize
-                if (touching) {
+                if (isTouching) {
                     val preTouchLen = (touchingIdx - startF) * 4
                     if (preTouchLen > 0) {
                         canvas.drawLines(buf, start, preTouchLen, column.paint)

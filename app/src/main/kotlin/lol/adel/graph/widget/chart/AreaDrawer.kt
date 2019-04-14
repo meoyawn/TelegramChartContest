@@ -6,6 +6,7 @@ import help.*
 import lol.adel.graph.R
 import lol.adel.graph.get
 import lol.adel.graph.set
+import lol.adel.graph.setup
 import lol.adel.graph.widget.ChartView
 
 class AreaDrawer(override val view: ChartView) : ChartDrawer {
@@ -51,71 +52,82 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
     override fun animateYAxis() = Unit
 
     override fun draw(canvas: Canvas) {
-//        val (start, end) = view.cameraX
-//        val height = view.heightF
-//        val width = view.widthF
-//
-//        val columns = view.animatedColumns
-//
-//        columns.forEachValue { it.path.reset() }
-//
-//        val startFloor = start.floor()
-//        val endCeil = end.ceil()
-//
-//        run {
-//            val i = startFloor
-//            var y: PxF = height
-//            view.animatedColumns.forEachValue { column ->
-//                if (column.frac > 0) {
-//                    column.path.moveTo(view.mapX(i, width), y)
-//                    y -= column[i] * mult(i)
-//                }
-//            }
-//        }
-//
-//        for (i in startFloor..endCeil) {
-//            var y: PxF = height
-//            val x = view.mapX(i, width)
-//            columns.forEachValue { column ->
-//                if (column.frac > 0) {
-//                    y -= column[i] * mult(i)
-//                    column.path.lineTo(x, y)
-//                }
-//            }
-//        }
-//
-//        run {
-//            val i = endCeil
-//            var y: PxF = height
-//            val x = view.mapX(i, width)
-//
-//            view.animatedColumns.forEachValue { column ->
-//                if (column.frac > 0) {
-//                    column.path.lineTo(x, y)
-//                    y -= column[i] * mult(i)
-//                }
-//            }
-//        }
-//
-//        for (i in endCeil downTo startFloor) {
-//            var y: PxF = height
-//            val x = view.mapX(i, width)
-//            columns.forEachValue { column ->
-//                if (column.frac > 0) {
-//                    column.path.lineTo(x, y)
-//                    y -= column[i] * mult(i)
-//                }
-//            }
-//        }
-//
-//        columns.forEachValue { column ->
-//            if (column.frac > 0) {
-//                column.path.close()
-//                canvas.drawPath(column.path, column.paint)
-//            }
-//        }
-//
-//        view.drawYLines(canvas, width)
-//        view.drawTouchLine(canvas, width, height)
+        val width = view.widthF
+        val height = view.heightF
+
+        val yAxis = view.yAxis
+        val matrix = yAxis.matrix
+        val cameraX = view.cameraX
+
+        matrix.setup(
+            cameraX = cameraX,
+            cameraY = yAxis.camera,
+            right = width,
+            bottom = height,
+            top = view.topOffset
+        )
+
+        val columns = view.animatedColumns
+
+        columns.forEachValue { it.path.reset() }
+
+        val startFloor = start.floor()
+        val endCeil = end.ceil()
+
+        run {
+            val i = startFloor
+            var y: PxF = height
+            view.animatedColumns.forEachValue { column ->
+                if (column.frac > 0) {
+                    column.path.moveTo(view.mapX(i, width), y)
+                    y -= column[i] * mult(i)
+                }
+            }
+        }
+
+        for (i in startFloor..endCeil) {
+            var y: PxF = height
+            val x = view.mapX(i, width)
+            columns.forEachValue { column ->
+                if (column.frac > 0) {
+                    y -= column[i] * mult(i)
+                    column.path.lineTo(x, y)
+                }
+            }
+        }
+
+        run {
+            val i = endCeil
+            var y: PxF = height
+            val x = view.mapX(i, width)
+
+            view.animatedColumns.forEachValue { column ->
+                if (column.frac > 0) {
+                    column.path.lineTo(x, y)
+                    y -= column[i] * mult(i)
+                }
+            }
+        }
+
+        for (i in endCeil downTo startFloor) {
+            var y: PxF = height
+            val x = view.mapX(i, width)
+            columns.forEachValue { column ->
+                if (column.frac > 0) {
+                    column.path.lineTo(x, y)
+                    y -= column[i] * mult(i)
+                }
+            }
+        }
+
+        columns.forEachValue { column ->
+            if (column.frac > 0) {
+                column.path.close()
+                canvas.drawPath(column.path, column.paint)
+            }
+        }
+
+        view.drawYLines(canvas, width)
+        view.drawTouchLine(canvas, width, height)
     }
 }
