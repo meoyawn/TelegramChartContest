@@ -37,7 +37,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
             val ctx = view.context
             view.data.lineIds.forEachIndexed { idx, id ->
                 val camera = MinMax()
-                val axis = YAxis(
+                map[id] = YAxis(
                     camera = camera,
                     anticipated = MinMax(),
                     labels = listOf(
@@ -63,11 +63,9 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
                     isRight = idx == 1,
                     horizontalCount = verticalSplits(),
                     matrix = Matrix()
-                )
-
-                YLabel.tune(ctx, axis)
-
-                map[id] = axis
+                ).also {
+                    YLabel.tune(ctx, it)
+                }
             }
         }
 

@@ -1,12 +1,29 @@
 package lol.adel.graph
 
+import help.ceil
 import help.denorm
+import help.floor
 import help.norm
 
 data class MinMax(
     var min: Float = 0f,
     var max: Float = 0f
 )
+
+inline fun MinMax.floorToCeil(f: (Int) -> Unit) {
+    for (i in min.floor()..max.ceil()) {
+        f(i)
+    }
+}
+
+inline fun MinMax.ceilToCeil(f: (Int) -> Unit) {
+    for (i in min.ceil()..max.ceil()) {
+        f(i)
+    }
+}
+
+fun MinMax.floorToCeilLen(): Int =
+    max.ceil() - min.floor()
 
 fun MinMax.len(): Float =
     max - min

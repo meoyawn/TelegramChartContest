@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.view.MotionEvent
@@ -85,14 +86,13 @@ class ChartView(
             labelColor = drawer.labelColor(),
             maxLabelAlpha = drawer.maxLabelAlpha(),
             isRight = false,
-            horizontalCount = drawer.verticalSplits()
+            horizontalCount = drawer.verticalSplits(),
+            matrix = Matrix()
         ).also {
             YLabel.tune(ctx, it)
         }
     }
 
-    fun mapX(idx: Idx, width: PxF): X =
-        cameraX.norm(idx) * width
 
     //region Touch Feedback
     val verticalLinePaint = Paint().apply {

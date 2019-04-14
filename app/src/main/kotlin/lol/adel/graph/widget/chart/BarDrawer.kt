@@ -4,10 +4,7 @@ import android.animation.ValueAnimator
 import android.graphics.Canvas
 import android.graphics.Paint
 import help.*
-import lol.adel.graph.R
-import lol.adel.graph.get
-import lol.adel.graph.len
-import lol.adel.graph.norm
+import lol.adel.graph.*
 import lol.adel.graph.widget.ChartView
 
 class BarDrawer(override val view: ChartView) : ChartDrawer {
@@ -33,49 +30,57 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
         0.5f
 
     override fun draw(canvas: Canvas) {
-        val (start, end) = view.cameraX
-
-        val axis = view.yAxis
-        val cameraY = axis.camera
-        val height = view.heightF
-        val eHeight = axis.effectiveHeight()
         val width = view.widthF
-        val startF = start.floor()
-        val endC = end.ceil()
+        val height = view.heightF
 
-        val range = endC - startF
-        val colorStackSize = range * 4
+        val yAxis = view.yAxis
+        val matrix = yAxis.matrix
 
-        val barWidth = width / view.cameraX.len()
+        val cameraX = view.cameraX
+        val cameraY = yAxis.camera
+        matrix.setup(
+            cameraX = cameraX,
+            cameraY = cameraY,
+            right = width,
+            bottom = height,
+            top = view.topOffset
+        )
+
+        val startF = cameraX.min.floor()
+
         val columns = view.animatedColumns
         val buf = view.lineBuf
 
-        var x = view.mapX(startF, width)
+        val xRange = cameraX.floorToCeilLen()
+        val yRange = columns.size()
+        val colorStackSize = xRange * 4
 
-        val dimensions = columns.size()
+        cameraX.floorToCeil { i ->
+            val x = i.toFloat()
 
-        for (i in startF..endC) {
             val iOffset = (i - startF) * 4
-            var y = height
-            for (j in 0 until dimensions) {
+
+            var y = 0f
+            for (j in 0 until yRange) {
                 val column = columns.valueAt(j)
                 if (column.frac > 0) {
-                    val barHeight = cameraY.norm(column[i]) * eHeight
-
                     val bufIdx = j * colorStackSize + iOffset
-                    buf[bufIdx + 0] = x
-                    buf[bufIdx + 1] = y - barHeight
-                    buf[bufIdx + 2] = x
-                    buf[bufIdx + 3] = y
+                    val newY = y + column[i]
 
-                    y -= barHeight
+                    buf[bufIdx + 0] = x
+                    buf[bufIdx + 1] = y
+                    buf[bufIdx + 2] = x
+                    buf[bufIdx + 3] = newY
+
+                    y = newY
                 }
             }
-
-            x += barWidth
         }
 
-        for (j in 0 until dimensions) {
+        matrix.mapPoints(buf, 0, buf, 0, xRange * yRange * 2)
+
+        val barWidth = width / cameraX.len()
+        for (j in 0 until yRange) {
             val column = columns.valueAt(j)
             if (column.frac > 0) {
                 column.paint.strokeWidth = barWidth
@@ -83,8 +88,9 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
             }
         }
 
-        // TODO touching fade
-
-        view.drawYLines(canvas, width)
+        if (!view.preview) {
+            yAxis.drawLabelLines(canvas, width)
+            yAxis.drawLabels(canvas, width)
+        }
     }
 }

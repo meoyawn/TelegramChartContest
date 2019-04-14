@@ -2,12 +2,12 @@ package lol.adel.graph.widget.chart
 
 import android.content.Context
 import android.graphics.Paint
-import help.*
-import lol.adel.graph.MinMax
-import lol.adel.graph.R
-import lol.adel.graph.animate
+import help.ColorInt
+import help.Idx
+import help.color
+import help.dpF
+import lol.adel.graph.*
 import lol.adel.graph.data.minMax
-import lol.adel.graph.set
 import lol.adel.graph.widget.ChartView
 import kotlin.math.floor
 
@@ -37,17 +37,15 @@ fun ChartView.animateCameraY(): Unit =
     yAxis.animate(data.minMax(cameraX, enabledLines), preview = preview)
 
 fun fillCurve(points: LongArray, buf: FloatArray, cameraX: MinMax): Idx {
-    val (start, end) = cameraX
-
     run {
-        val i = floor(start)
+        val i = floor(cameraX.min)
         buf[0] = i
         buf[1] = points[i.toInt()].toFloat()
     }
 
     var bufIdx = 2
 
-    for (i in start.ceil()..end.ceil()) {
+    cameraX.ceilToCeil { i ->
         val x = i.toFloat()
         val y = points[i].toFloat()
 
