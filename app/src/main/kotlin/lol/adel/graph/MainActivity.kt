@@ -30,6 +30,7 @@ class MainActivity : Activity() {
         val lineBuffer = FloatArray(size = fattest.size.inc() * fattest.lineIds.size * 4)
 
         setTheme(if (night) R.style.AppTheme_Dark else R.style.AppTheme_Light)
+
         setContentView(ScrollView(ctx).apply {
             id = ID_SCROLL
 
