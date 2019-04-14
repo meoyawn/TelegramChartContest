@@ -36,12 +36,9 @@ fun ChartView.initCameraAndLabels() {
 fun ChartView.animateCameraY(): Unit =
     yAxis.animate(data.minMax(cameraX, enabledLines), preview = preview)
 
-fun fillCurve(
-    points: LongArray,
-    buf: FloatArray,
-    cameraX: MinMax
-): Idx {
+fun fillCurve(points: LongArray, buf: FloatArray, cameraX: MinMax): Idx {
     val (start, end) = cameraX
+
     run {
         val i = floor(start)
         buf[0] = i

@@ -8,8 +8,8 @@ import help.Y
 import kotlin.math.ceil
 import kotlin.math.floor
 
-private val ARR1 = FloatArray(8)
-private val ARR2 = FloatArray(8)
+private val ARR1 = FloatArray(size = 8)
+private val ARR2 = FloatArray(size = 8)
 
 fun Matrix.setup(cameraX: MinMax, cameraY: MinMax, right: PxF, bottom: PxF, top: PxF): Boolean =
     setPolyToPoly(

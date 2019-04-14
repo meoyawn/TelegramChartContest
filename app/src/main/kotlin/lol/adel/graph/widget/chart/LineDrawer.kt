@@ -2,7 +2,6 @@ package lol.adel.graph.widget.chart
 
 import android.animation.ValueAnimator
 import android.graphics.Canvas
-import android.graphics.Matrix
 import android.graphics.Paint
 import help.*
 import lol.adel.graph.*
@@ -25,13 +24,11 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
     private val touchUp = ValueAnimator().apply {
         addUpdateListener {
             val idx = it.animatedFloat()
-            touch(idx, matrix.mapX(idx))
+            touch(idx, view.yAxis.matrix.mapX(idx))
         }
     }
 
     private val bottomOffset = if (view.preview) 0 else 5.dp
-
-    private val matrix = Matrix()
 
     override fun touch(idx: IdxF, x: X) {
         touchingX = x
@@ -61,16 +58,20 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
     override fun draw(canvas: Canvas) {
         val width = view.widthF
         val height = view.heightF
+
+        val yAxis = view.yAxis
+        val matrix = yAxis.matrix
+
         matrix.setup(
             cameraX = view.cameraX,
-            cameraY = view.yAxis.camera,
+            cameraY = yAxis.camera,
             right = width,
             bottom = height - bottomOffset,
             top = view.topOffset
         )
 
         if (!view.preview) {
-            view.yAxis.drawLines(canvas, width, matrix)
+            yAxis.drawLabelLines(canvas, width)
 
             val x = touchingX
             canvas.drawLine(x, 0f, x, height, view.verticalLinePaint)
@@ -101,7 +102,7 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
                 }
             }
 
-            view.yAxis.drawLabels(canvas, width, matrix)
+            yAxis.drawLabels(canvas, width)
         }
     }
 }

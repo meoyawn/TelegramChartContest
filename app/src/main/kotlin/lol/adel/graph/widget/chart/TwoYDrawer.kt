@@ -13,10 +13,24 @@ import lol.adel.graph.data.LineId
 import lol.adel.graph.data.color
 import lol.adel.graph.data.minMax
 import lol.adel.graph.widget.ChartView
+import kotlin.math.round
+import kotlin.math.roundToInt
 
 class TwoYDrawer(override val view: ChartView) : ChartDrawer {
 
-    private val innerCirclePaint: Paint = makeInnerCirclePaint(view.context)
+    private val innerCirclePaint = makeInnerCirclePaint(view.context)
+
+    private var touchingX: X = -1f
+    private var touchingIdx: IdxF = -1f
+    private val touchUp = ValueAnimator().apply {
+        addUpdateListener {
+            val idx = it.animatedFloat()
+            touch(idx, matrix.mapX(idx))
+        }
+    }
+
+    private val bottomOffset = if (view.preview) 0 else 5.dp
+    private val matrix = Matrix()
 
     private val axes: SimpleArrayMap<LineId, YAxis> =
         SimpleArrayMap<LineId, YAxis>(view.data.lineIds.size).also { map ->
@@ -47,7 +61,8 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
                     labelColor = view.data.color(id),
                     maxLabelAlpha = maxLabelAlpha(),
                     isRight = idx == 1,
-                    horizontalCount = verticalSplits()
+                    horizontalCount = verticalSplits(),
+                    matrix = Matrix()
                 )
 
                 YLabel.tune(ctx, axis)
@@ -56,10 +71,29 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
             }
         }
 
-    private val bitmaps = SimpleArrayMap<LineId, Bitmap>()
+    private val curveBitmaps = SimpleArrayMap<LineId, Bitmap>()
 
-    override fun bottomOffset(): Px =
-        if (view.preview) 0 else 5.dp
+    override fun touch(idx: IdxF, x: X) {
+        touchingX = x
+        touchingIdx = idx
+        view.listener?.onTouch(touchingIdx.roundToInt(), touchingX)
+        view.invalidate()
+    }
+
+    override fun touchUp() {
+        if (touchingIdx < 0) return
+
+        touchUp.restartWith(touchingIdx, round(touchingIdx))
+    }
+
+    override fun touchClear() {
+        if (touchingIdx < 0) return
+
+        touchingX = -1f
+        touchingIdx = -1f
+        view.listener?.onTouch(touchingIdx.roundToInt(), touchingX)
+        view.invalidate()
+    }
 
     override fun initYAxis() {
         val data = view.data
@@ -80,55 +114,20 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
     override fun makePaint(clr: ColorInt): Paint =
         makeLinePaint(view.preview, clr)
 
-    private fun drawLine(
-        column: AnimatedColumn,
-        id: LineId,
-        width: PxF,
-        start: Float,
-        buf: FloatArray,
-        end: Float,
-        canvas: Canvas,
-        matrix: Matrix
-    ) {
-        val points = column.points
-        val axis = axes[id]!!
-
-        axis.mapped(width, points, start.floor()) { x, y ->
-            // start of first line
-            buf[0] = x
-            buf[1] = y
-        }
-
-        var bufIdx = 2
-        for (i in start.ceil()..end.ceil()) {
-            axis.mapped(width, points, i) { x, y ->
-                buf[bufIdx + 0] = x
-                buf[bufIdx + 1] = y
-                buf[bufIdx + 2] = x
-                buf[bufIdx + 3] = y
-
-                bufIdx += 4
-            }
-        }
-        bufIdx -= 2
-
-        column.paint.alphaF = if (view.preview) 1f else column.frac
+    private fun drawCurve(column: AnimatedColumn, buf: FloatArray, canvas: Canvas, matrix: Matrix) {
+        val bufIdx = fillCurve(column.points, buf, view.cameraX)
+        matrix.mapPoints(buf, 0, buf, 0, bufIdx)
+        column.paint.alphaF = column.frac
         canvas.drawLines(buf, 0, bufIdx, column.paint)
     }
 
-    private fun drawPreview(canvas: Canvas) {
-        val columns = view.animatedColumns
-
-        val (start, end) = view.cameraX
-        val height = view.height
-        val width = view.width
-
-        columns.forEach { id, column ->
+    private fun drawPreview(canvas: Canvas, width: PxF, height: PxF) {
+        view.animatedColumns.forEach { id, column ->
             if (column.frac > 0) {
-                val bmp = bitmaps[id]
-                    ?: Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444).also {
-                        drawLine(column, id, width.toFloat(), start, view.lineBuf, end, Canvas(it))
-                        bitmaps[id] = it
+                val bmp = curveBitmaps[id]
+                    ?: Bitmap.createBitmap(width.toInt(), height.toInt(), Bitmap.Config.ARGB_4444).also {
+                        drawCurve(column, view.lineBuf, Canvas(it), axes[id]!!.matrix)
+                        curveBitmaps[id] = it
                     }
 
                 column.paint.alphaF = column.frac
@@ -138,18 +137,23 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
     }
 
     override fun draw(canvas: Canvas) {
-        if (view.preview) {
-            drawPreview(canvas)
-            return
+        val width = view.widthF
+        val height = view.heightF
+
+        axes.forEachValue {
+            it.matrix.setup(
+                cameraX = view.cameraX,
+                cameraY = it.camera,
+                right = width,
+                bottom = height - bottomOffset,
+                top = view.topOffset
+            )
         }
 
-        val (start, end) = view.cameraX
-        val height = view.heightF
-        val width = view.widthF
-
-        view.drawTouchLine(canvas, width, height)
-
-        val buf = view.lineBuf
+        if (view.preview) {
+            drawPreview(canvas, width, height)
+            return
+        }
 
         val columns = view.animatedColumns
 
@@ -161,27 +165,26 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
         val split = leftColumn.frac > 0 && rightColumn.frac > 0
         columns.forEach { id, column ->
             if (column.frac > 0) {
-                axes[id]!!.drawLines(canvas, width, split = split)
+                axes[id]!!.drawLabelLines(canvas, width, split)
             }
         }
 
         columns.forEach { id, column ->
             if (column.frac > 0) {
-                drawLine(column, id, width, start, buf, end, canvas)
+                drawCurve(column, view.lineBuf, canvas, axes[id]!!.matrix)
             }
         }
 
-//        if (view.touchingIdx != -1) {
-//            columns.forEach { id, column ->
-//                if (column.frac > 0) {
-//                    val axis = axes[id]!!
-//                    axis.mapped(width, column.points, view.touchingIdx) { x, y ->
-//                        canvas.drawCircle(x, y, LineDrawer.OUTER_CIRCLE_RADIUS, column.paint)
-//                        canvas.drawCircle(x, y, LineDrawer.INNER_CIRCLE_RADIUS, innerCirclePaint)
-//                    }
-//                }
-//            }
-//        }
+        if (touchingIdx >= 0f) {
+            val x = touchingX
+            columns.forEach { _, column ->
+                if (column.frac > 0) {
+                    val y = matrix.mapY(interpolate(touchingIdx, column.points))
+                    canvas.drawCircle(x, y, LineDrawer.OUTER_CIRCLE_RADIUS, column.paint)
+                    canvas.drawCircle(x, y, LineDrawer.INNER_CIRCLE_RADIUS, innerCirclePaint)
+                }
+            }
+        }
 
         if (leftColumn.frac > 0) {
             axes[leftId]!!.drawLabels(canvas, width, frac = leftColumn.frac)

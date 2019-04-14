@@ -4,6 +4,9 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.log
 
+/**
+ * 0..1
+ */
 typealias Norm = Float
 
 typealias Idx = Int

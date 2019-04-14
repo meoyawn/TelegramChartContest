@@ -2,7 +2,6 @@ package lol.adel.graph
 
 import help.denorm
 import help.norm
-import help.sq
 
 data class MinMax(
     var min: Float = 0f,
@@ -11,9 +10,6 @@ data class MinMax(
 
 fun MinMax.len(): Float =
     max - min
-
-fun MinMax.distanceSq(that: MinMax): Float =
-    (that.min - this.min).sq() + (that.max - this.max).sq()
 
 fun MinMax.set(from: MinMax) {
     this.min = from.min

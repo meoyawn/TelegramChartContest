@@ -47,10 +47,8 @@ data class YLabel(
                 setAlpha(1f)
             }
             axis.labels.last().run {
-                animator.run {
-                    addUpdateListener {
-                        setAlpha(1 - it.animatedFraction)
-                    }
+                animator.addUpdateListener {
+                    setAlpha(1 - it.animatedFraction)
                 }
                 tune(ctx, this, axis)
                 setAlpha(0f)

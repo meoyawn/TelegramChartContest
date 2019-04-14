@@ -17,47 +17,42 @@ data class YAxis(
     val labelColor: ColorInt,
     val maxLabelAlpha: Norm,
     val isRight: Boolean,
-    val horizontalCount: Int
+    val horizontalCount: Int,
+    val matrix: Matrix
 ) {
     companion object {
         val LINE_PADDING = 16.dpF
         val LINE_LABEL_DIST = 5.dp
     }
+}
 
-    fun drawLines(
-        canvas: Canvas,
-        width: PxF,
-        matrix: Matrix,
-        split: Boolean = false
-    ) {
+fun YAxis.drawLabelLines(canvas: Canvas, width: PxF, split: Boolean = false) {
+    val startX = when {
+        !isRight ->
+            YAxis.LINE_PADDING
 
-        val startX = when {
-            !isRight ->
-                LINE_PADDING
+        split ->
+            width / 2f
 
-            split ->
-                width / 2f
+        else ->
+            YAxis.LINE_PADDING
+    }
 
-            else ->
-                LINE_PADDING
-        }
+    val stopX = when {
+        isRight ->
+            width - YAxis.LINE_PADDING
 
-        val stopX = when {
-            isRight ->
-                width - LINE_PADDING
+        split ->
+            width / 2f
 
-            split ->
-                width / 2f
+        else ->
+            width - YAxis.LINE_PADDING
+    }
 
-            else ->
-                width - LINE_PADDING
-        }
-
-        labels.forEachByIndex {
-            it.iterate(horizontalCount) { value ->
-                val y = matrix.mapY(value)
-                canvas.drawLine(startX, y, stopX, y, it.linePaint)
-            }
+    labels.forEachByIndex {
+        it.iterate(horizontalCount) { value ->
+            val y = matrix.mapY(value)
+            canvas.drawLine(startX, y, stopX, y, it.linePaint)
         }
     }
 }
@@ -86,12 +81,7 @@ private fun yLabelStr(value: Long): String =
             "${rnd(value = value / 1_000_000.0)}M"
     }
 
-fun YAxis.drawLabels(
-    canvas: Canvas,
-    width: PxF,
-    matrix: Matrix,
-    frac: Norm = 1f
-): Unit =
+fun YAxis.drawLabels(canvas: Canvas, width: PxF, frac: Norm = 1f): Unit =
     labels.forEachByIndex {
         val paint = it.labelPaint
         paint.alphaF = it.currentLabelAlpha * frac
