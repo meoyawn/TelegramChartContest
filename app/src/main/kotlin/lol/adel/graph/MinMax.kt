@@ -19,6 +19,12 @@ inline fun MinMax.floorToCeil(f: (Int) -> Unit) {
     }
 }
 
+inline fun MinMax.reverseFloorToCeil(f: (Int) -> Unit) {
+    for (i in max.ceil() downTo min.floor()) {
+        f(i)
+    }
+}
+
 inline fun MinMax.ceilToCeil(f: (Int) -> Unit) {
     for (i in min.ceil()..max.ceil()) {
         f(i)

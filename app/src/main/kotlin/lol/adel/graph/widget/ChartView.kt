@@ -95,7 +95,7 @@ class ChartView(
     //region Touch Feedback
     val verticalLinePaint = Paint().apply {
         strokeWidth = 1.dpF
-        color = ctx.color(R.attr.vertical_line)
+        color = ctx.color(R.attr.divider)
     }
     //endregion
 

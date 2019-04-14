@@ -78,6 +78,13 @@ fun Matrix.mapX(value: Float): X {
     return ARR[0]
 }
 
+fun Matrix.map(minMax: MinMax): FloatArray {
+    ARR[0] = minMax.min
+    ARR[1] = minMax.max
+    mapPoints(ARR)
+    return ARR
+}
+
 fun Matrix.mapY(value: Float): Y {
     ARR[0] = 1f
     ARR[1] = value

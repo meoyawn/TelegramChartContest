@@ -1,7 +1,7 @@
 package lol.adel.graph.widget.chart
 
+import android.animation.ValueAnimator
 import android.graphics.Canvas
-import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import androidx.collection.SimpleArrayMap
@@ -9,12 +9,13 @@ import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.LineId
 import lol.adel.graph.widget.ChartView
-import kotlin.math.abs
+import kotlin.math.round
 import kotlin.math.roundToInt
 
 class AreaDrawer(override val view: ChartView) : ChartDrawer {
 
     private companion object {
+
         fun SimpleArrayMap<LineId, AnimatedColumn>.sum(i: Idx): Float {
             var sum = 0f
             forEachValue { column ->
@@ -25,7 +26,7 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
             return sum
         }
 
-        fun SimpleArrayMap<LineId, AnimatedColumn>.goDown(i: Idx): Idx {
+        fun SimpleArrayMap<LineId, AnimatedColumn>.findPrevIdx(i: Idx): Idx {
             var j = i - 1
             while (j >= 0 && valueAt(j).frac <= 0) {
                 j--
@@ -34,10 +35,38 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
         }
     }
 
-    private val horses = view.data.lineIds.toSimpleArrayMap { Path() }
-    private val reverses = view.data.lineIds.toSimpleArrayMap { Path() }
-    private val fillers = view.data.lineIds.toSimpleArrayMap { Path() }
-    val flipX = Matrix().apply { setScale(-1f, 1f) }
+    private var touchingX: X = -1f
+    private var touchingIdx: IdxF = -1f
+    private val touchUp = ValueAnimator().apply {
+        addUpdateListener {
+            val idx = it.animatedFloat()
+            touch(idx, view.yAxis.matrix.mapX(idx))
+        }
+    }
+
+    private val path = Path()
+
+    override fun touch(idx: IdxF, x: X) {
+        touchingX = x
+        touchingIdx = idx
+        view.listener?.onTouch(touchingIdx.roundToInt(), touchingX)
+        view.invalidate()
+    }
+
+    override fun touchUp() {
+        if (touchingIdx < 0) return
+
+        touchUp.restartWith(touchingIdx, round(touchingIdx))
+    }
+
+    override fun touchClear() {
+        if (touchingIdx < 0) return
+
+        touchingX = -1f
+        touchingIdx = -1f
+        view.listener?.onTouch(touchingIdx.roundToInt(), touchingX)
+        view.invalidate()
+    }
 
     override fun initYAxis() {
         val axis = view.yAxis
@@ -109,8 +138,6 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
             }
         }
 
-        check(lastJ != -1)
-
         // calc buf
         cameraX.ceilToCeil { i ->
             val mult = cameraY.max / columns.sum(i)
@@ -122,95 +149,90 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
             for (j in 0 until lastJ) {
                 val column = columns.valueAt(j)
 
+                if (column.frac <= 0) continue
+
                 // START NOT FROM GROUND
-                if (column.frac > 0) {
-                    y += column[i] * mult
-                    buf.setPoint(i = i - startF, j = j, jSize = jSize, x = x, y = y)
-                }
+                y += column[i] * mult
+                buf.setPoint(i = i - startF, j = j, jSize = jSize, x = x, y = y)
             }
         }
 
         // map buf
-        matrix.mapPoints(buf, 0, buf, 0, getPointIndex(i = iSize, j = jSize, jSize = jSize))
+        val totalSize = getPointIndex(i = iSize, j = jSize, jSize = jSize)
+        buf[totalSize + 0] = cameraX.min
+        buf[totalSize + 1] = cameraY.min
+        buf[totalSize + 2] = cameraX.max
+        buf[totalSize + 3] = cameraY.max
 
-        val screenBottom = matrix.mapY(cameraY.min)
-        val screenTop = matrix.mapY(cameraY.max)
-        val screenLeft = matrix.mapX(cameraX.min)
-        val screenRight = matrix.mapX(cameraX.max)
+        matrix.mapPoints(buf, 0, buf, 0, totalSize + 4)
+        val screenLeft = buf[totalSize + 0]
+        val screenBottom = buf[totalSize + 1]
+        val screenRight = buf[totalSize + 2]
+        val screenTop = buf[totalSize + 3]
 
-        flipX.setScale(-1f, 1f, abs(screenRight - screenLeft) / 2f, 1f)
-
-        for (j in 0 until 2) {
+        for (j in 0 until columns.size()) {
             val column = columns.valueAt(j)
+            if (column.frac <= 0) continue
 
-            val filler = fillers.valueAt(j)
-            val horse = horses.valueAt(j)
-            val reverse = reverses.valueAt(j)
+            path.reset()
 
-            filler.rewind()
+            val prevJ = columns.findPrevIdx(j)
+            when {
+                j == lastJ && j == 0 ->
+                    path.addRect(screenLeft, screenTop, screenRight, screenBottom, Path.Direction.CW)
 
-            if (column.frac > 0) {
-                val lower = columns.goDown(j)
-                when (j) {
-                    0 -> {
-                        // fill current horse
-                        fill(buf, j, jSize, horse, reverse, iSize)
-                        // move right
-                        filler.addPath(horse)
-                        // move bottom
-                        filler.lineTo(screenRight, screenBottom)
-                        // move left
-                        filler.lineTo(screenLeft, screenBottom)
+                j == 0 -> {
+                    buf.getPoint(i = 0, j = j, jSize = jSize, f = path::moveTo)
+                    for (i in 1 until iSize) {
+                        buf.getPoint(i = i, j = j, jSize = jSize, f = path::lineTo)
                     }
 
-                    lastJ -> {
-                        buf.getPoint(i = 0, j = lower, jSize = jSize, f = filler::moveTo) // lower
-                        // move right
-//                        filler.lineTo(screenRight, screenTop)
-//                        // move left
-//                        filler.addPath(reverses.valueAt(lower))
-                    }
-
-                    else -> {
-                        // lower
-//                        buf.getPoint(i = 0, j = lower, jSize = jSize, f = filler::moveTo)
-
-                        // fill current horse
-                        fill(buf, j, jSize, horse, reverse, iSize)
-
-                        // move right
-                        filler.addPath(horse)
-
-                        // move bottom
-                        buf.getPoint(i = iSize - 1, j = lower, jSize = jSize, f = filler::lineTo)
-
-                        // move left
-                        filler.addPath(horses.valueAt(lower))
-                    }
+                    path.lineTo(screenRight, screenBottom)
+                    path.lineTo(screenLeft, screenBottom)
                 }
 
-                canvas.drawPath(filler, column.paint)
+                j == lastJ -> {
+                    if (prevJ >= 0) {
+                        buf.getPoint(i = 0, j = prevJ, jSize = jSize, f = path::moveTo)
+                        for (i in 1 until iSize) {
+                            buf.getPoint(i = i, j = prevJ, jSize = jSize, f = path::lineTo)
+                        }
+                    } else {
+                        path.moveTo(screenLeft, screenBottom)
+                        path.lineTo(screenRight, screenBottom)
+                    }
+
+                    path.lineTo(screenRight, screenTop)
+                    path.lineTo(screenLeft, screenTop)
+                }
+
+                else -> {
+                    buf.getPoint(i = 0, j = j, jSize = jSize, f = path::moveTo)
+                    for (i in 1 until iSize) {
+                        buf.getPoint(i = i, j = j, jSize = jSize, f = path::lineTo)
+                    }
+
+                    if (prevJ >= 0) {
+                        for (i in iSize - 1 downTo 0) {
+                            buf.getPoint(i = i, j = prevJ, jSize = jSize, f = path::lineTo)
+                        }
+                    } else {
+                        path.lineTo(screenRight, screenBottom)
+                        path.lineTo(screenLeft, screenBottom)
+                    }
+                }
             }
+
+            canvas.drawPath(path, column.paint)
         }
-    }
 
-    private fun fill(
-        buf: FloatArray,
-        j: Int,
-        jSize: Int,
-        straight: Path,
-        reverse: Path,
-        iSize: Int
-    ) {
-        straight.rewind()
-        reverse.rewind()
+        if (!view.preview) {
+            yAxis.drawLabelLines(canvas, width)
 
-        buf.getPoint(0, j, jSize) { x, y -> straight.moveTo(x, y) }
-        buf.getPoint(iSize - 1, j, jSize) { x, y -> reverse.moveTo(x, y) }
+            val x = touchingX
+            canvas.drawLine(x, screenTop, x, screenBottom, view.verticalLinePaint)
 
-        for (i in 1 until iSize) {
-            buf.getPoint(i = i, j = j, jSize = jSize, f = straight::lineTo)
-            buf.getPoint(i = iSize - i - 1, j = j, jSize = jSize, f = reverse::lineTo)
+            yAxis.drawLabels(canvas, width)
         }
     }
 }
