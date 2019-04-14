@@ -81,7 +81,7 @@ class LineDrawer(override val view: ChartView) : ChartDrawer {
         val buf = view.lineBuf
         columns.forEach { _, column ->
             if (column.frac > 0) {
-                val bufIdx = fillCurve(column.points, buf, view.cameraX)
+                val bufIdx = fillPolyLine(column.points, buf, view.cameraX)
 
                 matrix.mapPoints(buf, 0, buf, 0, bufIdx)
 

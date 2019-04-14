@@ -6,15 +6,44 @@ import android.graphics.Paint
 import help.*
 import lol.adel.graph.*
 import lol.adel.graph.widget.ChartView
+import kotlin.math.roundToInt
 
 class BarDrawer(override val view: ChartView) : ChartDrawer {
 
+    private var touchingIdx: Idx = -1
     private var touchingFade: Norm = 1f
     private val touchingFadeAnim = ValueAnimator().apply {
         addUpdateListener {
             touchingFade = it.animatedFloat()
             view.invalidate()
         }
+    }
+
+    override fun touch(idx: IdxF, x: X) {
+
+        touchingIdx = idx.roundToInt()
+
+        if (!touchingFadeAnim.isRunning && touchingFade != 0.5f) {
+            touchingFadeAnim.restartWith(touchingFade, 0.5f)
+        }
+//        view.listener?.onTouch(touchingIdx.roundToInt(), touchingX)
+        view.invalidate()
+    }
+
+    override fun touchUp() {
+        if (touchingIdx < 0) return
+
+
+    }
+
+    override fun touchClear() {
+        if (touchingIdx < 0) return
+
+        touchingIdx = -1
+//        view.listener?.onTouch(touchingIdx.roundToInt(), touchingX)
+        view.invalidate()
+
+        touchingFadeAnim.restartWith(touchingFade, 1f)
     }
 
     override fun makePaint(clr: ColorInt): Paint =
@@ -38,6 +67,9 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
 
         val cameraX = view.cameraX
         val cameraY = yAxis.camera
+
+        val barWidth = width / cameraX.len()
+
         matrix.setup(
             cameraX = cameraX,
             cameraY = cameraY,
@@ -47,6 +79,7 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
         )
 
         val startF = cameraX.min.floor()
+        val endC = cameraX.max.ceil()
 
         val columns = view.animatedColumns
         val buf = view.lineBuf
@@ -64,7 +97,7 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
             for (j in 0 until yRange) {
                 val column = columns.valueAt(j)
                 if (column.frac > 0) {
-                    val bufIdx = j * colorStackSize + iOffset
+                    val bufIdx = j * (colorStackSize + 4) + iOffset
                     val newY = y + column[i]
 
                     buf[bufIdx + 0] = x
@@ -79,12 +112,31 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
 
         matrix.mapPoints(buf, 0, buf, 0, xRange * yRange * 2)
 
-        val barWidth = width / cameraX.len()
         for (j in 0 until yRange) {
             val column = columns.valueAt(j)
             if (column.frac > 0) {
                 column.paint.strokeWidth = barWidth
-                canvas.drawLines(buf, j * colorStackSize, colorStackSize, column.paint)
+
+                val len = colorStackSize + 4
+                val start = j * len
+
+                if (touchingIdx < 0) {
+                    column.paint.alphaF = 1f
+                    canvas.drawLines(buf, start, len, column.paint)
+                } else {
+                    column.paint.alphaF = touchingFade
+
+                    val preTouchLen = (touchingIdx - startF) * 4
+                    val postTouchLen = colorStackSize + 4 - preTouchLen
+
+                    if (preTouchLen > 0) {
+                        canvas.drawLines(buf, start, preTouchLen, column.paint)
+                    }
+
+                    if (postTouchLen > 0) {
+                        canvas.drawLines(buf, start + preTouchLen + 4, postTouchLen, column.paint)
+                    }
+                }
             }
         }
 

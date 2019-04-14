@@ -11,7 +11,7 @@ import kotlin.math.floor
 private val ARR1 = FloatArray(size = 8)
 private val ARR2 = FloatArray(size = 8)
 
-fun Matrix.setup(cameraX: MinMax, cameraY: MinMax, right: PxF, bottom: PxF, top: PxF): Boolean =
+fun Matrix.setup(cameraX: MinMax, cameraY: MinMax, right: PxF, bottom: PxF, top: PxF, left: PxF = 0f): Boolean =
     setPolyToPoly(
         ARR1.also {
             it[0] = cameraX.min
@@ -25,9 +25,9 @@ fun Matrix.setup(cameraX: MinMax, cameraY: MinMax, right: PxF, bottom: PxF, top:
         },
         0,
         ARR2.also {
-            it[0] = 0f
+            it[0] = left
             it[1] = bottom
-            it[2] = 0f
+            it[2] = left
             it[3] = top
             it[4] = right
             it[5] = bottom

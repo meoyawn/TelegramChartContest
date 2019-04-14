@@ -24,13 +24,14 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
     private var touchingIdx: IdxF = -1f
     private val touchUp = ValueAnimator().apply {
         addUpdateListener {
+            // any matrix will do for x mapping
+            val matrix = axes.first().matrix
             val idx = it.animatedFloat()
             touch(idx, matrix.mapX(idx))
         }
     }
 
     private val bottomOffset = if (view.preview) 0 else 5.dp
-    private val matrix = Matrix()
 
     private val axes: SimpleArrayMap<LineId, YAxis> =
         SimpleArrayMap<LineId, YAxis>(view.data.lineIds.size).also { map ->
@@ -112,8 +113,8 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
     override fun makePaint(clr: ColorInt): Paint =
         makeLinePaint(view.preview, clr)
 
-    private fun drawCurve(column: AnimatedColumn, buf: FloatArray, canvas: Canvas, matrix: Matrix) {
-        val bufIdx = fillCurve(column.points, buf, view.cameraX)
+    private fun drawPolyLine(column: AnimatedColumn, buf: FloatArray, canvas: Canvas, matrix: Matrix) {
+        val bufIdx = fillPolyLine(column.points, buf, view.cameraX)
         matrix.mapPoints(buf, 0, buf, 0, bufIdx)
         column.paint.alphaF = column.frac
         canvas.drawLines(buf, 0, bufIdx, column.paint)
@@ -124,7 +125,7 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
             if (column.frac > 0) {
                 val bmp = curveBitmaps[id]
                     ?: Bitmap.createBitmap(width.toInt(), height.toInt(), Bitmap.Config.ARGB_4444).also {
-                        drawCurve(column, view.lineBuf, Canvas(it), axes[id]!!.matrix)
+                        drawPolyLine(column, view.lineBuf, Canvas(it), axes[id]!!.matrix)
                         curveBitmaps[id] = it
                     }
 
@@ -167,17 +168,22 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
             }
         }
 
+        run {
+            val x = touchingX
+            canvas.drawLine(x, 0f, x, height, view.verticalLinePaint)
+        }
+
         columns.forEach { id, column ->
             if (column.frac > 0) {
-                drawCurve(column, view.lineBuf, canvas, axes[id]!!.matrix)
+                drawPolyLine(column, view.lineBuf, canvas, axes[id]!!.matrix)
             }
         }
 
         if (touchingIdx >= 0f) {
             val x = touchingX
-            columns.forEach { _, column ->
+            columns.forEach { id, column ->
                 if (column.frac > 0) {
-                    val y = matrix.mapY(interpolate(touchingIdx, column.points))
+                    val y = axes[id]!!.matrix.mapY(interpolate(touchingIdx, column.points))
                     canvas.drawCircle(x, y, LineDrawer.OUTER_CIRCLE_RADIUS, column.paint)
                     canvas.drawCircle(x, y, LineDrawer.INNER_CIRCLE_RADIUS, innerCirclePaint)
                 }

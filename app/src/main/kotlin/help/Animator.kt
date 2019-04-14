@@ -51,7 +51,9 @@ fun ValueAnimator.animatedFloat(): Float =
     animatedValue as Float
 
 fun ValueAnimator.restartWith(from: Float, to: Float) {
-    cancel()
+    if (isRunning) {
+        cancel()
+    }
     setFloatValues(from, to)
     start()
 }

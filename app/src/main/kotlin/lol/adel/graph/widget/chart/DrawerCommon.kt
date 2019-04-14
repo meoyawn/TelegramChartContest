@@ -36,7 +36,7 @@ fun ChartView.initCameraAndLabels() {
 fun ChartView.animateCameraY(): Unit =
     yAxis.animate(data.minMax(cameraX, enabledLines), preview = preview)
 
-fun fillCurve(points: LongArray, buf: FloatArray, cameraX: MinMax): Idx {
+fun fillPolyLine(points: LongArray, buf: FloatArray, cameraX: MinMax): Idx {
     run {
         val i = floor(cameraX.min)
         buf[0] = i
