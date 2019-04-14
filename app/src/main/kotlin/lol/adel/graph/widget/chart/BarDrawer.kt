@@ -17,33 +17,31 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
             touchingFade = it.animatedFloat()
             view.invalidate()
         }
+        onEnd {
+            if (touchingFade == 1f) {
+                touchingIdx = -1
+            }
+        }
     }
 
     override fun touch(idx: IdxF, x: X) {
-
         touchingIdx = idx.roundToInt()
 
         if (!touchingFadeAnim.isRunning && touchingFade != 0.5f) {
             touchingFadeAnim.restartWith(touchingFade, 0.5f)
         }
-//        view.listener?.onTouch(touchingIdx.roundToInt(), touchingX)
+
+        view.listener?.onTouch(touchingIdx, x)
         view.invalidate()
-    }
-
-    override fun touchUp() {
-        if (touchingIdx < 0) return
-
-
     }
 
     override fun touchClear() {
         if (touchingIdx < 0) return
 
-        touchingIdx = -1
-//        view.listener?.onTouch(touchingIdx.roundToInt(), touchingX)
-        view.invalidate()
-
-        touchingFadeAnim.restartWith(touchingFade, 1f)
+        if (!touchingFadeAnim.isRunning && touchingFade != 1f) {
+            view.listener?.onTouch(-1, -1f)
+            touchingFadeAnim.restartWith(touchingFade, 1f)
+        }
     }
 
     override fun makePaint(clr: ColorInt): Paint =
@@ -112,29 +110,29 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
 
         matrix.mapPoints(buf, 0, buf, 0, xRange * yRange * 2)
 
+        val touching = touchingIdx in cameraX
         for (j in 0 until yRange) {
             val column = columns.valueAt(j)
             if (column.frac > 0) {
                 column.paint.strokeWidth = barWidth
+                column.paint.alphaF = touchingFade
 
                 val start = j * colorStackSize
-
-                if (touchingIdx < 0) {
-                    column.paint.alphaF = 1f
-                    canvas.drawLines(buf, start, colorStackSize, column.paint)
-                } else {
-                    column.paint.alphaF = touchingFade
-
+                if (touching) {
                     val preTouchLen = (touchingIdx - startF) * 4
-                    val postTouchLen = colorStackSize - preTouchLen
-
                     if (preTouchLen > 0) {
                         canvas.drawLines(buf, start, preTouchLen, column.paint)
                     }
 
+                    val postTouchLen = colorStackSize - preTouchLen - 4
                     if (postTouchLen > 0) {
                         canvas.drawLines(buf, start + preTouchLen + 4, postTouchLen, column.paint)
                     }
+
+                    column.paint.alphaF = 1f
+                    canvas.drawLines(buf, start + preTouchLen, 4, column.paint)
+                } else {
+                    canvas.drawLines(buf, start, colorStackSize, column.paint)
                 }
             }
         }

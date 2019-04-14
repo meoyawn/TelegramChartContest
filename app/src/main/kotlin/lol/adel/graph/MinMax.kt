@@ -10,6 +10,9 @@ data class MinMax(
     var max: Float = 0f
 )
 
+operator fun MinMax.contains(i: Int): Boolean =
+    i.toFloat() in min..max
+
 inline fun MinMax.floorToCeil(f: (Int) -> Unit) {
     for (i in min.floor()..max.ceil()) {
         f(i)
