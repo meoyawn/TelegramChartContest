@@ -19,6 +19,23 @@ class FilterView(ctx: Context, private val data: Chart, private val enabledLines
 
     private companion object {
         val TWO_TIMES = CycleInterpolator(2f)
+
+        // allocations
+        val L1 = ArrayList<LineId>()
+        val L2 = ArrayList<LineId>()
+
+        fun recycle1(id: LineId): List<LineId> =
+            L1.apply {
+                clear()
+                add(id)
+            }
+
+        fun recycle2(list: List<LineId>, without: LineId? = null): List<LineId> =
+            L2.apply {
+                clear()
+                addAll(list)
+                without?.let { remove(it) }
+            }
     }
 
     interface Listener {
@@ -72,27 +89,27 @@ class FilterView(ctx: Context, private val data: Chart, private val enabledLines
             updatePadding(left = 10.dp)
 
             setOnClickListener {
-                val idAsList = listOf(lineId)
+                val idAsList = recycle1(lineId)
                 if (enabledLines == idAsList) {
                     shake()
                 } else {
                     if (lineId in enabledLines) {
-                        onChange(deselect = listOf(lineId))
+                        onChange(deselect = idAsList)
                     } else {
-                        onChange(select = listOf(lineId))
+                        onChange(select = idAsList)
                     }
                 }
             }
 
             setOnLongClickListener {
-                val idAsList = listOf(lineId)
+                val idAsList = recycle1(lineId)
                 if (enabledLines == idAsList) {
                     shake()
                 } else {
                     if (lineId in enabledLines) {
-                        onChange(deselect = enabledLines - lineId)
+                        onChange(deselect = recycle2(list = enabledLines, without = lineId))
                     } else {
-                        onChange(select = idAsList, deselect = enabledLines.toList())
+                        onChange(select = idAsList, deselect = recycle2(enabledLines))
                     }
                 }
                 true
