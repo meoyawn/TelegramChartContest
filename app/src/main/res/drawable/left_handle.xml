@@ -1,25 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape>
-            <size
-                android:width="10dp"
-                android:height="48dp" />
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <size
+        android:width="10dp"
+        android:height="48dp" />
 
-            <solid android:color="?scroll_overlay_bright" />
+    <solid android:color="?scroll_overlay_bright" />
 
-            <corners
-                android:bottomLeftRadius="10dp"
-                android:topLeftRadius="10dp" />
-        </shape>
-    </item>
-    <item android:gravity="center">
-        <shape>
-            <solid android:color="#fff" />
-            <size
-                android:width="2dp"
-                android:height="10dp" />
-            <corners android:radius="1dp" />
-        </shape>
-    </item>
-</layer-list>
+    <corners
+        android:bottomLeftRadius="10dp"
+        android:topLeftRadius="10dp" />
+</shape>

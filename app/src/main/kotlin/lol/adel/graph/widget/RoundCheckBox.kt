@@ -100,7 +100,7 @@ class RoundCheckBox(ctx: Context) : View(ctx), Checkable {
         checkD.setBounds(checkLeft, checkY, (checkLeft + checkSize).toInt(), (checkSize + checkY).toInt())
         checkD.draw(canvas)
 
-        val checkLen = denorm(frac, LEFT_RIGHT, 34.dpF)
-        canvas.drawText(text, checkLen, h / 2 + textPaint.descent() + 2.dpF, textPaint)
+        val checkLen = denorm(frac, LEFT_RIGHT, 36.dpF)
+        canvas.drawText(text, checkLen, h / 2 + textPaint.descent() + 1.dpF, textPaint)
     }
 }

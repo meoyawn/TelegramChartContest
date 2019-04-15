@@ -3,6 +3,7 @@ package lol.adel.graph.widget
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.util.SparseArray
 import android.view.MotionEvent
@@ -23,9 +24,13 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val data:
 
     private companion object {
         private val HANDLE_WIDTH = 10.dp
+        val halfHandle = HANDLE_WIDTH / 2
+
         private val HANDLE_HEIGHT = 1.dpF
         private val TOUCH_SIZE = 48.dp
         private val TWELVE = 12.dpF
+
+        val off = 18.dpF
     }
 
     private sealed class Handle {
@@ -147,6 +152,13 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val data:
         return true
     }
 
+    private val paint = Paint().apply {
+        color = Color.WHITE
+        strokeCap = Paint.Cap.ROUND
+        strokeWidth = 2.dpF
+        isAntiAlias = true
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
@@ -158,9 +170,11 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val data:
 
         leftHandle.setBounds(left.roundToInt(), 0, (left + HANDLE_WIDTH).roundToInt(), height.toInt())
         leftHandle.draw(canvas)
+        canvas.drawLine(left + halfHandle, off, left + halfHandle, height - off, paint)
 
         rightHandle.setBounds((right - HANDLE_WIDTH).roundToInt(), 0, right.roundToInt(), height.toInt())
         rightHandle.draw(canvas)
+        canvas.drawLine(right - halfHandle, off, right - halfHandle, height - off, paint)
 
         canvas.drawRect(left + HANDLE_WIDTH, 0f, right - HANDLE_WIDTH, HANDLE_HEIGHT, foreground)
         canvas.drawRect(left + HANDLE_WIDTH, height - HANDLE_HEIGHT, right - HANDLE_WIDTH, height, foreground)
