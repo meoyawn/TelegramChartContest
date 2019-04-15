@@ -116,14 +116,16 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
         val startF = cameraX.min.floor()
         val endC = cameraX.max.ceil()
 
-        val buf = view.lineBuf
+        val realRange = cameraX.floorToCeilLen()
+        val step = if (view.preview) 4 else 1
 
-        val iSize = cameraX.floorToCeilLen() + 1
+        val iSize = (realRange / step) + 1
         val jSize = columns.size()
 
         // calc buf
+        val buf = view.lineBuf
         val maxY = cameraY.max
-        cameraX.floorToCeil { i ->
+        cameraX.floorToCeil(step = step) { i ->
             val mult = maxY / columns.sum(i)
 
             val x = i.toFloat()
@@ -135,9 +137,8 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
 
                 if (column.frac <= 0) continue
 
-                // START NOT FROM GROUND
                 y += column[i] * mult
-                buf.setPoint(i = i - startF, j = j, jSize = jSize, x = x, y = y)
+                buf.setPoint(i = (i - startF) / step, j = j, jSize = jSize, x = x, y = y)
             }
         }
 
@@ -156,6 +157,7 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
 
         for (j in 0 until columns.size()) {
             val column = columns.valueAt(j)
+
             if (column.frac <= 0) continue
 
             path.reset()

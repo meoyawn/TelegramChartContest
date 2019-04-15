@@ -13,10 +13,14 @@ data class MinMax(
 operator fun MinMax.contains(i: Int): Boolean =
     i.toFloat() in min..max
 
-inline fun MinMax.floorToCeil(f: (Int) -> Unit) {
-    for (i in min.floor()..max.ceil()) {
+inline fun MinMax.floorToCeil(step: Int = 1, f: (Int) -> Unit) {
+    var i = min.floor()
+    val end = max.ceil()
+    while (i < end) {
         f(i)
+        i += step
     }
+    f(end)
 }
 
 inline fun MinMax.reverseFloorToCeil(f: (Int) -> Unit) {
