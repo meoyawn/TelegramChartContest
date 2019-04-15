@@ -9,6 +9,7 @@ import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.LineId
 import lol.adel.graph.widget.ChartView
+import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToInt
 
@@ -117,7 +118,17 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
         val startF = clamp(cameraX.min.floor(), 0, dataSize - 1)
 
         val realRange = cameraX.floorToCeilLen(dataSize)
-        val step = if (view.preview) 5 else 2
+
+        val div = 70
+        val step = when {
+            view.preview ->
+                dataSize / div
+
+            else ->
+                max(1, realRange / div)
+        }
+
+        println(step)
 
         val iSize = (realRange / step) + 1
         val jSize = columns.size()
@@ -168,7 +179,7 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
                     path.addRect(screenLeft, screenTop, screenRight, screenBottom, Path.Direction.CW)
 
                 j == 0 -> {
-                    buf.getPoint(i = 0, j = j, jSize = jSize, f = path::moveTo)
+                    buf.getPoint(i = 0, j = j, jSize = jSize) { _, y -> path.moveTo(screenLeft, y) }
                     for (i in 1 until iSize) {
                         buf.getPoint(i = i, j = j, jSize = jSize, f = path::lineTo)
                     }
@@ -179,7 +190,7 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
 
                 j == lastJ -> {
                     if (prevJ >= 0) {
-                        buf.getPoint(i = 0, j = prevJ, jSize = jSize, f = path::moveTo)
+                        buf.getPoint(i = 0, j = prevJ, jSize = jSize) { _, y -> path.moveTo(screenLeft, y) }
                         for (i in 1 until iSize) {
                             buf.getPoint(i = i, j = prevJ, jSize = jSize, f = path::lineTo)
                         }
@@ -193,14 +204,17 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
                 }
 
                 else -> {
-                    buf.getPoint(i = 0, j = j, jSize = jSize, f = path::moveTo)
+                    buf.getPoint(i = 0, j = j, jSize = jSize) { _, y -> path.moveTo(screenLeft, y) }
                     for (i in 1 until iSize) {
                         buf.getPoint(i = i, j = j, jSize = jSize, f = path::lineTo)
                     }
 
                     if (prevJ >= 0) {
-                        for (i in iSize - 1 downTo 0) {
+                        for (i in iSize - 1 downTo 1) {
                             buf.getPoint(i = i, j = prevJ, jSize = jSize, f = path::lineTo)
+                        }
+                        buf.getPoint(i = 0, j = prevJ, jSize = jSize) { _, y ->
+                            path.lineTo(screenLeft, y)
                         }
                     } else {
                         path.lineTo(screenRight, screenBottom)
