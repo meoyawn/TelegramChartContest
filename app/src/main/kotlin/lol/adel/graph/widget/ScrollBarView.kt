@@ -39,12 +39,8 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
         fun onBoundsChange(left: Float, right: Float)
     }
 
-    private val overlay = Paint().apply {
-        color = ctx.color(R.attr.scroll_overlay)
-    }
-    private val bright = Paint().apply {
-        color = ctx.color(R.attr.scroll_overlay_bright)
-    }
+    private val background = Paint().apply { color = ctx.color(R.attr.scroll_overlay) }
+    private val foreground = Paint().apply { color = ctx.color(R.attr.scroll_overlay_bright) }
 
     private val leftHandle = ctx.getDrawable(R.drawable.left_handle)!!
     private val rightHandle = ctx.getDrawable(R.drawable.right_handle)!!
@@ -146,8 +142,8 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
         val width = widthF
         val height = heightF
 
-        canvas.drawRect(0f, HANDLE_HEIGHT, left + HANDLE_WIDTH, height - HANDLE_HEIGHT, overlay)
-        canvas.drawRect(right - HANDLE_WIDTH, HANDLE_HEIGHT, width, height - HANDLE_HEIGHT, overlay)
+        canvas.drawRect(0f, HANDLE_HEIGHT, left + HANDLE_WIDTH, height - HANDLE_HEIGHT, background)
+        canvas.drawRect(right - HANDLE_WIDTH, HANDLE_HEIGHT, width, height - HANDLE_HEIGHT, background)
 
         leftHandle.setBounds(left.roundToInt(), 0, (left + HANDLE_WIDTH).roundToInt(), height.toInt())
         leftHandle.draw(canvas)
@@ -155,7 +151,7 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
         rightHandle.setBounds((right - HANDLE_WIDTH).roundToInt(), 0, right.roundToInt(), height.toInt())
         rightHandle.draw(canvas)
 
-        canvas.drawRect(left + HANDLE_WIDTH, 0f, right - HANDLE_WIDTH, HANDLE_HEIGHT, bright)
-        canvas.drawRect(left + HANDLE_WIDTH, height - HANDLE_HEIGHT, right - HANDLE_WIDTH, height, bright)
+        canvas.drawRect(left + HANDLE_WIDTH, 0f, right - HANDLE_WIDTH, HANDLE_HEIGHT, foreground)
+        canvas.drawRect(left + HANDLE_WIDTH, height - HANDLE_HEIGHT, right - HANDLE_WIDTH, height, foreground)
     }
 }
