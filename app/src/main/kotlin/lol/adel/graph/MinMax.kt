@@ -1,9 +1,6 @@
 package lol.adel.graph
 
-import help.ceil
-import help.denorm
-import help.floor
-import help.norm
+import help.*
 
 data class MinMax(
     var min: Float = 0f,
@@ -13,9 +10,10 @@ data class MinMax(
 operator fun MinMax.contains(i: Int): Boolean =
     i.toFloat() in min..max
 
-inline fun MinMax.floorToCeil(step: Int = 1, f: (Int) -> Unit) {
-    var i = min.floor()
-    val end = max.ceil()
+inline fun MinMax.floorToCeil(step: Int = 1, size: Int, f: (Int) -> Unit) {
+    val lastIdx = size - 1
+    var i = clamp(min.floor(), 0, lastIdx)
+    val end = clamp(max.ceil(), 0, lastIdx)
     while (i < end) {
         f(i)
         i += step
@@ -23,26 +21,17 @@ inline fun MinMax.floorToCeil(step: Int = 1, f: (Int) -> Unit) {
     f(end)
 }
 
-inline fun MinMax.reverseFloorToCeil(f: (Int) -> Unit) {
-    for (i in max.ceil() downTo min.floor()) {
+inline fun MinMax.ceilToCeil(size: Int, f: (Int) -> Unit) {
+    val lastIdx = size - 1
+    for (i in clamp(min.ceil(), 0, lastIdx)..clamp(max.ceil(), 0, lastIdx)) {
         f(i)
     }
 }
 
-inline fun MinMax.ceilToCeil(f: (Int) -> Unit) {
-    for (i in min.ceil()..max.ceil()) {
-        f(i)
-    }
+fun MinMax.floorToCeilLen(size: Int): Int {
+    val lastIdx = size - 1
+    return clamp(max.ceil(), 0, lastIdx) - clamp(min.floor(), 0, lastIdx)
 }
-
-inline fun MinMax.ceilToFloor(f: (Int) -> Unit) {
-    for (i in min.ceil()..max.floor()) {
-        f(i)
-    }
-}
-
-fun MinMax.floorToCeilLen(): Int =
-    max.ceil() - min.floor()
 
 fun MinMax.len(): Float =
     max - min

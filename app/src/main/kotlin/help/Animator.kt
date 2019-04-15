@@ -18,14 +18,6 @@ inline fun animateRaw(from: Float, to: Float, crossinline f: (ValueAnimator) -> 
             }
         }
 
-inline fun animateInt(from: Int, to: Int, crossinline f: (Int) -> Unit): ValueAnimator =
-    ValueAnimator.ofInt(from, to)
-        .apply {
-            addUpdateListener {
-                f(denorm(it.animatedFraction, from, to))
-            }
-        }
-
 inline fun animateColor(from: ColorInt, to: ColorInt, crossinline f: (ColorInt) -> Unit): ValueAnimator =
     ValueAnimator.ofArgb(from, to)
         .apply {

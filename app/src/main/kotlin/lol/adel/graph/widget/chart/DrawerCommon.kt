@@ -9,7 +9,6 @@ import help.dpF
 import lol.adel.graph.*
 import lol.adel.graph.data.minMax
 import lol.adel.graph.widget.ChartView
-import kotlin.math.floor
 
 fun makeInnerCirclePaint(ctx: Context): Paint =
     Paint().apply {
@@ -37,24 +36,27 @@ fun ChartView.animateCameraY(): Unit =
     yAxis.animate(data.minMax(cameraX, enabledLines), preview = preview)
 
 fun fillPolyLine(points: LongArray, buf: FloatArray, cameraX: MinMax): Idx {
-    run {
-        val i = floor(cameraX.min)
-        buf[0] = i
-        buf[1] = points[i.toInt()].toFloat()
-    }
 
-    var bufIdx = 2
+    var bufIdx = 0
+    var first = true
 
-    cameraX.ceilToCeil { i ->
+    cameraX.ceilToCeil(points.size) { i ->
         val x = i.toFloat()
         val y = points[i].toFloat()
 
-        buf[bufIdx + 0] = x
-        buf[bufIdx + 1] = y
-        buf[bufIdx + 2] = x
-        buf[bufIdx + 3] = y
+        if (first) {
+            buf[bufIdx + 0] = x
+            buf[bufIdx + 1] = y
+            bufIdx += 2
+            first = false
+        } else {
+            buf[bufIdx + 0] = x
+            buf[bufIdx + 1] = y
+            buf[bufIdx + 2] = x
+            buf[bufIdx + 3] = y
 
-        bufIdx += 4
+            bufIdx += 4
+        }
     }
 
     bufIdx -= 2

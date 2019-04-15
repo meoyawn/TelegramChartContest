@@ -90,10 +90,10 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
                         evX in (left + TWELVE)..(right - TWELVE) && draggingSize == 0 ->
                             Handle.Between(left = left, right = right, x = evX)
 
-                        around(evX, left) || (around2(evX, 0f) && around2(left, 0f)) ->
+                        around(evX, left) ->
                             Handle.Left
 
-                        around(evX, right) || (around2(evX, widthF) && around2(right, widthF)) ->
+                        around(evX, right) ->
                             Handle.Right
 
                         else ->

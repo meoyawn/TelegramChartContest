@@ -113,10 +113,10 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
         val columns = view.animatedColumns
         val lastJ = columns.findPrevIdx(columns.size())
 
-        val startF = cameraX.min.floor()
-        val endC = cameraX.max.ceil()
+        val dataSize = view.data.size
+        val startF = clamp(cameraX.min.floor(), 0, dataSize - 1)
 
-        val realRange = cameraX.floorToCeilLen()
+        val realRange = cameraX.floorToCeilLen(dataSize)
         val step = if (view.preview) 5 else 1
 
         val iSize = (realRange / step) + 1
@@ -125,7 +125,7 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
         // calc buf
         val buf = view.lineBuf
         val maxY = cameraY.max
-        cameraX.floorToCeil(step = step) { i ->
+        cameraX.floorToCeil(step = step, size = dataSize) { i ->
             val mult = maxY / columns.sum(i)
 
             val x = i.toFloat()
@@ -144,9 +144,9 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
 
         // map buf
         val totalSize = getPointIndex(i = iSize, j = jSize, jSize = jSize)
-        buf[totalSize + 0] = cameraX.min
+        buf[totalSize + 0] = clamp(cameraX.min, 0f, dataSize - 1f)
         buf[totalSize + 1] = cameraY.min
-        buf[totalSize + 2] = cameraX.max
+        buf[totalSize + 2] = clamp(cameraX.max, 0f, dataSize - 1f)
         buf[totalSize + 3] = maxY
 
         matrix.mapPoints(buf, 0, buf, 0, totalSize + 4)

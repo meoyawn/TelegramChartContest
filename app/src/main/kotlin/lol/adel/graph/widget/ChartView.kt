@@ -154,7 +154,21 @@ class ChartView(
                 touchX = evX
                 touchY = evY
 
-                drawer.touch(idx = cameraX.denorm(value = evX / widthF), x = evX)
+                val lastIdx = data.size - 1f
+                val idx = clamp(cameraX.denorm(value = evX / widthF), 0f, lastIdx)
+                drawer.touch(
+                    idx = idx,
+                    x = when (idx) {
+                        0f ->
+                            YAxis.SIDE_PADDING
+
+                        lastIdx ->
+                            widthF - YAxis.SIDE_PADDING
+
+                        else ->
+                            evX
+                    }
+                )
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {

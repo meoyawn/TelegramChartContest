@@ -21,7 +21,7 @@ data class YAxis(
     val matrix: Matrix
 ) {
     companion object {
-        val LINE_PADDING = 16.dpF
+        val SIDE_PADDING = 16.dpF
         val LINE_LABEL_DIST = 5.dp
     }
 }
@@ -29,24 +29,24 @@ data class YAxis(
 fun YAxis.drawLabelLines(canvas: Canvas, width: PxF, split: Boolean = false) {
     val startX = when {
         !isRight ->
-            YAxis.LINE_PADDING
+            YAxis.SIDE_PADDING
 
         split ->
             width / 2f
 
         else ->
-            YAxis.LINE_PADDING
+            YAxis.SIDE_PADDING
     }
 
     val stopX = when {
         isRight ->
-            width - YAxis.LINE_PADDING
+            width - YAxis.SIDE_PADDING
 
         split ->
             width / 2f
 
         else ->
-            width - YAxis.LINE_PADDING
+            width - YAxis.SIDE_PADDING
     }
 
     labels.forEachByIndex {
@@ -90,10 +90,10 @@ fun YAxis.drawLabels(canvas: Canvas, width: PxF, frac: Norm = 1f): Unit =
             val txt = yLabelStr(value)
             val x = when {
                 isRight ->
-                    width - YAxis.LINE_PADDING - paint.measureText(txt)
+                    width - YAxis.SIDE_PADDING - paint.measureText(txt)
 
                 else ->
-                    YAxis.LINE_PADDING
+                    YAxis.SIDE_PADDING
             }
             canvas.drawText(txt, x, matrix.mapY(value) - YAxis.LINE_LABEL_DIST, paint)
         }

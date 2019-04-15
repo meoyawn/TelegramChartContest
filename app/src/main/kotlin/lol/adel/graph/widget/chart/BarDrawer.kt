@@ -72,17 +72,17 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
             top = view.topOffset
         )
 
-        val startF = cameraX.min.floor()
-        val endC = cameraX.max.ceil()
+        val dataSize = view.data.size
+        val startF = clamp(cameraX.min.floor(), 0, dataSize - 1)
 
         val columns = view.animatedColumns
 
         val buf = view.lineBuf
-        val xRange = cameraX.floorToCeilLen() + 1
+        val xRange = cameraX.floorToCeilLen(dataSize) + 1
         val yRange = columns.size()
         val colorStackSize = xRange * 4
 
-        cameraX.floorToCeil { i ->
+        cameraX.floorToCeil(size = dataSize) { i ->
             val x = i.toFloat()
 
             val iOffset = (i - startF) * 4
@@ -108,7 +108,7 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
         matrix.mapPoints(buf, 0, buf, 0, xRange * yRange * 2)
 
         val barWidth = width / cameraX.len()
-        val isTouching = touchingIdx in cameraX
+        val isTouching = touchingIdx != -1
         for (j in 0 until yRange) {
             val column = columns.valueAt(j)
             if (column.frac > 0) {

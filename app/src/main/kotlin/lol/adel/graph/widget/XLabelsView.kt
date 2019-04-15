@@ -52,8 +52,10 @@ class XLabelsView(ctx: Context, private val xs: LongArray, private val cameraX: 
         else (rawStep - stepFloor) / (stepCeil - stepFloor)
 
         val (start, end) = cameraX
-        val startFromIdx = (start - start % stepCeil).toInt()
-        val hiddenEnd = end.ceil()
+
+        val lastIdx = xs.size - 1
+        val startFromIdx = clamp((start - start % stepCeil).toInt(), 0, lastIdx)
+        val hiddenEnd = clamp(end.ceil(), 0, lastIdx)
 
         iterate(from = startFromIdx, to = hiddenEnd, step = stepCeil) { idx ->
             val text = Dates.xLabel(xs[idx])

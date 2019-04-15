@@ -14,6 +14,7 @@ import android.widget.TextView
 import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.Chart
+import lol.adel.graph.data.ChartType
 import lol.adel.graph.data.LineId
 
 @SuppressLint("ViewConstructor")
@@ -39,7 +40,7 @@ class ChartParent(
 
     // state
     private val enabledLines = ArrayList(data.lineIds)
-    private val cameraX = MinMax(min = 0f, max = data.size - 1f)
+    private val cameraX = MinMax(min = -20f, max = data.size + 20f)
 
     private val touchingIdx = MutableInt(get = -1)
     private val touchingX = MutableFloat(get = -1f)
@@ -158,7 +159,17 @@ class ChartParent(
         dates.text = currentDateRange()
         scroll.listener = object : ScrollBarView.Listener {
             override fun onBoundsChange(left: Float, right: Float) {
-                cameraX.set(left * lastIndex, right * lastIndex)
+
+                val len = right * lastIndex - left * lastIndex
+                val w = widthF
+                val barWidth = if (data.type == ChartType.BAR) (w / len) else 0f
+                val extraIdx = len / width * (YAxis.SIDE_PADDING + barWidth / 2)
+
+                cameraX.set(
+                    denorm(left, -extraIdx, lastIndex + extraIdx),
+                    denorm(right, -extraIdx, lastIndex + extraIdx)
+                )
+
                 chartView.cameraXChanged()
                 xLabels.cameraXChanged()
                 dates.text = currentDateRange()
