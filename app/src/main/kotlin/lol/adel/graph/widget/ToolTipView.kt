@@ -86,8 +86,8 @@ class ToolTipView(
             addView(ImageView(ctx).apply {
                 setImageResource(R.drawable.arrow)
             }, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
-                topMargin = 4.dp
                 gravity = Gravity.END
+                marginEnd = -(6.dp)
             })
         }, LinearLayout.LayoutParams(MATCH_PARENT, 20.dp))
 
