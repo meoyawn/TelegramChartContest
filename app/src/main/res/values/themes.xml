@@ -19,7 +19,7 @@
     <attr name="floating_edge" format="color" />
     <attr name="floating_text" format="color" />
 
-    <attr name="scroll_overlay_pale" format="color" />
+    <attr name="scroll_overlay" format="color" />
     <attr name="scroll_overlay_bright" format="color" />
 
     <style name="AppTheme.Light" parent="android:Theme.Material.Light">
@@ -31,8 +31,9 @@
         <item name="bottom">#F0F0F0</item>
         <item name="floating_edge">#E4E4E4</item>
         <item name="floating_text">#222222</item>
-        <item name="scroll_overlay_pale">#80b1bfca</item>
-        <item name="scroll_overlay_bright">#BFb0bdcc</item>
+
+        <item name="scroll_overlay">#99E2EEF9</item>
+        <item name="scroll_overlay_bright">#C1D1E0</item>
 
         <item name="android:colorPrimary">#FFFFFF</item>
         <item name="android:colorAccent">#3E97D2</item>
@@ -52,8 +53,8 @@
         <item name="floating_edge">#1A232D</item>
         <item name="floating_text">#E5EFF5</item>
 
-        <item name="scroll_overlay_pale">#BF3b4045</item>
-        <item name="scroll_overlay_bright">#80b1bfca</item>
+        <item name="scroll_overlay">#99304259</item>
+        <item name="scroll_overlay_bright">#56626C</item>
 
         <item name="android:colorPrimary">#212D3A</item>
         <item name="android:colorPrimaryDark">#1A242E</item>

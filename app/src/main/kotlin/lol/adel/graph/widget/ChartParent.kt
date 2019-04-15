@@ -71,7 +71,6 @@ class ChartParent(
 
             touchingIdx.get = state.getInt("idx")
             touchingX.get = state.getFloat("x")
-            println(touchingX.toString())
         } else {
             super.onRestoreInstanceState(state)
         }
@@ -127,15 +126,19 @@ class ChartParent(
 
         val lastIndex = data.size - 1
 
-        addView(FrameLayout(ctx).apply {
+        addView(RoundedFrameLayout(ctx).apply {
             val previewCamX = MinMax(min = 0f, max = lastIndex.toFloat())
             preview = ChartView(ctx, data, lineBuffer, previewCamX, enabledLines, true, touchingIdx, touchingX)
-            addView(preview, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+            addView(preview, FrameLayout.LayoutParams(MATCH_PARENT, 46.dp).apply {
+                gravity = Gravity.CENTER_VERTICAL
+            })
 
             scroll = ScrollBarView(ctx, cameraX, data.size)
-            addView(scroll, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+            addView(scroll, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
         }, LinearLayout.LayoutParams(MATCH_PARENT, 48.dp).apply {
             bottomMargin = 10.dp
+            marginStart = 16.dp
+            marginEnd = 16.dp
         })
 
         addView(FilterView(ctx, data, enabledLines).apply {
@@ -161,19 +164,17 @@ class ChartParent(
             }
         }
 
-        touchChange()
+        onTouchChange()
         chartView.listener = object : ChartView.Listener {
             override fun onTouch(idx: Idx, x: PxF) {
                 touchingIdx.get = idx
                 touchingX.get = x
-                touchChange()
+                onTouchChange()
             }
         }
     }
 
-    private fun touchChange() {
-        println(touchingX.toString())
-
+    private fun onTouchChange() {
         toolTip.visibility = visibleOrInvisible(touchingIdx.get != -1)
         toolTip.show(touchingIdx.get, touchingX.get)
     }

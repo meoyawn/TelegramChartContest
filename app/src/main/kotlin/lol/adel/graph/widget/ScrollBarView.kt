@@ -11,9 +11,16 @@ import help.*
 import lol.adel.graph.MinMax
 import lol.adel.graph.R
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
 class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size: Int) : View(ctx) {
+
+    private companion object {
+        private val HANDLE_WIDTH = 10.dp
+        private val HANDLE_HEIGHT = 1.dpF
+        private val TOUCH_SIZE = 48.dp
+    }
 
     private sealed class Handle {
 
@@ -32,12 +39,15 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
         fun onBoundsChange(left: Float, right: Float)
     }
 
-    private val pale = Paint().apply {
-        color = ctx.color(R.attr.scroll_overlay_pale)
+    private val overlay = Paint().apply {
+        color = ctx.color(R.attr.scroll_overlay)
     }
     private val bright = Paint().apply {
         color = ctx.color(R.attr.scroll_overlay_bright)
     }
+
+    private val leftHandle = ctx.getDrawable(R.drawable.left_handle)!!
+    private val rightHandle = ctx.getDrawable(R.drawable.right_handle)!!
 
     var listener: Listener? = null
 
@@ -47,7 +57,7 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
     private val dragging: SparseArray<Handle> = SparseArray()
 
     private fun around(x: X, view: X): Boolean =
-        Math.abs(x - view) <= 24.dp
+        Math.abs(x - view) <= TOUCH_SIZE / 2
 
     private fun set(left: Float, right: Float) {
         this.left = left
@@ -136,16 +146,16 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
         val width = widthF
         val height = heightF
 
-        val lineWidth = 5.dpF
-        val lineHeight = 2.dpF
-        val halfLineWidth = lineWidth / 2
+        canvas.drawRect(0f, HANDLE_HEIGHT, left + HANDLE_WIDTH, height - HANDLE_HEIGHT, overlay)
+        canvas.drawRect(right - HANDLE_WIDTH, HANDLE_HEIGHT, width, height - HANDLE_HEIGHT, overlay)
 
-        canvas.drawRect(0f, 0f, left - halfLineWidth, height, pale)
-        canvas.drawRect(right + halfLineWidth, 0f, width, height, pale)
+        leftHandle.setBounds(left.roundToInt(), 0, (left + HANDLE_WIDTH).roundToInt(), height.toInt())
+        leftHandle.draw(canvas)
 
-        canvas.drawRect(left - halfLineWidth, 0f, left + halfLineWidth, height, bright)
-        canvas.drawRect(left + halfLineWidth, 0f, right - halfLineWidth, lineHeight, bright)
-        canvas.drawRect(left + halfLineWidth, height - lineHeight, right - halfLineWidth, height, bright)
-        canvas.drawRect(right - halfLineWidth, 0f, right + halfLineWidth, height, bright)
+        rightHandle.setBounds((right - HANDLE_WIDTH).roundToInt(), 0, right.roundToInt(), height.toInt())
+        rightHandle.draw(canvas)
+
+        canvas.drawRect(left + HANDLE_WIDTH, 0f, right - HANDLE_WIDTH, HANDLE_HEIGHT, bright)
+        canvas.drawRect(left + HANDLE_WIDTH, height - HANDLE_HEIGHT, right - HANDLE_WIDTH, height, bright)
     }
 }
