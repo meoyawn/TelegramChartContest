@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Statistics</string>
     <string name="night_mode">Night mode</string>
+    <string name="all">All</string>
 </resources>

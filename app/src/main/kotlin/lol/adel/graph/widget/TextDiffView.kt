@@ -91,7 +91,14 @@ class TextDiffView(ctx: Context) : View(ctx) {
         val descent = unchangedPaint.descent()
 
         val textLen = text.length
-        canvas.drawText(text, textLen - splitIdx, textLen, blankX, height / 2 + descent, unchangedPaint)
+
+        run {
+            val textStart = textLen - splitIdx
+            val startX =
+                if (gravity == Gravity.START) blankX
+                else width - unchangedPaint.measureText(text, textStart, textLen)
+            canvas.drawText(text, textStart, textLen, startX, height / 2 + descent, unchangedPaint)
+        }
 
         run {
             val oldFrac = 1 - frac

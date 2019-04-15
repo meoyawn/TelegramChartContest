@@ -14,5 +14,10 @@ fun Context.color(id: AttrRes): ColorInt {
     return TV.data
 }
 
+fun Context.attr(id: AttrRes): Int {
+    theme.resolveAttribute(id, TV, true)
+    return TV.resourceId
+}
+
 fun View.color(res: AttrRes): ColorInt =
     context.color(res)

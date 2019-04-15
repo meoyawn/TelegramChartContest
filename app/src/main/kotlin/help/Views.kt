@@ -21,18 +21,6 @@ fun visibleOrGone(b: Boolean): Visibility =
 fun visibleOrInvisible(b: Boolean): Visibility =
     if (b) View.VISIBLE else View.INVISIBLE
 
-operator fun ViewGroup.component1(): View =
-    getChildAt(0)
-
-operator fun ViewGroup.component2(): View =
-    getChildAt(1)
-
-fun View.toTextView(): TextView =
-    this as TextView
-
-fun View.toTextDiff(): TextDiffView =
-    this as TextDiffView
-
 inline fun ViewGroup.forEach(f: (View) -> Unit): Unit =
     repeat(childCount) {
         f(getChildAt(it))

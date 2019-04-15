@@ -107,7 +107,7 @@ class ChartParent(
             addView(chartView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
             toolTip = ToolTipView(ctx, data, enabledLines)
-            addView(toolTip, FrameLayout.LayoutParams(150.dp, WRAP_CONTENT).apply { topMargin = 28.dp })
+            addView(toolTip, FrameLayout.LayoutParams(140.dp, WRAP_CONTENT).apply { topMargin = 28.dp })
         }, LinearLayout.LayoutParams(MATCH_PARENT, height))
 
         addView(FrameLayout(ctx).apply {
@@ -156,10 +156,7 @@ class ChartParent(
         chartView.listener = object : ChartView.Listener {
             override fun onTouch(idx: Idx, x: PxF) {
                 toolTip.visibility = visibleOrInvisible(idx != -1)
-
-                if (idx in 0..lastIndex) {
-                    toolTip.show(idx, x)
-                }
+                toolTip.show(idx, x)
             }
         }
     }

@@ -6,30 +6,49 @@ import android.content.Context
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.Dates
 import lol.adel.graph.R
 import lol.adel.graph.Typefaces
 import lol.adel.graph.data.*
+import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
 class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>) : LinearLayout(ctx) {
+
+    private companion object {
+        fun ViewGroup.percentage(): TextDiffView =
+            getChildAt(0) as TextDiffView
+
+        fun ViewGroup.value(): TextDiffView =
+            getChildAt(2) as TextDiffView
+    }
 
     private val floatingText: TextDiffView
     private val floatingContainer: ViewGroup
 
     private val lineTexts = SimpleArrayMap<LineId, ViewGroup>()
+    private val all: TextDiffView
+
+    private var lastIdx: Idx = -1
 
     private fun makeLineText(ctx: Context, chart: Chart, id: LineId): ViewGroup =
         LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
 
             visibility = visibleOrGone(id in enabledLines)
+
+            addView(TextDiffView(ctx).apply {
+                visibility = visibleOrGone(chart.percentage)
+                textSizeDp = 12.dpF
+                textColor = ctx.color(R.attr.floating_text)
+                typeface = Typefaces.bold
+                gravity = Gravity.END
+            }, LinearLayout.LayoutParams(30.dp, 20.dp).apply {
+                marginEnd = 4.dp
+            })
 
             addView(TextView(ctx).apply {
                 textSize = 12f
@@ -50,7 +69,7 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
         orientation = LinearLayout.VERTICAL
         setBackgroundResource(R.drawable.floating_bg)
         elevation = 2.dpF
-        updatePadding(left = 16.dp, top = 8.dp, right = 16.dp, bottom = 8.dp)
+        updatePadding(left = 10.dp, top = 6.dp, right = 10.dp, bottom = 6.dp)
 
         addView(FrameLayout(ctx).apply {
             floatingText = TextDiffView(ctx).apply {
@@ -82,6 +101,29 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
             floatingContainer.addView(text)
             lineTexts[id] = text
         }
+
+        floatingContainer.addView(LinearLayout(ctx).apply {
+            visibility = visibleOrGone(data.stacked && !data.percentage)
+
+            addView(TextView(ctx).apply {
+                textSize = 12f
+                setTextColor(ctx.color(R.attr.floating_text))
+                setText(R.string.all)
+            })
+
+            all = TextDiffView(ctx).apply {
+                textSizeDp = 12.dpF
+                textColor = ctx.color(R.attr.floating_text)
+                typeface = Typefaces.bold
+                fullFlip = true
+                gravity = Gravity.END
+            }
+            addView(all, LayoutParams(MATCH_PARENT, 20.dp))
+        })
+
+        setOnClickListener {
+            Toast.makeText(ctx, "Not implemented", Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun lineChecked(select: List<LineId>, deselect: List<LineId>) {
@@ -91,9 +133,16 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
         select.forEachByIndex {
             lineTexts[it]?.visibility = View.VISIBLE
         }
+
+        if (lastIdx != -1) {
+            updateValues(lastIdx)
+        }
     }
 
     fun show(idx: Idx, x: PxF) {
+        lastIdx = idx
+        if (idx == -1) return
+
         val floatingWidth = width
         val parentWidth = parent.parent.let { it as View }.widthF
 
@@ -101,8 +150,18 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
         translationX = clamp(target, 0f, parentWidth - floatingWidth)
 
         floatingText.text = Dates.tooltip(data.xs[idx])
+
+        updateValues(idx)
+    }
+
+    private fun updateValues(idx: Idx) {
+        val sum = enabledLines.sumByIndex { data.columns[it][idx] }
         lineTexts.forEach { id, view ->
-            view.component2().toTextDiff().text = tooltipValue(data.columns[id][idx])
+            val value = data.columns[id][idx]
+            val percent = (value * 100f) / sum
+            view.percentage().text = "${percent.roundToInt()}%"
+            view.value().text = tooltipValue(value)
         }
+        all.text = tooltipValue(sum)
     }
 }
