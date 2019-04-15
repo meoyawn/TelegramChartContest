@@ -14,9 +14,15 @@ inline fun MinMax.floorToCeil(step: Int = 1, size: Int, f: (Int) -> Unit) {
     val lastIdx = size - 1
     var i = clamp(min.floor(), 0, lastIdx)
     val end = clamp(max.ceil(), 0, lastIdx)
+    f(i)
+    i++
     while (i < end) {
-        f(i)
-        i += step
+        if (i % step == 0) {
+            f(i)
+            i += step
+        } else {
+            i++
+        }
     }
     f(end)
 }

@@ -202,6 +202,7 @@ class ChartParent(
 
         if (!restored) {
             setCameraX(width = measuredWidth, lastIndex = data.size - 1, left = 0f, right = 1f)
+            restored = true
         }
     }
 
