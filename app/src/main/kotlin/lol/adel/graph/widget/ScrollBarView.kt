@@ -10,12 +10,16 @@ import android.view.View
 import help.*
 import lol.adel.graph.MinMax
 import lol.adel.graph.R
+import lol.adel.graph.YAxis
+import lol.adel.graph.data.Chart
+import lol.adel.graph.data.ChartType
+import lol.adel.graph.len
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
-class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size: Int) : View(ctx) {
+class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val data: Chart) : View(ctx) {
 
     private companion object {
         private val HANDLE_WIDTH = 10.dp
@@ -57,9 +61,6 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
     private fun around(x: X, view: X): Boolean =
         abs(x - view) <= TOUCH_SIZE / 2
 
-    private fun around2(x: X, view: X): Boolean =
-        abs(x - view) <= TOUCH_SIZE
-
     private fun set(left: Float, right: Float) {
         this.left = left
         this.right = right
@@ -71,9 +72,14 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
         super.onSizeChanged(w, h, oldw, oldh)
         if (w == oldw) return
 
-        val lastIndex = size - 1
-        left = norm(cameraX.min, 0, lastIndex) * w
-        right = norm(cameraX.max, 0, lastIndex) * w
+        val lastIndex = data.size - 1
+
+        val realIdxRange = cameraX.len()
+        val barWidth = if (data.type == ChartType.BAR) (w / realIdxRange) else 0f
+        val extraIdx = realIdxRange / w * (YAxis.SIDE_PADDING + barWidth / 2)
+
+        left = norm(cameraX.min, -extraIdx, lastIndex + extraIdx) * w
+        right = norm(cameraX.max, -extraIdx, lastIndex + extraIdx) * w
     }
 
     @SuppressLint("ClickableViewAccessibility")

@@ -40,7 +40,7 @@ class ChartParent(
 
     // state
     private val enabledLines = ArrayList(data.lineIds)
-    private val cameraX = MinMax(min = -20f, max = data.size + 20f)
+    private val cameraX = MinMax(0f, data.size - 1f) // calc in onMeasure
 
     private val touchingIdx = MutableInt(get = -1)
     private val touchingX = MutableFloat(get = -1f)
@@ -72,12 +72,15 @@ class ChartParent(
 
             touchingIdx.get = state.getInt("idx")
             touchingX.get = state.getFloat("x")
+
+            restored = true
         } else {
             super.onRestoreInstanceState(state)
         }
     }
 
     private var inflated = false
+    private var restored = false
 
     private fun inflate() {
         val ctx = context
@@ -135,7 +138,7 @@ class ChartParent(
                 gravity = Gravity.CENTER_VERTICAL
             })
 
-            scroll = ScrollBarView(ctx, cameraX, data.size)
+            scroll = ScrollBarView(ctx, cameraX, data)
             addView(scroll, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
         }, LinearLayout.LayoutParams(MATCH_PARENT, 48.dp).apply {
             bottomMargin = 10.dp
@@ -159,16 +162,7 @@ class ChartParent(
         dates.text = currentDateRange()
         scroll.listener = object : ScrollBarView.Listener {
             override fun onBoundsChange(left: Float, right: Float) {
-
-                val len = right * lastIndex - left * lastIndex
-                val w = widthF
-                val barWidth = if (data.type == ChartType.BAR) (w / len) else 0f
-                val extraIdx = len / width * (YAxis.SIDE_PADDING + barWidth / 2)
-
-                cameraX.set(
-                    denorm(left, -extraIdx, lastIndex + extraIdx),
-                    denorm(right, -extraIdx, lastIndex + extraIdx)
-                )
+                setCameraX(width, lastIndex, left, right)
 
                 chartView.cameraXChanged()
                 xLabels.cameraXChanged()
@@ -188,12 +182,27 @@ class ChartParent(
         }
     }
 
+    private fun setCameraX(width: Px, lastIndex: Int, left: Float, right: Float) {
+        val realIdxRange = right * lastIndex - left * lastIndex
+        val barWidth = if (data.type == ChartType.BAR) (width / realIdxRange) else 0f
+        val extraIdx = realIdxRange / width * (YAxis.SIDE_PADDING + barWidth / 2)
+        cameraX.set(
+            denorm(left, -extraIdx, lastIndex + extraIdx),
+            denorm(right, -extraIdx, lastIndex + extraIdx)
+        )
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         if (!inflated) {
             inflate()
             inflated = true
         }
+
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+
+        if (!restored) {
+            setCameraX(width = measuredWidth, lastIndex = data.size - 1, left = 0f, right = 1f)
+        }
     }
 
     private fun onTouchChange() {
