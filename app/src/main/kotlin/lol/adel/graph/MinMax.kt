@@ -33,6 +33,13 @@ fun MinMax.floorToCeilLen(size: Int): Int {
     return clamp(max.ceil(), 0, lastIdx) - clamp(min.floor(), 0, lastIdx)
 }
 
+fun MinMax.contains(x: Int, size: Int): Boolean {
+    val lastIdx = size - 1
+    val last = clamp(max.ceil(), 0, lastIdx)
+    val first = clamp(min.floor(), 0, lastIdx)
+    return x in first..last
+}
+
 fun MinMax.len(): Float =
     max - min
 

@@ -6,6 +6,7 @@ import android.graphics.Paint
 import help.*
 import lol.adel.graph.*
 import lol.adel.graph.widget.ChartView
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 class BarDrawer(override val view: ChartView) : ChartDrawer {
@@ -108,7 +109,7 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
         matrix.mapPoints(buf, 0, buf, 0, xRange * yRange * 2)
 
         val barWidth = width / cameraX.len()
-        val isTouching = touchingIdx != -1
+        val isTouching = cameraX.contains(touchingIdx, dataSize)
         for (j in 0 until yRange) {
             val column = columns.valueAt(j)
             if (column.frac > 0) {
@@ -117,12 +118,12 @@ class BarDrawer(override val view: ChartView) : ChartDrawer {
 
                 val start = j * colorStackSize
                 if (isTouching) {
-                    val preTouchLen = (touchingIdx - startF) * 4
+                    val preTouchLen = max(0, (touchingIdx - startF) * 4)
                     if (preTouchLen > 0) {
                         canvas.drawLines(buf, start, preTouchLen, column.paint)
                     }
 
-                    val postTouchLen = colorStackSize - preTouchLen - 4
+                    val postTouchLen = max(0, colorStackSize - preTouchLen - 4)
                     if (postTouchLen > 0) {
                         canvas.drawLines(buf, start + preTouchLen + 4, postTouchLen, column.paint)
                     }
