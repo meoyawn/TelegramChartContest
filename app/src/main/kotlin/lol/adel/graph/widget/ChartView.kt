@@ -8,7 +8,6 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.DecelerateInterpolator
 import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.*
@@ -53,7 +52,7 @@ class ChartView(
             animator = ValueAnimator(),
             paint = drawer.makePaint(data.color(id))
         ).apply {
-            animator.interpolator = DecelerateInterpolator(1f)
+            animator.interpolator = Interpolators.DECELERATE
             animator.addUpdateListener {
                 frac = it.animatedFloat()
                 invalidate()
@@ -70,14 +69,14 @@ class ChartView(
             anticipated = MinMax(),
             labels = listOf(YLabel.create(ctx), YLabel.create(ctx)),
             minAnim = ValueAnimator().apply {
-                interpolator = DecelerateInterpolator(1f)
+                interpolator = Interpolators.DECELERATE
                 addUpdateListener {
                     camera.min = it.animatedFloat()
                     invalidate()
                 }
             },
             maxAnim = ValueAnimator().apply {
-                interpolator = DecelerateInterpolator(1f)
+                interpolator = Interpolators.DECELERATE
                 addUpdateListener {
                     camera.max = it.animatedFloat()
                     invalidate()

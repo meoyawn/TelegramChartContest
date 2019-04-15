@@ -7,8 +7,8 @@ import android.graphics.Typeface
 import android.text.TextPaint
 import android.view.Gravity
 import android.view.View
-import android.view.animation.DecelerateInterpolator
 import help.*
+import lol.adel.graph.Interpolators
 import lol.adel.graph.R
 import lol.adel.graph.Typefaces
 
@@ -28,7 +28,7 @@ class TextDiffView(ctx: Context) : View(ctx) {
 
     private var frac = 1f
     private val anim = valueAnimator().apply {
-        interpolator = DecelerateInterpolator()
+        interpolator = Interpolators.DECELERATE
         addUpdateListener {
             frac = it.animatedFraction
             invalidate()

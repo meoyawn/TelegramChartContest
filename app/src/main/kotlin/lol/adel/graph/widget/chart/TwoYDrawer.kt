@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
-import android.view.animation.DecelerateInterpolator
 import androidx.collection.SimpleArrayMap
 import help.*
 import lol.adel.graph.*
@@ -46,14 +45,14 @@ class TwoYDrawer(override val view: ChartView) : ChartDrawer {
                         YLabel.create(ctx)
                     ),
                     minAnim = ValueAnimator().apply {
-                        interpolator = DecelerateInterpolator(2f)
+                        interpolator = Interpolators.FAST_DECELERATE
                         addUpdateListener {
                             camera.min = it.animatedFloat()
                             view.invalidate()
                         }
                     },
                     maxAnim = ValueAnimator().apply {
-                        interpolator = DecelerateInterpolator(2f)
+                        interpolator = Interpolators.FAST_DECELERATE
                         addUpdateListener {
                             camera.max = it.animatedFloat()
                             view.invalidate()
