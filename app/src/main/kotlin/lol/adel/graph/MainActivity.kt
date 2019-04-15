@@ -20,6 +20,11 @@ class MainActivity : Activity() {
         const val ID_SCROLL = 100501
 
         var night = false
+
+        val lineBuffer = run {
+            val fattest = App.CHARTS.maxBy { it.size * it.lineIds.size }!!
+            FloatArray(size = fattest.size.inc() * fattest.lineIds.size * 4)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,8 +33,6 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
 
         val charts = App.CHARTS
-        val fattest = charts.maxBy { it.size * it.lineIds.size }!!
-        val lineBuffer = FloatArray(size = fattest.size.inc() * fattest.lineIds.size * 4)
 
         setContentView(ScrollView(ctx).apply {
             id = ID_SCROLL
