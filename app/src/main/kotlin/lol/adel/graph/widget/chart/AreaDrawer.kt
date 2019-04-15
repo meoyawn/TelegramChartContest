@@ -111,7 +111,7 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
         )
 
         val columns = view.animatedColumns
-        var lastJ = -1
+        val lastJ = columns.findPrevIdx(columns.size())
 
         val startF = cameraX.min.floor()
         val endC = cameraX.max.ceil()
@@ -121,26 +121,9 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
         val iSize = cameraX.floorToCeilLen() + 1
         val jSize = columns.size()
 
-        // setup fillers
-        val maxY = cameraY.max
-        run {
-            val mult = maxY / columns.sum(startF)
-            val x = startF.toFloat()
-            var y = 0f
-            columns.forEachIndex { j ->
-                val column = columns.valueAt(j)
-                if (column.frac > 0) {
-                    y += column[startF] * mult
-                    if (y.roundToInt() == maxY.roundToInt()) {
-                        lastJ = j
-                    }
-                    buf.setPoint(i = 0, j = j, jSize = jSize, x = x, y = y)
-                }
-            }
-        }
-
         // calc buf
-        cameraX.ceilToCeil { i ->
+        val maxY = cameraY.max
+        cameraX.floorToCeil { i ->
             val mult = maxY / columns.sum(i)
 
             val x = i.toFloat()
