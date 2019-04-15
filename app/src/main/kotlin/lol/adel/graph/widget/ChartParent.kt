@@ -165,8 +165,11 @@ class ChartParent(
     }
 
     private fun currentDateRange(): String {
-        val left = Dates.header(data.xs[cameraX.min.toInt()])
-        val right = Dates.header(data.xs[cameraX.max.toInt()])
+        val min = 0
+        val max = data.size - 1
+
+        val left = Dates.header(data.xs[clamp(cameraX.min.toInt(), min, max)])
+        val right = Dates.header(data.xs[clamp(cameraX.max.toInt(), min, max)])
         return "$left - $right"
     }
 }

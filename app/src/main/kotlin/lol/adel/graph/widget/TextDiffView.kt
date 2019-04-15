@@ -16,9 +16,15 @@ class TextDiffView(ctx: Context) : View(ctx) {
 
     private val newBounds = Rect()
 
-    private val oldPaint = TextPaint().apply { isAntiAlias = true }
-    private val newPaint = TextPaint().apply { isAntiAlias = true }
-    private val unchangedPaint = TextPaint().apply { isAntiAlias = true }
+    private val oldPaint = TextPaint().apply {
+        isAntiAlias = true
+    }
+    private val newPaint = TextPaint().apply {
+        isAntiAlias = true
+    }
+    private val unchangedPaint = TextPaint().apply {
+        isAntiAlias = true
+    }
 
     private var frac = 1f
     private val anim = valueAnimator().apply {
@@ -82,8 +88,10 @@ class TextDiffView(ctx: Context) : View(ctx) {
         val blankX = newBounds.width().toFloat()
         val halfBlankX = blankX / 2
 
+        val descent = unchangedPaint.descent()
+
         val textLen = text.length
-        canvas.drawText(text, textLen - splitIdx, textLen, blankX, height / 2, unchangedPaint)
+        canvas.drawText(text, textLen - splitIdx, textLen, blankX, height / 2 + descent, unchangedPaint)
 
         run {
             val oldFrac = 1 - frac
@@ -95,7 +103,7 @@ class TextDiffView(ctx: Context) : View(ctx) {
             val startX = if (gravity == Gravity.START) 0f else width - unchangedPaint.measureText(prevText)
 
             val x = denorm(halfFrac, startX + halfBlankX, startX)
-            val y = denorm(frac, height / 2, 0f)
+            val y = denorm(frac, height / 2, 0f) + descent
 
             canvas.drawText(prevText, 0, prevText.length - splitIdx, x, y, oldPaint)
         }
@@ -109,7 +117,7 @@ class TextDiffView(ctx: Context) : View(ctx) {
             val startX = if (gravity == Gravity.START) 0f else width - unchangedPaint.measureText(text)
 
             val x = denorm(halfFrac, startX + halfBlankX, startX)
-            val y = denorm(frac, height, height / 2)
+            val y = denorm(frac, height, height / 2) + descent
 
             canvas.drawText(text, 0, textLen - splitIdx, x, y, newPaint)
         }

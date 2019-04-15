@@ -6,6 +6,8 @@ import android.content.Context
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.collection.SimpleArrayMap
@@ -38,7 +40,7 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
             addView(TextDiffView(ctx).apply {
                 textSizeDp = 12.dpF
                 textColor = chart.color(id)
-                typeface = Typefaces.medium
+                typeface = Typefaces.bold
                 fullFlip = true
                 gravity = Gravity.END
             }, LayoutParams(MATCH_PARENT, 20.dp))
@@ -50,13 +52,22 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
         elevation = 2.dpF
         updatePadding(left = 16.dp, top = 8.dp, right = 16.dp, bottom = 8.dp)
 
-        floatingText = TextDiffView(ctx).apply {
-            typeface = Typefaces.medium
-            textColor = ctx.color(R.attr.floating_text)
-            textSizeDp = 12.dpF
-            gravity = Gravity.START
-        }
-        addView(floatingText, LinearLayout.LayoutParams(MATCH_PARENT, 20.dp))
+        addView(FrameLayout(ctx).apply {
+            floatingText = TextDiffView(ctx).apply {
+                typeface = Typefaces.bold
+                textColor = ctx.color(R.attr.floating_text)
+                textSizeDp = 12.dpF
+                gravity = Gravity.START
+            }
+            addView(floatingText)
+
+            addView(ImageView(ctx).apply {
+                setImageResource(R.drawable.arrow)
+            }, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+                topMargin = 4.dp
+                gravity = Gravity.END
+            })
+        }, LinearLayout.LayoutParams(MATCH_PARENT, 20.dp))
 
         floatingContainer = LinearLayout(ctx).apply {
             layoutTransition = LayoutTransition()

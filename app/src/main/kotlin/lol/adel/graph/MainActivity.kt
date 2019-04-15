@@ -51,7 +51,7 @@ class MainActivity : Activity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menu.add(R.string.night_mode, ID_NIGHT, 0, R.string.night_mode).apply {
-            setIcon(R.drawable.ic_night)
+            setIcon(if (night) R.drawable.moon_night else R.drawable.moon)
             setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         }
 
