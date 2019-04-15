@@ -45,7 +45,7 @@ class RoundCheckBox(ctx: Context) : View(ctx), Checkable {
     }
 
     private val textPaint = Paint().apply {
-        textSize = 16.dpF
+        textSize = 15.dpF
         color = Color.WHITE
         typeface = Typefaces.medium
         isAntiAlias = true
