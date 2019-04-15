@@ -2,8 +2,7 @@ package help
 
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import lol.adel.graph.widget.TextDiffView
+import android.view.ViewTreeObserver
 
 fun View.updatePadding(
     left: Px = paddingLeft,
@@ -28,3 +27,19 @@ inline fun ViewGroup.forEach(f: (View) -> Unit): Unit =
 
 operator fun ViewGroup.plusAssign(v: View): Unit =
     addView(v)
+
+inline fun View.whenMeasured(crossinline f: (View) -> Unit) {
+    when {
+        width > 0 ->
+            f(this)
+
+        else ->
+            viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    viewTreeObserver.removeOnPreDrawListener(this)
+                    f(this@whenMeasured)
+                    return true
+                }
+            })
+    }
+}

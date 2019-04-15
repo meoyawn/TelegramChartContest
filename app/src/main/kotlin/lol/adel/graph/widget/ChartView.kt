@@ -22,7 +22,9 @@ class ChartView(
     val lineBuf: FloatArray,
     val cameraX: MinMax,
     val enabledLines: List<LineId>,
-    val preview: Boolean
+    val preview: Boolean,
+    private val touchingIdx: MutableInt,
+    private val touchingX: MutableFloat
 ) : View(ctx) {
 
     interface Listener {
@@ -106,6 +108,10 @@ class ChartView(
             if (it !in enabledLines) {
                 animatedColumns[it]?.frac = 0f
             }
+        }
+
+        if (!preview && touchingIdx.get != -1) {
+            drawer.touch(touchingIdx.get.toFloat(), touchingX.get)
         }
     }
 

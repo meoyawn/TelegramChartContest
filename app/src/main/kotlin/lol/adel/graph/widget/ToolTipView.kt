@@ -16,7 +16,12 @@ import lol.adel.graph.data.*
 import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
-class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>) : LinearLayout(ctx) {
+class ToolTipView(
+    ctx: Context,
+    private val data: Chart,
+    private val enabledLines: List<LineId>,
+    private val touchingIdx: MutableInt
+) : LinearLayout(ctx) {
 
     private companion object {
         fun ViewGroup.percentage(): TextDiffView =
@@ -31,8 +36,6 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
 
     private val lineTexts = SimpleArrayMap<LineId, ViewGroup>()
     private val all: TextDiffView
-
-    private var lastIdx: Idx = -1
 
     private fun makeLineText(ctx: Context, chart: Chart, id: LineId): ViewGroup =
         LinearLayout(ctx).apply {
@@ -134,23 +137,22 @@ class ToolTipView(ctx: Context, val data: Chart, val enabledLines: List<LineId>)
             lineTexts[it]?.visibility = View.VISIBLE
         }
 
-        if (lastIdx != -1) {
-            updateValues(lastIdx)
+        if (touchingIdx.get != -1) {
+            updateValues(touchingIdx.get)
         }
     }
 
     fun show(idx: Idx, x: PxF) {
-        lastIdx = idx
         if (idx == -1) return
 
-        val floatingWidth = width
-        val parentWidth = parent.parent.let { it as View }.widthF
-
-        val target = x - floatingWidth / 2f
-        translationX = clamp(target, 0f, parentWidth - floatingWidth)
+        whenMeasured {
+            val floatingWidth = width
+            val parentWidth = parent.parent.let { it as View }.widthF
+            val target = x - floatingWidth / 2f
+            translationX = clamp(target, 0f, parentWidth - floatingWidth)
+        }
 
         floatingText.text = Dates.tooltip(data.xs[idx])
-
         updateValues(idx)
     }
 

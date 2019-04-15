@@ -46,9 +46,11 @@ class TextDiffView(ctx: Context) : View(ctx) {
                 unchangedPaint.getTextBounds(value, 0, value.length - splitIdx, newBounds)
                 prevText = field
 
-                field = value
+                if (field != "") {
+                    anim.restart()
+                }
 
-                anim.restart()
+                field = value
             }
         }
 

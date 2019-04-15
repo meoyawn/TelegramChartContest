@@ -41,6 +41,9 @@ class ChartParent(
     private val enabledLines = ArrayList(data.lineIds)
     private val cameraX = MinMax(min = 0f, max = data.size - 1f)
 
+    private val touchingIdx = MutableInt(get = -1)
+    private val touchingX = MutableFloat(get = -1f)
+
     init {
         id = ID + idx
         orientation = LinearLayout.VERTICAL
@@ -52,6 +55,9 @@ class ChartParent(
             putFloat("start", cameraX.min)
             putFloat("end", cameraX.max)
             putStringArrayList("enabled", ArrayList(enabledLines))
+
+            putInt("idx", touchingIdx.get)
+            putFloat("x", touchingX.get)
         }
 
     override fun onRestoreInstanceState(state: Parcelable?) {
@@ -62,6 +68,10 @@ class ChartParent(
                 enabledLines.clear()
                 enabledLines.addAll(it)
             }
+
+            touchingIdx.get = state.getInt("idx")
+            touchingX.get = state.getFloat("x")
+            println(touchingX.toString())
         } else {
             super.onRestoreInstanceState(state)
         }
@@ -103,10 +113,10 @@ class ChartParent(
         addView(FrameLayout(ctx).apply {
             layoutTransition = LayoutTransition()
 
-            chartView = ChartView(ctx, data, lineBuffer, cameraX, enabledLines, false)
+            chartView = ChartView(ctx, data, lineBuffer, cameraX, enabledLines, false, touchingIdx, touchingX)
             addView(chartView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
-            toolTip = ToolTipView(ctx, data, enabledLines)
+            toolTip = ToolTipView(ctx, data, enabledLines, touchingIdx)
             addView(toolTip, FrameLayout.LayoutParams(140.dp, WRAP_CONTENT).apply { topMargin = 28.dp })
         }, LinearLayout.LayoutParams(MATCH_PARENT, height))
 
@@ -119,7 +129,7 @@ class ChartParent(
 
         addView(FrameLayout(ctx).apply {
             val previewCamX = MinMax(min = 0f, max = lastIndex.toFloat())
-            preview = ChartView(ctx, data, lineBuffer, previewCamX, enabledLines, preview = true)
+            preview = ChartView(ctx, data, lineBuffer, previewCamX, enabledLines, true, touchingIdx, touchingX)
             addView(preview, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
             scroll = ScrollBarView(ctx, cameraX, data.size)
@@ -144,7 +154,6 @@ class ChartParent(
         dates.text = currentDateRange()
         scroll.listener = object : ScrollBarView.Listener {
             override fun onBoundsChange(left: Float, right: Float) {
-
                 cameraX.set(left * lastIndex, right * lastIndex)
                 chartView.cameraXChanged()
                 xLabels.cameraXChanged()
@@ -152,13 +161,21 @@ class ChartParent(
             }
         }
 
-        toolTip.visibility = View.INVISIBLE
+        touchChange()
         chartView.listener = object : ChartView.Listener {
             override fun onTouch(idx: Idx, x: PxF) {
-                toolTip.visibility = visibleOrInvisible(idx != -1)
-                toolTip.show(idx, x)
+                touchingIdx.get = idx
+                touchingX.get = x
+                touchChange()
             }
         }
+    }
+
+    private fun touchChange() {
+        println(touchingX.toString())
+
+        toolTip.visibility = visibleOrInvisible(touchingIdx.get != -1)
+        toolTip.show(touchingIdx.get, touchingX.get)
     }
 
     private fun currentDateRange(): String {
