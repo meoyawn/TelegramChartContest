@@ -96,9 +96,13 @@ class TextDiffView(ctx: Context) : View(ctx) {
 
         run {
             val textStart = textLen - splitIdx
-            val startX =
-                if (gravity == Gravity.START) blankX
-                else width - unchangedPaint.measureText(text, textStart, textLen)
+            val startX = when (gravity) {
+                Gravity.START ->
+                    blankX
+
+                else ->
+                    width - unchangedPaint.measureText(text, textStart, textLen)
+            }
             canvas.drawText(text, textStart, textLen, startX, height / 2 + descent, unchangedPaint)
         }
 
@@ -109,7 +113,13 @@ class TextDiffView(ctx: Context) : View(ctx) {
             oldPaint.alphaF = oldFrac
             oldPaint.textSize = textSizeDp * halfFrac
 
-            val startX = if (gravity == Gravity.START) 0f else width - unchangedPaint.measureText(prevText)
+            val startX = when (gravity) {
+                Gravity.START ->
+                    0f
+
+                else ->
+                    width - unchangedPaint.measureText(prevText)
+            }
 
             val x = denorm(halfFrac, startX + halfBlankX, startX)
             val y = denorm(frac, height / 2, 0f) + descent
@@ -123,7 +133,13 @@ class TextDiffView(ctx: Context) : View(ctx) {
             newPaint.alphaF = frac
             newPaint.textSize = textSizeDp * halfFrac
 
-            val startX = if (gravity == Gravity.START) 0f else width - unchangedPaint.measureText(text)
+            val startX = when (gravity) {
+                Gravity.START ->
+                    0f
+
+                else ->
+                    width - unchangedPaint.measureText(text)
+            }
 
             val x = denorm(halfFrac, startX + halfBlankX, startX)
             val y = denorm(frac, height, height / 2) + descent

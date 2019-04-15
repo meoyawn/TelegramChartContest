@@ -10,6 +10,7 @@ import android.view.View
 import help.*
 import lol.adel.graph.MinMax
 import lol.adel.graph.R
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -20,6 +21,7 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
         private val HANDLE_WIDTH = 10.dp
         private val HANDLE_HEIGHT = 1.dpF
         private val TOUCH_SIZE = 48.dp
+        private val TWELVE = 12.dpF
     }
 
     private sealed class Handle {
@@ -53,7 +55,10 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
     private val dragging: SparseArray<Handle> = SparseArray()
 
     private fun around(x: X, view: X): Boolean =
-        Math.abs(x - view) <= TOUCH_SIZE / 2
+        abs(x - view) <= TOUCH_SIZE / 2
+
+    private fun around2(x: X, view: X): Boolean =
+        abs(x - view) <= TOUCH_SIZE
 
     private fun set(left: Float, right: Float) {
         this.left = left
@@ -82,13 +87,13 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val size:
 
                 if (dragging[pointerId] == null && draggingSize < 2) {
                     val handle = when {
-                        evX in (left + 12.dp)..(right - 12.dp) && draggingSize == 0 ->
+                        evX in (left + TWELVE)..(right - TWELVE) && draggingSize == 0 ->
                             Handle.Between(left = left, right = right, x = evX)
 
-                        around(evX, left) ->
+                        around(evX, left) || (around2(evX, 0f) && around2(left, 0f)) ->
                             Handle.Left
 
-                        around(evX, right) ->
+                        around(evX, right) || (around2(evX, widthF) && around2(right, widthF)) ->
                             Handle.Right
 
                         else ->

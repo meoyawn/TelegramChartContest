@@ -76,11 +76,10 @@ class ChartParent(
         }
     }
 
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
+    private var inflated = false
 
+    private fun inflate() {
         val ctx = context
-
         addView(FrameLayout(ctx).apply {
             name = TextView(ctx).apply {
                 text = CHART_NAMES[idx]
@@ -107,7 +106,7 @@ class ChartParent(
         })
 
         val configuration = ctx.resources.configuration
-        val height = if (configuration.screenHeightDp > configuration.screenWidthDp) 260.dp else 130.dp
+        val height = if (configuration.screenHeightDp > configuration.screenWidthDp) 260.dp else 220.dp
 
         addView(FrameLayout(ctx).apply {
             layoutTransition = LayoutTransition()
@@ -115,7 +114,9 @@ class ChartParent(
             chartView = ChartView(ctx, data, lineBuffer, cameraX, enabledLines, false, touchingIdx, touchingX)
             addView(chartView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
-            toolTip = ToolTipView(ctx, data, enabledLines, touchingIdx)
+            toolTip = ToolTipView(ctx, data, enabledLines, touchingIdx).apply {
+                visibility = visibleOrInvisible(touchingIdx.get != -1)
+            }
             addView(toolTip, FrameLayout.LayoutParams(140.dp, WRAP_CONTENT).apply { topMargin = 28.dp })
         }, LinearLayout.LayoutParams(MATCH_PARENT, height))
 
@@ -165,6 +166,8 @@ class ChartParent(
         }
 
         onTouchChange()
+        toolTip.jumpDrawablesToCurrentState()
+
         chartView.listener = object : ChartView.Listener {
             override fun onTouch(idx: Idx, x: PxF) {
                 touchingIdx.get = idx
@@ -172,6 +175,14 @@ class ChartParent(
                 onTouchChange()
             }
         }
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        if (!inflated) {
+            inflate()
+            inflated = true
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
     private fun onTouchChange() {

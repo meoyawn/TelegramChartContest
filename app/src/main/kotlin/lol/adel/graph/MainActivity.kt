@@ -23,13 +23,13 @@ class MainActivity : Activity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(if (night) R.style.AppTheme_Dark else R.style.AppTheme_Light)
+
         super.onCreate(savedInstanceState)
 
         val charts = App.CHARTS
         val fattest = charts.maxBy { it.size * it.lineIds.size }!!
         val lineBuffer = FloatArray(size = fattest.size.inc() * fattest.lineIds.size * 4)
-
-        setTheme(if (night) R.style.AppTheme_Dark else R.style.AppTheme_Light)
 
         setContentView(ScrollView(ctx).apply {
             id = ID_SCROLL

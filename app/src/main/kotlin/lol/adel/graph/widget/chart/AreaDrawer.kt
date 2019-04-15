@@ -117,7 +117,7 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
         val endC = cameraX.max.ceil()
 
         val realRange = cameraX.floorToCeilLen()
-        val step = if (view.preview) 4 else 1
+        val step = if (view.preview) 5 else 1
 
         val iSize = (realRange / step) + 1
         val jSize = columns.size()
