@@ -11,7 +11,7 @@ import android.widget.ScrollView
 import help.MATCH_PARENT
 import help.WRAP_CONTENT
 import help.ctx
-import lol.adel.graph.widget.ChartParent
+import lol.adel.graph.view.ChartParent
 
 class MainActivity : Activity() {
 

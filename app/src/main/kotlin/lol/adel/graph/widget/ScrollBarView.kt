@@ -63,6 +63,10 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val data:
 
     private val dragging: SparseArray<Handle> = SparseArray()
 
+    init {
+        setLayerType(View.LAYER_TYPE_HARDWARE, null)
+    }
+
     private fun around(x: X, view: X): Boolean =
         abs(x - view) <= TOUCH_SIZE / 2
 
@@ -154,7 +158,6 @@ class ScrollBarView(ctx: Context, private val cameraX: MinMax, private val data:
 
     private val paint = Paint().apply {
         color = Color.WHITE
-        strokeCap = Paint.Cap.ROUND
         strokeWidth = 2.dpF
         isAntiAlias = true
     }

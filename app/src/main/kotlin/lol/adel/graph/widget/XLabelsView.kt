@@ -30,6 +30,10 @@ class XLabelsView(ctx: Context, private val xs: LongArray, private val cameraX: 
         isAntiAlias = true
     }
 
+    init {
+        setLayerType(View.LAYER_TYPE_HARDWARE, null)
+    }
+
     fun cameraXChanged() {
         invalidate()
     }

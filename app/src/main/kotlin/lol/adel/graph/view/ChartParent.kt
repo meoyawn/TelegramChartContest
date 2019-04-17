@@ -1,4 +1,4 @@
-package lol.adel.graph.widget
+package lol.adel.graph.view
 
 import android.animation.LayoutTransition
 import android.annotation.SuppressLint
@@ -16,6 +16,10 @@ import lol.adel.graph.*
 import lol.adel.graph.data.Chart
 import lol.adel.graph.data.ChartType
 import lol.adel.graph.data.LineId
+import lol.adel.graph.widget.ChartView
+import lol.adel.graph.widget.RoundedFrameLayout
+import lol.adel.graph.widget.ScrollBarView
+import lol.adel.graph.widget.XLabelsView
 
 @SuppressLint("ViewConstructor")
 class ChartParent(
@@ -124,10 +128,8 @@ class ChartParent(
             addView(toolTip, FrameLayout.LayoutParams(140.dp, WRAP_CONTENT).apply { topMargin = 28.dp })
         }, LinearLayout.LayoutParams(MATCH_PARENT, height))
 
-        addView(FrameLayout(ctx).apply {
-            xLabels = XLabelsView(ctx, data.xs, cameraX)
-            addView(xLabels)
-        }, LinearLayout.LayoutParams(MATCH_PARENT, 36.dp))
+        xLabels = XLabelsView(ctx, data.xs, cameraX)
+        addView(xLabels, LinearLayout.LayoutParams(MATCH_PARENT, 36.dp))
 
         val lastIndex = data.size - 1
 

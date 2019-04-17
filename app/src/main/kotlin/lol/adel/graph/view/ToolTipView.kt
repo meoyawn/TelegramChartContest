@@ -1,4 +1,4 @@
-package lol.adel.graph.widget
+package lol.adel.graph.view
 
 import android.animation.LayoutTransition
 import android.annotation.SuppressLint
@@ -13,6 +13,7 @@ import lol.adel.graph.Dates
 import lol.adel.graph.R
 import lol.adel.graph.Typefaces
 import lol.adel.graph.data.*
+import lol.adel.graph.widget.TextDiffView
 import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")

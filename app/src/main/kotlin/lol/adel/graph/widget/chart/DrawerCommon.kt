@@ -21,7 +21,6 @@ fun makeLinePaint(preview: Boolean, clr: ColorInt): Paint =
     Paint().apply {
         style = Paint.Style.STROKE
         strokeWidth = if (preview) 1.dpF else 2.dpF
-        strokeCap = Paint.Cap.ROUND
         isAntiAlias = true
         color = clr
     }

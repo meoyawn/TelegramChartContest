@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Path
 import android.graphics.RectF
+import android.view.View
 import android.widget.FrameLayout
 import help.dpF
 
@@ -12,6 +13,10 @@ class RoundedFrameLayout(context: Context) : FrameLayout(context) {
     private val rectF = RectF()
     private val path = Path()
     private var cornerRadius = 10.dpF
+
+    init {
+        setLayerType(View.LAYER_TYPE_HARDWARE, null)
+    }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)

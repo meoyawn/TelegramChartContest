@@ -1,4 +1,4 @@
-package lol.adel.graph.widget
+package lol.adel.graph.view
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -10,6 +10,7 @@ import help.*
 import lol.adel.graph.data.Chart
 import lol.adel.graph.data.LineId
 import lol.adel.graph.data.color
+import lol.adel.graph.widget.RoundCheckBox
 import org.apmem.tools.layouts.FlowLayout
 
 @SuppressLint("ViewConstructor")

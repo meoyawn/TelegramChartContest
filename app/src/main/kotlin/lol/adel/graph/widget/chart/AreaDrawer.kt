@@ -9,7 +9,6 @@ import help.*
 import lol.adel.graph.*
 import lol.adel.graph.data.LineId
 import lol.adel.graph.widget.ChartView
-import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToInt
 
@@ -87,7 +86,6 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
     override fun makePaint(clr: ColorInt): Paint =
         Paint().apply {
             style = Paint.Style.FILL
-            strokeCap = Paint.Cap.ROUND
             isAntiAlias = true
             color = clr
         }
@@ -125,10 +123,8 @@ class AreaDrawer(override val view: ChartView) : ChartDrawer {
                 dataSize / div
 
             else ->
-                max(1, realRange / div)
+                1
         }
-
-        println(step)
 
         val iSize = (realRange / step) + 1
         val jSize = columns.size()

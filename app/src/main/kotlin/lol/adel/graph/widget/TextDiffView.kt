@@ -81,6 +81,10 @@ class TextDiffView(ctx: Context) : View(ctx) {
 
     var gravity: Int = Gravity.START
 
+    init {
+        setLayerType(View.LAYER_TYPE_HARDWARE, null)
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 

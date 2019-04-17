@@ -112,6 +112,8 @@ class ChartView(
         if (!preview && touchingIdx.get != -1) {
             drawer.touch(touchingIdx.get.toFloat(), touchingX.get)
         }
+
+        setLayerType(View.LAYER_TYPE_HARDWARE, null)
     }
 
     fun cameraXChanged() {
@@ -184,19 +186,5 @@ class ChartView(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         drawer.draw(canvas)
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (width > 0) {
-            setMeasuredDimension(width, height)
-        } else {
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        }
-    }
-
-    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        if (changed) {
-            super.onLayout(changed, l, t, r, b)
-        }
     }
 }

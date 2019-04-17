@@ -68,6 +68,10 @@ class RoundCheckBox(ctx: Context) : View(ctx), Checkable {
 
     private var checked: Boolean = false
 
+    init {
+        setLayerType(View.LAYER_TYPE_HARDWARE, null)
+    }
+
     override fun setChecked(checked: Boolean) {
         this.checked = checked
         val targetFrac = if (checked) 1f else 0f
