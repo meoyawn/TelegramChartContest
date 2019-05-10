@@ -16,6 +16,7 @@ Tag https://github.com/adelnizamutdinov/TelegramChartContest/releases/tag/1.0
 4th place
 
 https://t.me/contest/79
+
 https://contest.dev/chart-android/entry136
 
 Tag https://github.com/adelnizamutdinov/TelegramChartContest/releases/tag/2.0
